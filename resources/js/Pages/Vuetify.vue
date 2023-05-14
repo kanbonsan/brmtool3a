@@ -13,6 +13,9 @@ import { Head } from "@inertiajs/vue3"
 import { GoogleMap, Marker, Polyline } from "vue3-google-map"
 import brm from "../../sample/sample200.brm.json"
 
+import Vue3DraggableResizable from 'vue3-draggable-resizable'
+import 'vue3-draggable-resizable/dist/Vue3DraggableResizable.css'
+
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useGmapStore } from "@/stores/GmapStore"
 import circle from '../../images/pointCircle.png'
@@ -30,7 +33,7 @@ const center = ref({ lat: 35.2418, lng: 137.1146 })
 
 const store = useBrmRouteStore()
 
-const availablePoints = computed(()=>store.availablePoints)
+const availablePoints = computed(() => store.availablePoints)
 
 const gmapStore = useGmapStore()
 
@@ -45,15 +48,15 @@ store.$subscribe((mutation, state) => {
 onMounted(() => {
     setTimeout(() => {
         store.deviate()
-        store.setExclude(10,50)
-        store.setExclude( 300,350)
+        store.setExclude(10, 50)
+        store.setExclude(300, 350)
         console.log('deviated')
     }, 5000)
     setTimeout(() => {
-        store.delete(100,200)
+        store.delete(100, 200)
         console.log('delete')
     }, 10000)
-    
+
 })
 
 

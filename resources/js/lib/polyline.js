@@ -42,7 +42,7 @@ function encode(current, previous, factor) {
  * This is adapted from the implementation in Project-OSRM.
  *
  * @param {String} str
- * @param {Number} includeAltitude 標高を加えるか
+ * @param {Boolean} includeAltitude 標高を加えるか
  * @param {Number} altitudeFactor 標高データを小数点以下何桁にするか（OPENROUTE は 2桁のようなので可変にした）
  * @returns {Array}
  *
