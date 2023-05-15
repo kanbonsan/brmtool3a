@@ -17,6 +17,9 @@ import '@mdi/font/css/materialdesignicons.css' // Ensure you are using css-loade
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 
+// vue-final-plugin
+import { vfmPlugin } from 'vue-final-modal';
+
 const vuetify = createVuetify({
     components,
     directives,
@@ -41,6 +44,7 @@ createInertiaApp({
             .use(ZiggyVue, Ziggy)
             .use(vuetify)
             .use(pinia)
+            .use(vfmPlugin)
             .mount(el);
     },
     progress: {

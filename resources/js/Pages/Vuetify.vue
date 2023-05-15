@@ -13,16 +13,13 @@ import { Head } from "@inertiajs/vue3"
 import { GoogleMap, Marker, Polyline } from "vue3-google-map"
 import brm from "../../sample/sample200.brm.json"
 
-import Vue3DraggableResizable from 'vue3-draggable-resizable'
-import 'vue3-draggable-resizable/dist/Vue3DraggableResizable.css'
-
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useGmapStore } from "@/stores/GmapStore"
 import circle from '../../images/pointCircle.png'
 
 import BrmPolyline from "@/Components/BrmPolyline.vue"
 
-//import CustomModal from "@/Components/CustomModal"
+import { $vfm } from 'vue-final-modal'
 
 import { debounce } from "lodash"
 
@@ -113,8 +110,8 @@ const markerClick = (id) => {
 <template>
     <GoogleMap ref="gmap" :api-key="apiKey" style="width: 100%; height: 100%" :center="center" :zoom="15"
         v-slot="slotProps">
-        <Marker :options="markerOption(pt)" v-for="(pt, index) in store.availablePoints" :key="pt.id"
-            @mouseover="markerClick(pt.id)" />
+        <Marker :options="markerOption(pt)" v-for="(pt) in availablePoints" :key="pt.id" @mouseover="markerClick(pt.id)">
+        </Marker>
         <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
     </GoogleMap>
     <div style="position: fixed;

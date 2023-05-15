@@ -39,6 +39,8 @@
                 </v-card-text>
             </v-card>
         </v-dialog>
+
+        <modals-container></modals-container>
     </v-app>
 </template>
 
@@ -46,6 +48,7 @@
 import { ref, onMounted } from "vue"
 import { Link, router } from "@inertiajs/vue3"
 import axios from "axios"
+import { ModalsContainer } from 'vue-final-modal'
 
 console.log(import.meta.env.VITE_GOOGLE_MAPS_KEY)
 
