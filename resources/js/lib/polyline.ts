@@ -18,10 +18,6 @@ type Coordinate = {
  * @module polyline
  */
 
-export var polyline: {
-    decode: (str: string, includeAlt: Boolean, Factor: number) => Array<Coordinate>,
-    encode: (coords: Array<CoordTuple>, Factor: number) => string
-} = {}
 
 function py2_round(value: number) {
     // Google's polyline algorithm uses the same rounding strategy as Python 2, which is different from JS for negative values
@@ -57,7 +53,7 @@ function encode(current: number, previous: number, factor: number): string {
  *
  * @see https://github.com/Project-OSRM/osrm-frontend/blob/master/WebContent/routing/OSRM.RoutingGeometry.js
  */
-polyline.decode = function (str: string, includeAltitude = true, altitudeFactor = 1000): Array<Coordinate> {
+const _decode = function (str: string, includeAltitude = true, altitudeFactor = 1000): Array<Coordinate> {
     var index = 0,
         lat = 0,
         lng = 0,
@@ -131,7 +127,7 @@ polyline.decode = function (str: string, includeAltitude = true, altitudeFactor 
  */
 type CoordTuple = [number, number, number]
 
-polyline.encode = function (coordinates: Array<CoordTuple>, altitudeFactor = 1000): string {
+const _encode = function (coordinates: Array<CoordTuple>, altitudeFactor = 1000): string {
     if (!coordinates.length) {
         return ''
     }
@@ -149,3 +145,5 @@ polyline.encode = function (coordinates: Array<CoordTuple>, altitudeFactor = 100
     return output
 }
 
+export var polyline
+    = { encode: _encode, decode: _decode }
