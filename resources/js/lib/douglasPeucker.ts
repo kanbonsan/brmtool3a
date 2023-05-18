@@ -1,6 +1,6 @@
 type Point = { x: number, y: number }
 
-export var simplifyPath = function (points: [number, number], tolerance = 0.00005) {
+export var simplifyPath = function (points: Array<Point>, tolerance = 0.00005) {
 
     var Line = class {
 
@@ -36,11 +36,11 @@ export var simplifyPath = function (points: [number, number], tolerance = 0.0000
         }
     }
 
-    var douglasPeucker = (points: [Point], tolerance: number): [Point] => {
+    var douglasPeucker = (points: Array<Point>, tolerance: number): Array<Point> => {
         if (points.length <= 2) {
             return [points[0]]
         }
-        var returnPoints: [Point] | [] = [],
+        var returnPoints: Array<Point> = [],
             // make line from start to end 
             line = new Line(points[0], points[points.length - 1]),
             // find the largest distance from intermediate poitns to this line
@@ -65,7 +65,7 @@ export var simplifyPath = function (points: [number, number], tolerance = 0.0000
         } else {
             // ditching this point
             p = points[maxDistanceIndex]
-            line.distanceToPoint(p, true)
+            line.distanceToPoint(p)
             returnPoints = [points[0]]
         }
         return returnPoints

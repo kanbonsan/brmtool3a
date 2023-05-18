@@ -1,5 +1,11 @@
 'use strict'
 
+type Coordinate = {
+    lat: number,
+    lng: number,
+    alt: number | null
+}
+
 /**
  * Based off of [the offical Google document](https://developers.google.com/maps/documentation/utilities/polylinealgorithm)
  *
@@ -12,7 +18,10 @@
  * @module polyline
  */
 
-export var polyline = {}
+export var polyline: {
+    decode: (str: string, includeAlt: Boolean, Factor: number) => Array<Coordinate>,
+    encode: (coords: Array<CoordTuple>, Factor: number) => string
+} = {}
 
 function py2_round(value: number) {
     // Google's polyline algorithm uses the same rounding strategy as Python 2, which is different from JS for negative values
@@ -48,18 +57,18 @@ function encode(current: number, previous: number, factor: number): string {
  *
  * @see https://github.com/Project-OSRM/osrm-frontend/blob/master/WebContent/routing/OSRM.RoutingGeometry.js
  */
-polyline.decode = function (str: string, includeAltitude = true, altitudeFactor = 1000):[{lat:number,lng:number,alt?:number}] |[]{
+polyline.decode = function (str: string, includeAltitude = true, altitudeFactor = 1000): Array<Coordinate> {
     var index = 0,
         lat = 0,
         lng = 0,
         alt = 0,
-        coordinates : [{lat:number,lng:number,alt:number|null}]|[]= [],
+        coordinates = [],
         shift = 0,
         result = 0,
-        byte = null,
-        latitude_change,
-        longitude_change,
-        altitude_change
+        byte: number | null = null,
+        latitude_change: number,
+        longitude_change: number,
+        altitude_change: number
 
     // Coordinates have variable length when encoded, so just keep
     // track of whether we've hit the end of the string. In each
@@ -89,10 +98,11 @@ polyline.decode = function (str: string, includeAltitude = true, altitudeFactor 
 
         longitude_change = ((result & 1) ? ~(result >> 1) : (result >> 1))
 
+        lat += latitude_change
+        lng += longitude_change
+
         if (includeAltitude) {
-
             shift = result = 0
-
             do {
                 byte = str.charCodeAt(index++) - 63
                 result |= (byte & 0x1f) << shift
@@ -100,12 +110,6 @@ polyline.decode = function (str: string, includeAltitude = true, altitudeFactor 
             } while (byte >= 0x20)
 
             altitude_change = ((result & 1) ? ~(result >> 1) : (result >> 1))
-        }
-
-        lat += latitude_change
-        lng += longitude_change
-
-        if (includeAltitude) {
             alt += altitude_change
         }
 
@@ -125,12 +129,14 @@ polyline.decode = function (str: string, includeAltitude = true, altitudeFactor 
  * @param {Array.<Array.<Number>>} coordinates
  * @returns {String}
  */
-polyline.encode = function (coordinates, altitudeFactor = 1000) {
+type CoordTuple = [number, number, number]
+
+polyline.encode = function (coordinates: Array<CoordTuple>, altitudeFactor = 1000): string {
     if (!coordinates.length) {
         return ''
     }
 
-    var output = encode(coordinates[0][0], 0, 100000) + encode(coordinates[0][1], 0, 100000) + encode(coordinates[0][2], 0, altitudeFactor)
+    var output: string = encode(coordinates[0][0], 0, 100000) + encode(coordinates[0][1], 0, 100000) + encode(coordinates[0][2], 0, altitudeFactor)
 
     for (var i = 1; i < coordinates.length; i++) {
         var a = coordinates[i],
@@ -142,3 +148,4 @@ polyline.encode = function (coordinates, altitudeFactor = 1000) {
 
     return output
 }
+

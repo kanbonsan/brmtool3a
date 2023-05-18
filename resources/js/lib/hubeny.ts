@@ -12,7 +12,7 @@
  * @param {float} longitude2 終了経度
  * @returns {Number} 2点間の距離（メートル）
  */
-export function hubeny(latitude1: number, longitude1: number, latitude2: number, longitude2: number): number {
+export function hubeny(latitude1: number, longitude1: number, latitude2: number, longitude2: number) {
 
     // return distVincenty( latitude1, longitude1, latitude2, longitude2 );
 
