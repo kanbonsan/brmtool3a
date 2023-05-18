@@ -14,12 +14,12 @@
 
 export var polyline = {}
 
-function py2_round(value) {
+function py2_round(value: number) {
     // Google's polyline algorithm uses the same rounding strategy as Python 2, which is different from JS for negative values
     return Math.floor(Math.abs(value) + 0.5) * (value >= 0 ? 1 : -1)
 }
 
-function encode(current, previous, factor) {
+function encode(current: number, previous: number, factor: number): string {
     current = py2_round(current * factor)
     previous = py2_round(previous * factor)
     var coordinate = current - previous
@@ -48,12 +48,12 @@ function encode(current, previous, factor) {
  *
  * @see https://github.com/Project-OSRM/osrm-frontend/blob/master/WebContent/routing/OSRM.RoutingGeometry.js
  */
-polyline.decode = function (str, includeAltitude = true, altitudeFactor = 1000) {
+polyline.decode = function (str: string, includeAltitude = true, altitudeFactor = 1000):[{lat:number,lng:number,alt?:number}] |[]{
     var index = 0,
         lat = 0,
         lng = 0,
         alt = 0,
-        coordinates = [],
+        coordinates : [{lat:number,lng:number,alt:number|null}]|[]= [],
         shift = 0,
         result = 0,
         byte = null,
@@ -125,7 +125,7 @@ polyline.decode = function (str, includeAltitude = true, altitudeFactor = 1000) 
  * @param {Array.<Array.<Number>>} coordinates
  * @returns {String}
  */
-polyline.encode = function (coordinates, altitudeFactor=1000) {
+polyline.encode = function (coordinates, altitudeFactor = 1000) {
     if (!coordinates.length) {
         return ''
     }

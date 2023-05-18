@@ -12,7 +12,7 @@
  * @param {float} longitude2 終了経度
  * @returns {Number} 2点間の距離（メートル）
  */
-export function hubeny(latitude1, longitude1, latitude2, longitude2) {
+export function hubeny(latitude1: number, longitude1: number, latitude2: number, longitude2: number): number {
 
     // return distVincenty( latitude1, longitude1, latitude2, longitude2 );
 
@@ -21,7 +21,7 @@ export function hubeny(latitude1, longitude1, latitude2, longitude2) {
     let Rx = 6378137.0             // WGS84における「赤道半径Rx」
     let m_numer = 6335439.32729246 // WGS84における「子午線曲率半径M」の分子(Rx(1-e^2))
 
-    function deg2rad(deg) {
+    function deg2rad(deg: number) {
         return deg * (Math.PI / 180.0)
     }
 
