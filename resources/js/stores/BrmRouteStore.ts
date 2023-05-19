@@ -17,7 +17,7 @@ const simplifyParam = [
 export const useBrmRouteStore = defineStore('brmroute', {
 
     state: () => ({
-        points: [],
+        points: [] as RoutePoint[],
     }),
 
     getters: {
@@ -44,11 +44,11 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * リアクティブに polyline を書き換えてもらうために unique ID を Symbol() で振る
          * @returns Array<{ begin, end, id: Symbol()}>
          */
-        excludedRanges: (state) => {
+        excludedRanges(state) {
             const arr = []
             let begin
             let end
-            for (let i = 0; i < state.count; i++) {
+            for (let i = 0; i < this.count; i++) {
                 const pt = state.points[i]
                 if (pt.excluded === true) {
                     if (!begin) {
@@ -68,7 +68,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
             return arr.map((range) => {
                 const begin = Math.max(range.begin - 1, 0)
-                const end = Math.min(range.end + 1, state.count - 1)
+                const end = Math.min(range.end + 1, this.count - 1)
                 const points = []
                 points.push(state.points[begin])
                 for (let i = begin + 1; i < end; i++) {
@@ -85,7 +85,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
     actions: {
         /** encoded Path を与えて初期化する */
-        setPoints(path) {
+        setPoints(path: string) {
 
             const _points = polyline.decode(path)
 
@@ -170,7 +170,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * @param {Number} begin 除外開始インデックス
          * @param {Number} end 除外終了インデックス
          */
-        setExclude(begin, end) {
+        setExclude(begin: number, end: number) {
             let _begin = Math.min(begin, end)
             let _end = Math.max(begin, end)
 
@@ -196,7 +196,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * @param {Number} begin 開始インデックス
          * @param {Number} end 終了インデックス
          */
-        restoreExclude(begin, end) {
+        restoreExclude(begin: number, end: number) {
             if (begin < 0 || end >= this.count) {
                 throw new Error("restoreExcludeFlag: 範囲が適切ではありません.")
             }
@@ -217,8 +217,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
             this.setWeight()
         },
 
-        delete(begin=1450,end=1499){
-            this.points.splice(begin,end-begin)
+        delete(begin = 1450, end = 1499) {
+            this.points.splice(begin, end - begin)
         }
     }
 })
