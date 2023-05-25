@@ -14,10 +14,14 @@ const simplifyParam = [
     { weight: 9, tolerance: 0.0005 }
 ]
 
+type State = {
+    points: RoutePoint[]
+}
+
 export const useBrmRouteStore = defineStore('brmroute', {
 
-    state: () => ({
-        points: [] as RoutePoint[],
+    state: (): State => ({
+        points: [],
     }),
 
     getters: {
@@ -37,7 +41,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
         /** point id からポイントインデックスを抽出 */
         getPointById: (state) => {
-            return (id) => state.points.findIndex(pt => pt.id === id)
+            return (id: symbol) => state.points.findIndex(pt => pt.id === id)
         },
         /**
          * (getter) 除外範囲の開始と終了の各インデックスを求める
@@ -45,9 +49,12 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * @returns Array<{ begin, end, id: Symbol()}>
          */
         excludedRanges(state) {
-            const arr = []
-            let begin
-            let end
+            const arr = [] as Array<{
+                begin: number | null, end: number | null
+            }>
+
+            let begin: number | null = null
+            let end: number | null = null
             for (let i = 0; i < this.count; i++) {
                 const pt = state.points[i]
                 if (pt.excluded === true) {
@@ -67,6 +74,11 @@ export const useBrmRouteStore = defineStore('brmroute', {
             if (arr.length === 0) { return arr }
 
             return arr.map((range) => {
+
+                if (!range.begin || !range.end) {  // TypeScript で possible 'null' を避けるため
+                    return
+                }
+
                 const begin = Math.max(range.begin - 1, 0)
                 const end = Math.min(range.end + 1, this.count - 1)
                 const points = []
@@ -90,7 +102,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             const _points = polyline.decode(path)
 
             this.points = [...(_points.map((pt) => {
-                return new RoutePoint(pt.lat, pt.lng, pt.alt)
+                return new RoutePoint(pt.lat, pt.lng, pt.alt ?? undefined)
             }))]
 
             // ポイントウエイトを設定
@@ -114,7 +126,6 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 const tolerance = condition.tolerance
                 const weight = condition.weight
                 const _result = simplifyPath(this.pointsArray, tolerance)
-                console.log('wt: %d %d', weight, _result.length)
 
                 _result.forEach(pt => {
                     this.points[pt.index].weight = Math.max(this.points[pt.index].weight, weight)

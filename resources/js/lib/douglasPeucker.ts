@@ -1,4 +1,4 @@
-type Point = { x: number, y: number }
+type Point = { x: number, y: number, index: number }
 
 export var simplifyPath = function (points: Array<Point>, tolerance = 0.00005) {
 
