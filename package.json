@@ -28,6 +28,7 @@
         "splitpanes": "^3.1.5",
         "vue-final-modal": "^3.4.11",
         "vue3-google-map": "^0.15.0",
-        "vuetify": "^3.1.11"
+        "vuetify": "^3.1.11",
+        "wave-ui": "^3.1.3"
     }
 }
