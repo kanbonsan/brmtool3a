@@ -20,6 +20,10 @@ import * as directives from 'vuetify/directives'
 // vue-final-plugin
 import { vfmPlugin } from 'vue-final-modal';
 
+// Wave UI
+import WaveUI from 'wave-ui'
+import 'wave-ui/dist/wave-ui.css'
+
 const vuetify = createVuetify({
     components,
     directives,
@@ -43,6 +47,7 @@ createInertiaApp({
             .use(plugin)
             .use(ZiggyVue, Ziggy)
             .use(vuetify)
+            .use(WaveUI)
             .use(pinia)
             .use(vfmPlugin)
             .mount(el);
