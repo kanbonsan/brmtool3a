@@ -1,24 +1,21 @@
 <template>
-    <div>
-        <header>
-            HEADER
-        </header>
-        <main>
-            <slot />
-        </main>
-        <footer>
-            FOOTER
-        </footer>
-    </div>
+    <header>
+        HEADER
+    </header>
+    <main>
+        <slot />
+    </main>
+    <footer>
+        FOOTER
+    </footer>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue"
+import { ref, onMounted, computed } from "vue"
 import { Link, router } from "@inertiajs/vue3"
 import axios from "axios"
 import { ModalsContainer } from 'vue-final-modal'
 
-console.log(import.meta.env.VITE_GOOGLE_MAPS_KEY)
 
 const props = defineProps(["auth", "isAuthenticated"])
 
@@ -118,6 +115,11 @@ onMounted(() => {
 body {
     height: 100vh;
     width: 100vw;
+    scrollbar-width: none;
+}
+
+body::-webkit-scrollbar{
+    display:none;
 }
 </style>
 
@@ -132,7 +134,7 @@ footer,
 aside,
 main {
     margin: 0px;
-    padding: px;
+    padding: 0px;
     text-transform: uppercase;
     color: #666;
     border: 1px solid rgba(0, 0, 0, 0.07);
@@ -141,7 +143,12 @@ main {
 header,
 footer {
     background-color: #e9f8fe;
-    min-height: 60px;
+}
+header {
+    height: 36px;
+}
+footer {
+    height: 24px;
 }
 
 aside {
@@ -149,7 +156,7 @@ aside {
 }
 
 main {
-    height: calc( 100vh - 120px);
+    height: calc(100vh - 60px);
     width: 100%;
     background-color: #efffed;
 }

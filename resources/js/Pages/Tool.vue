@@ -19,6 +19,9 @@ import circle from '../../images/pointCircle.png'
 
 import BrmPolyline from "@/Components/BrmPolyline.vue"
 
+import { Splitpanes, Pane } from 'splitpanes'
+import 'splitpanes/dist/splitpanes.css'
+
 import { $vfm } from 'vue-final-modal'
 
 import { debounce } from "lodash"
@@ -108,20 +111,20 @@ const markerClick = (id) => {
 </script>
 
 <template>
-    <GoogleMap ref="gmap" :api-key="apiKey" style="width: 100%; height: 100%" :center="center" :zoom="15"
-        v-slot="slotProps">
-        <Marker :options="markerOption(pt)" v-for="(pt) in availablePoints" :key="pt.id" @mouseover="markerClick(pt.id)">
-        </Marker>
-        <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
-    </GoogleMap>
-    <div style="position: fixed;
-            left: 100px;
-            bottom: 100px;
-            width: 300px;
-            height: 80px;
-            background-color: white;
-            z-index: 1000;
-        ">
-        {{ message }}
-    </div>
+    <Splitpanes class="default-theme">
+        <Pane>
+            <GoogleMap ref="gmap" :api-key="apiKey" style="width: 100%; height: 100%" :center="center" :zoom="15"
+                v-slot="slotProps">
+                <Marker :options="markerOption(pt)" v-for="(pt) in availablePoints" :key="pt.id"
+                    @mouseover="markerClick(pt.id)">
+                </Marker>
+                <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
+            </GoogleMap>
+        </Pane>
+        <Pane>
+            <div>
+                SIDE
+            </div>
+        </Pane>
+    </Splitpanes>
 </template>
