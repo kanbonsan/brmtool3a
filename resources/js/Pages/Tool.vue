@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import Layout from "@/Layouts/WaveLayout.vue"
 
 export default {
@@ -6,10 +6,29 @@ export default {
 }
 </script>
 
-<script setup>
-import { ref, watch, onMounted, computed } from "vue"
-import { storeToRefs } from "pinia"
-import { Head } from "@inertiajs/vue3"
+<template>
+    <Splitpanes class="default-theme">
+        <Pane>
+            <GoogleMap ref="gmap" :api-key="apiKey" style="width: 100%; height: 100%" :center="center" :zoom="15"
+                v-slot="slotProps">
+                <Marker :options="markerOption(pt)" v-for="(pt) in availablePoints" :key="pt.id"
+                    @mouseover="markerClick(pt.id)">
+                </Marker>
+                <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
+            </GoogleMap>
+        </Pane>
+        <Pane>
+            <div id="side">
+                もともとの内容
+            </div>
+        </Pane>
+    </Splitpanes>
+</template>
+
+
+<script setup lang="ts">
+import { ref, watch, onMounted, computed, createApp } from "vue"
+
 import { GoogleMap, Marker, Polyline } from "vue3-google-map"
 import brm from "../../sample/sample200.brm.json"
 
@@ -25,6 +44,8 @@ import 'splitpanes/dist/splitpanes.css'
 import { $vfm } from 'vue-final-modal'
 
 import { debounce } from "lodash"
+
+import TestDiv from "@/Components/TestDiv.vue"
 
 const props = defineProps(["canLogin", "canRegister"])
 
@@ -57,11 +78,13 @@ onMounted(() => {
         console.log('delete')
     }, 10000)
 
+    createApp(TestDiv).mount("#side")
+
 })
 
 
 watch(
-    () => gmap.value?.ready,
+    (): boolean => gmap.value?.ready,
     (ready) => {
         if (!ready) {
             return
@@ -92,6 +115,67 @@ watch(
         map.addListener("click", (ev) => {
             message.value = `${ev.latLng.lat()}:${ev.latLng.lng()}`
         })
+
+        class Popup extends gmap.value.api.maps.OverlayView {
+            position: google.maps.LatLng
+            containerDiv: HTMLDivElement
+
+            constructor(position: google.maps.LatLng, content: HTMLElement) {
+                super()
+                this.position = position
+
+                content.classList.add("popup-bubble")
+
+                // This zero-height div is positioned at the bottom of the bubble.
+                const bubbleAnchor = document.createElement("div")
+
+                bubbleAnchor.classList.add("popup-bubble-anchor")
+                bubbleAnchor.appendChild(content)
+
+                // This zero-height div is positioned at the bottom of the tip.
+                this.containerDiv = document.createElement("div")
+                this.containerDiv.classList.add("popup-container")
+                this.containerDiv.appendChild(bubbleAnchor)
+
+                // Optionally stop clicks, etc., from bubbling up to the map.
+                Popup.preventMapHitsAndGesturesFrom(this.containerDiv)
+            }
+
+            /** Called when the popup is added to the map. */
+            onAdd() {
+                this.getPanes()!.floatPane.appendChild(this.containerDiv)
+            }
+
+            /** Called when the popup is removed from the map. */
+            onRemove() {
+                if (this.containerDiv.parentElement) {
+                    this.containerDiv.parentElement.removeChild(this.containerDiv)
+                }
+            }
+
+            /** Called each frame when the popup needs to draw itself. */
+            draw() {
+                const divPosition = this.getProjection().fromLatLngToDivPixel(
+                    this.position
+                )!
+
+                // Hide the popup when it is far out of view.
+                const display =
+                    Math.abs(divPosition.x) < 4000 && Math.abs(divPosition.y) < 4000
+                        ? "block"
+                        : "none"
+
+                if (display === "block") {
+                    this.containerDiv.style.left = divPosition.x + "px"
+                    this.containerDiv.style.top = divPosition.y + "px"
+                }
+
+                if (this.containerDiv.style.display !== display) {
+                    this.containerDiv.style.display = display
+                }
+            }
+        }
+
     }
 )
 
@@ -110,21 +194,3 @@ const markerClick = (id) => {
 }
 </script>
 
-<template>
-    <Splitpanes class="default-theme">
-        <Pane>
-            <GoogleMap ref="gmap" :api-key="apiKey" style="width: 100%; height: 100%" :center="center" :zoom="15"
-                v-slot="slotProps">
-                <Marker :options="markerOption(pt)" v-for="(pt) in availablePoints" :key="pt.id"
-                    @mouseover="markerClick(pt.id)">
-                </Marker>
-                <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
-            </GoogleMap>
-        </Pane>
-        <Pane>
-            <div>
-                SIDE
-            </div>
-        </Pane>
-    </Splitpanes>
-</template>

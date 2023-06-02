@@ -23,6 +23,8 @@
     },
     "dependencies": {
         "@types/google.maps": "^3.53.2",
+        "@types/lodash": "^4.14.195",
+        "@types/splitpanes": "^2.2.1",
         "lodash": "^4.17.21",
         "pinia": "^2.0.36",
         "splitpanes": "^3.1.5",
