@@ -28,6 +28,7 @@ export default {
 
 <script setup lang="ts">
 import { ref, watch, onMounted, computed, createApp } from "vue"
+import type { Ref } from "vue"
 
 import { GoogleMap, Marker, Polyline } from "vue3-google-map"
 import brm from "../../sample/sample200.brm.json"
@@ -58,7 +59,7 @@ const availablePoints = computed(() => store.availablePoints)
 
 const gmapStore = useGmapStore()
 
-const gmap = ref(null)
+const gmap = ref<InstanceType<typeof GoogleMap>|null>(null)
 
 const message = ref("")
 
@@ -84,11 +85,12 @@ onMounted(() => {
 
 
 watch(
-    (): boolean => gmap.value?.ready,
+    (): boolean|undefined => gmap.value?.ready,
     (ready) => {
         if (!ready) {
             return
         }
+        if(gmap.value === null) return
         const map = gmap.value.map
         gmapStore.map = map
         store.setPoints(brm.encodedPathAlt)
@@ -116,7 +118,7 @@ watch(
             message.value = `${ev.latLng.lat()}:${ev.latLng.lng()}`
         })
 
-        class Popup extends gmap.value.api.maps.OverlayView {
+        class Popup extends gmap.value.api.OverlayView {
             position: google.maps.LatLng
             containerDiv: HTMLDivElement
 
