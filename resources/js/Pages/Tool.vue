@@ -28,7 +28,7 @@ export default {
 
 <script setup lang="ts">
 import { ref, watch, onMounted, computed, createApp } from "vue"
-import type { Ref } from "vue"
+import { Popup } from "@/classes/Popup"
 
 import { GoogleMap, Marker, Polyline } from "vue3-google-map"
 import brm from "../../sample/sample200.brm.json"
@@ -38,7 +38,7 @@ import { useGmapStore } from "@/stores/GmapStore"
 import circle from '../../images/pointCircle.png'
 
 import BrmPolyline from "@/Components/BrmPolyline.vue"
-import { RoutePoint}from "@/classes/routePoint"
+import { RoutePoint } from "@/classes/routePoint"
 
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
@@ -88,12 +88,17 @@ onMounted(() => {
 watch(
     (): boolean | undefined => gmap.value?.ready,
     (ready) => {
-        if (!ready) {
+        if (!ready || !gmap.value?.api || !gmap.value?.map) {
             return
         }
-        if (!gmap.value?.map) return
+
+        /** Google Map インスタンス */
+        const api = gmap.value.api
         const map = gmap.value.map
+
         gmapStore.map = map
+
+        /** ルートの設定 */
         store.setPoints(brm.encodedPathAlt)
 
         map.addListener(
@@ -108,75 +113,13 @@ watch(
                     east: _ne?.lng(),
                     west: _sw?.lng(),
                 }
-                gmapStore.latLngBounds = map.getBounds()
+                gmapStore.latLngBounds = _bb
             }, 200)
         )
 
         map.addListener("click", (ev: google.maps.MapMouseEvent) => {
             message.value = `${ev.latLng?.lat()}:${ev.latLng?.lng()}`
         })
-        if (gmap.value.api) {
-            class Popup extends gmap.value?.api.OverlayView {
-                position: google.maps.LatLng
-                containerDiv: HTMLDivElement
-
-                constructor(position: google.maps.LatLng, content: HTMLElement) {
-                    super()
-                    this.position = position
-
-                    content.classList.add("popup-bubble")
-
-                    // This zero-height div is positioned at the bottom of the bubble.
-                    const bubbleAnchor = document.createElement("div")
-
-                    bubbleAnchor.classList.add("popup-bubble-anchor")
-                    bubbleAnchor.appendChild(content)
-
-                    // This zero-height div is positioned at the bottom of the tip.
-                    this.containerDiv = document.createElement("div")
-                    this.containerDiv.classList.add("popup-container")
-                    this.containerDiv.appendChild(bubbleAnchor)
-
-                    // Optionally stop clicks, etc., from bubbling up to the map.
-                    Popup.preventMapHitsAndGesturesFrom(this.containerDiv)
-                }
-
-                /** Called when the popup is added to the map. */
-                onAdd() {
-                    this.getPanes()!.floatPane.appendChild(this.containerDiv)
-                }
-
-                /** Called when the popup is removed from the map. */
-                onRemove() {
-                    if (this.containerDiv.parentElement) {
-                        this.containerDiv.parentElement.removeChild(this.containerDiv)
-                    }
-                }
-
-                /** Called each frame when the popup needs to draw itself. */
-                draw() {
-                    const divPosition = this.getProjection().fromLatLngToDivPixel(
-                        this.position
-                    )!
-
-                    // Hide the popup when it is far out of view.
-                    const display =
-                        Math.abs(divPosition.x) < 4000 && Math.abs(divPosition.y) < 4000
-                            ? "block"
-                            : "none"
-
-                    if (display === "block") {
-                        this.containerDiv.style.left = divPosition.x + "px"
-                        this.containerDiv.style.top = divPosition.y + "px"
-                    }
-
-                    if (this.containerDiv.style.display !== display) {
-                        this.containerDiv.style.display = display
-                    }
-                }
-            }
-        }
-
     }
 )
 
@@ -188,7 +131,7 @@ const markerOption = (pt: RoutePoint) => {
     }
 }
 
-const markerClick = (id:symbol) => {
+const markerClick = (id: symbol) => {
     const ptIndex = store.getPointById(id)
     store.points[ptIndex].opacity = 0.5
 }
