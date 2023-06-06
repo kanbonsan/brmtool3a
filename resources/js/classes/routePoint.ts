@@ -1,6 +1,6 @@
 export class RoutePoint {
     /** v-for の key に用いる一意な ID */
-    id: Symbol;
+    id: symbol;
     /** latitude 緯度 */
     lat: number = 0.0;
     /** longitude 経度 */
@@ -23,6 +23,9 @@ export class RoutePoint {
     routeDistance: number = 0.0;
     /** 除外部分を除くブルベ距離 メートル */
     brmDistance: number = 0.0;
+
+    /** 透明度 */
+    opacity: number = 1.0;
 
     constructor(lat: number = 0.0, lng: number = 0.0, alt?: number) {
         this.id = Symbol();
