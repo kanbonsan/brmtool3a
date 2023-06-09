@@ -7,7 +7,9 @@
 
 <script setup lang="ts">
 
-import { ref } from 'vue'
+import { ref, getCurrentInstance } from 'vue'
+
+const emits = defineEmits(['testdiv'])
 
 
 
@@ -15,9 +17,7 @@ const event = new CustomEvent('menu',{bubbles:true, detail:{ message: 'hello'}})
 
 const onClick = () => {
     console.log('onClick')
-    document.querySelector('.testdiv')?.dispatchEvent(event)
+    emits('testdiv')
 }
 
 </script>
-
-<style scoped></style>

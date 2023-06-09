@@ -19,7 +19,8 @@ export default {
         </Pane>
         <Pane>
             <div id="side">
-                もともとの内容
+                <Renderless @testdiv="onTestDiv"><TestDiv  @testdiv="onTestDiv"></TestDiv></Renderless>
+                
             </div>
         </Pane>
     </Splitpanes>
@@ -47,6 +48,7 @@ import { $vfm } from 'vue-final-modal'
 
 import { debounce } from "lodash"
 
+import Renderless from "@/Components/Renderless.vue"
 import TestDiv from "@/Components/TestDiv.vue"
 
 const props = defineProps(["canLogin", "canRegister"])
@@ -79,8 +81,6 @@ onMounted(() => {
         store.delete(100, 200)
         console.log('delete')
     }, 10000)
-
-    createApp(TestDiv).mount("#side")
 
 })
 
@@ -209,6 +209,8 @@ const markerClick = (id: symbol) => {
     const ptIndex = store.getPointById(id)
     store.points[ptIndex].opacity = 0.5
 }
+
+const onTestDiv = ()=>{console.log('click on testdiv')}
 </script>
 
 <style>
