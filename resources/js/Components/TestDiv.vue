@@ -7,17 +7,21 @@
 
 <script setup lang="ts">
 
-import { ref, getCurrentInstance } from 'vue'
+
+import { ref, onMounted, onUnmounted} from 'vue'
 
 const emits = defineEmits(['testdiv'])
-
+const props = defineProps(['update'])
 
 
 const event = new CustomEvent('menu',{bubbles:true, detail:{ message: 'hello'}})
 
 const onClick = () => {
     console.log('onClick')
-    emits('testdiv')
+    props.update('hello world')
 }
+
+onMounted(()=>{console.log('testdiv mounted')})
+onUnmounted(()=>{console.log('testdiv unmounted')})
 
 </script>

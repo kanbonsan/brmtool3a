@@ -5,12 +5,15 @@
 </template>
 
 <script lang="ts">
+import { Popup } from "@/classes/Popup"
+
 export default {
 
     props: ['api', 'map', 'ready'],
 
     data() {
-        return {
+
+        return <{ popup: Popup | null }>{
             popup: null
         }
     },
@@ -20,12 +23,11 @@ export default {
             if (!ready) return
 
             class Popup extends google.maps.OverlayView {
-                position: google.maps.LatLng
+                position?: google.maps.LatLng
                 containerDiv: HTMLDivElement
 
-                constructor(position: google.maps.LatLng, content: HTMLElement) {
+                constructor(content: HTMLElement) {
                     super()
-                    this.position = position
 
                     content.classList.add("popup-bubble")
 
@@ -44,6 +46,10 @@ export default {
                     Popup.preventMapHitsAndGesturesFrom(this.containerDiv)
                 }
 
+                setPosition(position: google.maps.LatLng) {
+                    this.position = position
+                }
+
                 /** Called when the popup is added to the map. */
                 onAdd() {
                     this.getPanes()!.floatPane.appendChild(this.containerDiv)
@@ -59,7 +65,7 @@ export default {
                 /** Called each frame when the popup needs to draw itself. */
                 draw() {
                     const divPosition = this.getProjection().fromLatLngToDivPixel(
-                        this.position
+                        this.position!
                     )!
 
                     // Hide the popup when it is far out of view.
@@ -79,8 +85,10 @@ export default {
                 }
             }
 
-            this.popup = new Popup( new this.api.LatLng({lat:35.251,lng:137.113}), this.$refs.content as HTMLElement ) as Popup
+            this.popup = new Popup(this.$refs.content as HTMLElement)
+            this.popup.setPosition(new this.api.LatLng({ lat: 35.251, lng: 137.113 }))
             this.popup.setMap(this.map)
+
         }
     },
 
@@ -90,17 +98,69 @@ export default {
     },
 
     methods: {
-        update: (payload: any) => {
-            console.log('update')
-            return
+        update(payload:any){
+            console.log('update',payload)
+            
+            this.popup?.setMap(null)
         }
     }
 }
 
-
-
-
-
-
-
 </script>
+<style>
+/* The popup bubble styling. */
+.popup-bubble {
+    /* Position the bubble centred-above its parent. */
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -100%);
+    /* Style the bubble. */
+    background-color: white;
+    padding: 5px;
+    border-radius: 5px;
+    font-family: sans-serif;
+    overflow-y: auto;
+    max-height: 500px;
+    box-shadow: 0px 2px 10px 1px rgba(0, 0, 0, 0.5);
+}
+
+/* The parent of the bubble. A zero-height div at the top of the tip. */
+.popup-bubble-anchor {
+    /* Position the div a fixed distance above the tip. */
+    position: absolute;
+    width: 100%;
+    bottom: 8px;
+    left: 0;
+}
+
+/* This element draws the tip. */
+.popup-bubble-anchor::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* Center the tip horizontally. */
+    transform: translate(-50%, 0);
+    /* The tip is a https://css-tricks.com/snippets/css/css-triangle/ */
+    width: 0;
+    height: 0;
+    /* The tip is 8px high, and 12px wide. */
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid white;
+}
+
+/* JavaScript will position this div at the bottom of the popup tip. */
+.popup-container {
+    cursor: auto;
+    height: 0;
+    position: absolute;
+    /* The max width of the info window. */
+    width: 300px;
+}
+</style>
+
+
+
+

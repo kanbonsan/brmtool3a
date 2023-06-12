@@ -1,11 +1,10 @@
-export class Popup extends google.maps.OverlayView {
-    position: google.maps.LatLng;
+class Popup extends google.maps.OverlayView {
+    position?: google.maps.LatLng;
     containerDiv: HTMLDivElement;
 
-    constructor(position: google.maps.LatLng, content: HTMLElement) {
+    constructor(content: HTMLElement) {
       super();
-      this.position = position;
-
+      
       content.classList.add("popup-bubble");
 
       // This zero-height div is positioned at the bottom of the bubble.
@@ -23,6 +22,10 @@ export class Popup extends google.maps.OverlayView {
       Popup.preventMapHitsAndGesturesFrom(this.containerDiv);
     }
 
+    setPosition(position: google.maps.LatLng){
+      this.position = position
+    }
+
     /** Called when the popup is added to the map. */
     onAdd() {
       this.getPanes()!.floatPane.appendChild(this.containerDiv);
@@ -38,7 +41,7 @@ export class Popup extends google.maps.OverlayView {
     /** Called each frame when the popup needs to draw itself. */
     draw() {
       const divPosition = this.getProjection().fromLatLngToDivPixel(
-        this.position
+        this.position!
       )!;
 
       // Hide the popup when it is far out of view.
@@ -57,3 +60,5 @@ export class Popup extends google.maps.OverlayView {
       }
     }
   }
+
+  export type {Popup}
