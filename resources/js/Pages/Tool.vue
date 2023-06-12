@@ -15,6 +15,7 @@ export default {
                     @mouseover="markerClick(pt.id)">
                 </Marker>
                 <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
+                <CustomPopup :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
             </GoogleMap>
         </Pane>
         <Pane>
@@ -40,6 +41,8 @@ import circle from '../../images/pointCircle.png'
 
 import BrmPolyline from "@/Components/BrmPolyline.vue"
 import { RoutePoint } from "@/classes/routePoint"
+
+import CustomPopup from "@/Components/CustomPopup.vue"
 
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
