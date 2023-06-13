@@ -10,7 +10,6 @@
 
 import { ref, onMounted, onUnmounted} from 'vue'
 
-const emits = defineEmits(['testdiv'])
 const props = defineProps(['update'])
 
 

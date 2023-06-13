@@ -6,7 +6,7 @@
         <slot />
     </main>
     <footer>
-        FOOTER
+        <FooterMessage></FooterMessage>
     </footer>
 </template>
 
@@ -15,6 +15,7 @@ import { ref, onMounted, computed } from "vue"
 import { Link, router } from "@inertiajs/vue3"
 import axios from "axios"
 import { ModalsContainer } from 'vue-final-modal'
+import FooterMessage from "@/Components/Footer.vue"
 
 
 const props = defineProps(["auth", "isAuthenticated"])

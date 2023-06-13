@@ -1,6 +1,6 @@
 <template>
     <div ref="content" style="display:block;">
-        <slot :update="update">SLOT CONTENT</slot>
+        <slot :update="update"></slot>
     </div>
 </template>
 
@@ -17,6 +17,8 @@ export default {
             popup: null
         }
     },
+
+    render(){},
 
     watch: {
         ready(ready) {

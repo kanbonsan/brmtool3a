@@ -15,7 +15,7 @@ const simplifyParam = [
 ]
 
 type State = {
-    points: RoutePoint[]
+    points: RoutePoint[],
 }
 
 export const useBrmRouteStore = defineStore('brmroute', {
