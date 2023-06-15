@@ -5,6 +5,7 @@ import { hubeny } from '@/lib/hubeny'
 import { HubenyCorrection } from '@/config.js'
 
 import { useGmapStore } from '@/stores/GmapStore.js'
+import { useMessage } from './MessageStore'
 import { RoutePoint } from '@/classes/routePoint'
 
 const simplifyParam = [
@@ -31,17 +32,25 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /** simplify 用の配列（x,y) を用意 */
         pointsArray: (state) => state.points.map((pt, index) => ({ x: pt.lng ?? 0, y: pt.lat ?? 0, index })),
 
+        
         /** map 内におさまるポイント */
-        availablePoints: (state) => state.points.filter((pt) => {
-            const gmapStore = useGmapStore()
-            return gmapStore.latLngBounds?.contains(pt) && pt.weight > 7
-        }),
+        availablePoints(state) {
+            const gmapStore=useGmapStore()
+            const zoom = gmapStore.zoom
+            const threshold = 8
+
+            return state.points.filter((pt) => {
+
+                return gmapStore.latLngBounds?.contains(pt) && pt.weight >= threshold
+            })
+        },
 
         polylinePoints: (state) => state.points.filter(pt => pt.weight >= 5),
 
         /** point id からポイントインデックスを抽出 */
-        getPointById: (state) => {
-            return (id: symbol) => state.points.findIndex(pt => pt.id === id)
+        getPointById: (state) => (id:symbol)=>{
+            const idx = state.points.findIndex(pt => pt.id === id)
+            return state.points[idx]
         },
         /**
          * (getter) 除外範囲の開始と終了の各インデックスを求める

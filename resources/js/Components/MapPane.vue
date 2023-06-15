@@ -1,10 +1,11 @@
 <template>
     <GoogleMap ref="gmap" :api-key="apiKey" style="width: 100%; height: 100%" :center="center" :zoom="15"
         v-slot="slotProps">
-        <Marker :options="markerOption(pt)" v-for="(pt) in availablePoints" :key="pt.id" @mouseover="markerClick(pt.id)">
+        <Marker :options="markerOption(pt)" v-for="(pt) in availablePoints" :key="pt.id" @click="markerClick(pt.id)">
         </Marker>
         <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
-        <CustomPopup :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" v-slot="{ update }">
+        <CustomPopup :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" v-slot="{ update }"
+            :activate="popupActivate">
             <TestDiv :update="update"></TestDiv>
         </CustomPopup>
     </GoogleMap>
@@ -36,12 +37,11 @@ const center = ref({ lat: 35.2418, lng: 137.1146 })
 
 const store = useBrmRouteStore()
 const gmapStore = useGmapStore()
-const message = useMessage()
-
-setInterval(()=>message.setFooterMessage(new Date().toLocaleString()),1000)
+const messageStore = useMessage()
 
 const availablePoints = computed(() => store.availablePoints)
 
+const popupActivate = ref(null)
 
 const gmap = ref<InstanceType<typeof GoogleMap> | null>(null)
 onMounted(() => {
@@ -90,6 +90,12 @@ watch(
             }, 200)
         )
 
+        map.addListener("zoom_changed",
+            () => {
+                gmapStore.zoom = map.getZoom()!
+                messageStore.setFooterMessage(`zoom: ${map.getZoom()}`)
+            })
+
         map.addListener("click", (ev: google.maps.MapMouseEvent) => {
             console.log(`${ev.latLng?.lat()}:${ev.latLng?.lng()}`)
         })
@@ -104,9 +110,22 @@ const markerOption = (pt: RoutePoint) => {
     }
 }
 
-const markerClick = (id: symbol) => {
-    const ptIndex = store.getPointById(id)
-    store.points[ptIndex].opacity = 0.5
+const markerClick = async (id: symbol) => {
+    const pt = store.getPointById(id)
+    pt.opacity = 0.5
+    const result = await popup(id)
 }
+
+const popup = async (id: symbol) => {
+
+    popupActivate.value = {
+        active: true,
+        markerId: id
+    }
+
+    return (await result())
+}
+
+
 
 </script>

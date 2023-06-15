@@ -6,10 +6,11 @@
 
 <script lang="ts">
 import { Popup } from "@/classes/Popup"
+import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 
 export default {
 
-    props: ['api', 'map', 'ready'],
+    props: ['api', 'map', 'ready', 'activate', 'markerId'],
 
     data() {
 
@@ -18,7 +19,7 @@ export default {
         }
     },
 
-    render(){},
+    render() { },
 
     watch: {
         ready(ready) {
@@ -28,16 +29,13 @@ export default {
                 position?: google.maps.LatLng
                 containerDiv: HTMLDivElement
 
-                constructor(content: HTMLElement) {
+                constructor() {
                     super()
-
-                    content.classList.add("popup-bubble")
 
                     // This zero-height div is positioned at the bottom of the bubble.
                     const bubbleAnchor = document.createElement("div")
 
                     bubbleAnchor.classList.add("popup-bubble-anchor")
-                    bubbleAnchor.appendChild(content)
 
                     // This zero-height div is positioned at the bottom of the tip.
                     this.containerDiv = document.createElement("div")
@@ -50,6 +48,11 @@ export default {
 
                 setPosition(position: google.maps.LatLng) {
                     this.position = position
+                }
+
+                setContent(content: HTMLElement) {
+                    content.classList.add("popup-bubble")
+                    this.containerDiv.querySelector(".popup-bubble-anchor")?.appendChild(content)
                 }
 
                 /** Called when the popup is added to the map. */
@@ -86,12 +89,24 @@ export default {
                     }
                 }
             }
+            this.popup = new Popup()
+            this.popup.setContent(this.$refs.content as HTMLElement)
+        },
 
-            this.popup = new Popup(this.$refs.content as HTMLElement)
-            this.popup.setPosition(new this.api.LatLng({ lat: 35.251, lng: 137.113 }))
-            this.popup.setMap(this.map)
-
+        activate: {
+            handler(obj) {
+                if(obj?.active===true){
+                    const brmRouteStore = useBrmRouteStore()
+                    const pt = brmRouteStore.getPointById(obj.markerId)
+                    this.popup?.setPosition(new google.maps.LatLng(pt))
+                    this.popup?.setMap(this.map)
+                }
+                
+            },
+            immediate: true
         }
+
+
     },
 
     mounted() {
@@ -100,11 +115,14 @@ export default {
     },
 
     methods: {
-        update(payload:any){
-            console.log('update',payload)
-            
+
+        update(payload: any) {
+    
             this.popup?.setMap(null)
-        }
+        },
+
+
+
     }
 }
 

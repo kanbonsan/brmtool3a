@@ -12,9 +12,6 @@ import { ref, onMounted, onUnmounted} from 'vue'
 
 const props = defineProps(['update'])
 
-
-const event = new CustomEvent('menu',{bubbles:true, detail:{ message: 'hello'}})
-
 const onClick = () => {
     console.log('onClick')
     props.update('hello world')

@@ -5,9 +5,9 @@
     <main>
         <slot />
     </main>
-    <footer>
+    <div>
         <FooterMessage></FooterMessage>
-    </footer>
+    </div>
 </template>
 
 <script setup>

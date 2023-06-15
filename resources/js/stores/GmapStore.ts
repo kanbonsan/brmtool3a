@@ -1,5 +1,6 @@
 
 import { defineStore } from 'pinia'
+import { useMessage } from './MessageStore'
 
 type State = {
     map: google.maps.Map | null
@@ -25,5 +26,5 @@ export const useGmapStore = defineStore('gmap', {
         zoom: 10,
         bounds: { north: undefined, south: undefined, east: undefined, west: undefined },
         latLngBounds: undefined,
-    })
+    }),
 })

@@ -11,7 +11,7 @@ export class RoutePoint {
     /** 除外ポイントかどうか */
     excluded: boolean = false;
     /** 編集ポイントかどうか */
-    editable: boolean = false;
+    editable: boolean = true;
     /** ポイントの表示優先度 */
     weight: number = 1;
     /** ユーザーが参照点に設定したか */
