@@ -1,6 +1,6 @@
 <template>
     <div ref="content" style="display:block;">
-        <slot :update="update"></slot>
+        <slot :submit="submit"></slot>
     </div>
 </template>
 
@@ -10,7 +10,7 @@ import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 
 export default {
 
-    props: ['api', 'map', 'ready', 'activate', 'markerId'],
+    props: ['api', 'map', 'ready', 'options'],
 
     data() {
 
@@ -90,18 +90,18 @@ export default {
                 }
             }
             this.popup = new Popup()
-            this.popup.setContent(this.$refs.content as HTMLElement)
         },
 
-        activate: {
-            handler(obj) {
-                if(obj?.active===true){
-                    const brmRouteStore = useBrmRouteStore()
-                    const pt = brmRouteStore.getPointById(obj.markerId)
-                    this.popup?.setPosition(new google.maps.LatLng(pt))
+        options: {
+            async handler(options) {
+                if (options?.activated === true) {
+                    const el = this.$refs.content as HTMLElement
+                    el.parentNode?.removeChild(el)
+                    this.popup?.setContent(el)
+                    this.popup?.setPosition(options.position)
                     this.popup?.setMap(this.map)
                 }
-                
+
             },
             immediate: true
         }
@@ -109,17 +109,27 @@ export default {
 
     },
 
-    mounted() {
-        const el = this.$refs.content as HTMLElement
-        el.parentNode?.removeChild(el)
-    },
-
     methods: {
 
-        update(payload: any) {
-    
-            this.popup?.setMap(null)
+        /**
+         * Slot からの submit を親コンポーネントにスルーする
+         * 親コンポーネントからエラーが帰ったらそのまま表示
+         * @param payload 
+         */
+        async submit(payload: any) {
+
+            try {
+                await this.options.callback(payload)
+                this.popup?.setMap(null)
+            } catch (e) {
+                console.log('error return, remain popup', e)
+            }
+
         },
+
+        closePopup(){
+            
+        }
 
 
 

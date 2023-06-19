@@ -4,15 +4,18 @@
         <Marker :options="markerOption(pt)" v-for="(pt) in availablePoints" :key="pt.id" @click="markerClick(pt.id)">
         </Marker>
         <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
-        <CustomPopup :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" v-slot="{ update }"
-            :activate="popupActivate">
-            <TestDiv :update="update"></TestDiv>
+        <CustomPopup :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" v-slot="{ submit }"
+            :options="popupOptions">
+
+            <TestDiv :submit="submit"></TestDiv>
+            <TestDiv :submit="submit"></TestDiv>
+            
         </CustomPopup>
     </GoogleMap>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed, createApp, Component } from "vue"
+import { ref, watch, onMounted, computed,Component } from "vue"
 import WaveUI from 'wave-ui'
 
 import { GoogleMap, Marker, Polyline } from "vue3-google-map"
@@ -31,7 +34,6 @@ import { debounce } from "lodash"
 
 import TestDiv from "@/Components/TestDiv.vue"
 
-
 const apiKey = ref(import.meta.env.VITE_GOOGLE_MAPS_KEY)
 const center = ref({ lat: 35.2418, lng: 137.1146 })
 
@@ -41,7 +43,11 @@ const messageStore = useMessage()
 
 const availablePoints = computed(() => store.availablePoints)
 
-const popupActivate = ref(null)
+const popupOptions = ref<{
+    activated: boolean,
+    position: google.maps.LatLng,
+    callback: (payload: any) => void
+} | null>(null)
 
 const gmap = ref<InstanceType<typeof GoogleMap> | null>(null)
 onMounted(() => {
@@ -116,16 +122,44 @@ const markerClick = async (id: symbol) => {
     const result = await popup(id)
 }
 
-const popup = async (id: symbol) => {
+const markerPopup = async (id: symbol) => {
 
-    popupActivate.value = {
-        active: true,
-        markerId: id
-    }
+    const pt = store.getPointById(id)
+    const position = new google.maps.LatLng(pt)
 
-    return (await result())
 }
 
+
+
+const popup = async (id: symbol) => {
+
+    const promise = new Promise(resolve=>{
+        resolve(1)
+    })
+
+    const popupSubmit = async (payload: any) => {
+
+
+        const wait = (ts: number) => {
+            return new Promise((resolve) => {
+                setTimeout(() => { resolve(1) }, ts)
+            })
+        }
+
+        await wait(2000)
+        console.log('submit', payload)
+        
+
+    }
+    const pt = store.getPointById(id)
+
+    popupOptions.value = {
+        activated: true,
+        position: new google.maps.LatLng(pt),
+        callback: popupSubmit
+    }
+
+}
 
 
 </script>

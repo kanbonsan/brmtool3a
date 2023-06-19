@@ -6,18 +6,10 @@
 </template>
 
 <script setup lang="ts">
-
-
-import { ref, onMounted, onUnmounted} from 'vue'
-
-const props = defineProps(['update'])
+const props = defineProps(['submit'])
 
 const onClick = () => {
-    console.log('onClick')
-    props.update('hello world')
+    props.submit('hello world')
 }
-
-onMounted(()=>{console.log('testdiv mounted')})
-onUnmounted(()=>{console.log('testdiv unmounted')})
 
 </script>
