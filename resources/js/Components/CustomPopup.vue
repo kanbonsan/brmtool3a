@@ -119,7 +119,7 @@ export default {
         async submit(payload: any) {
 
             try {
-                await this.options.callback(payload)
+                this.options.resolve(payload)
                 this.popup?.setMap(null)
             } catch (e) {
                 console.log('error return, remain popup', e)
@@ -128,7 +128,7 @@ export default {
         },
 
         closePopup(){
-            
+
         }
 
 

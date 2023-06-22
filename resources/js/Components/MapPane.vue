@@ -46,7 +46,7 @@ const availablePoints = computed(() => store.availablePoints)
 const popupOptions = ref<{
     activated: boolean,
     position: google.maps.LatLng,
-    callback: (payload: any) => void
+    resolve: (payload: any) => void
 } | null>(null)
 
 const gmap = ref<InstanceType<typeof GoogleMap> | null>(null)
@@ -119,45 +119,37 @@ const markerOption = (pt: RoutePoint) => {
 const markerClick = async (id: symbol) => {
     const pt = store.getPointById(id)
     pt.opacity = 0.5
-    const result = await popup(id)
+    const result = await markerPopup(id)
 }
 
 const markerPopup = async (id: symbol) => {
 
     const pt = store.getPointById(id)
     const position = new google.maps.LatLng(pt)
+    const result = await popup(position)
+
+    console.log('markerPopup result', result)
 
 }
 
 
 
-const popup = async (id: symbol) => {
+const popup = async (position: google.maps.LatLng) => {
 
-    const promise = new Promise(resolve=>{
-        resolve(1)
-    })
+    /**
+     * Promiseオブジェクトのresult関数を取り出して子コンポーネントに渡して
+     * そちらで解決する。
+     * 長らく悩んでいた問題が解決！！ 
+     * 「VueでもユーザーのタイミングでPromiseをresolve()できへんか？」
+     */
 
-    const popupSubmit = async (payload: any) => {
-
-
-        const wait = (ts: number) => {
-            return new Promise((resolve) => {
-                setTimeout(() => { resolve(1) }, ts)
-            })
+    return new Promise((resolve)=>{
+        popupOptions.value={
+            activated: true,
+            resolve: resolve,
+            position: position
         }
-
-        await wait(2000)
-        console.log('submit', payload)
-        
-
-    }
-    const pt = store.getPointById(id)
-
-    popupOptions.value = {
-        activated: true,
-        position: new google.maps.LatLng(pt),
-        callback: popupSubmit
-    }
+    })
 
 }
 
