@@ -7,15 +7,16 @@
         <CustomPopup :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" v-slot="{ submit }"
             :options="popupOptions">
 
-            <TestDiv :submit="submit"></TestDiv>
-            <TestDiv :submit="submit"></TestDiv>
-            
+            <component :is="menus[menuComp!].component" :submit="submit"></component>
+
+
         </CustomPopup>
     </GoogleMap>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed,Component } from "vue"
+import { ref, watch, onMounted, computed } from "vue"
+import type { Component } from 'vue'
 import WaveUI from 'wave-ui'
 
 import { GoogleMap, Marker, Polyline } from "vue3-google-map"
@@ -32,7 +33,29 @@ import { RoutePoint } from "@/classes/routePoint"
 import CustomPopup from "@/Components/CustomPopup.vue"
 import { debounce } from "lodash"
 
-import TestDiv from "@/Components/TestDiv.vue"
+import TestDiv from "@/Components/TestDiv1.vue"
+import TestDiv1 from "@/Components/TestDiv1.vue"
+import TestDiv2 from "@/Components/TestDiv2.vue"
+
+
+interface menuComponent {
+    component: Component
+    offsetX?: number
+    offsetY?: number
+    width?: number
+    height?: number
+}
+
+type Menus = {
+    [key: string]: menuComponent
+}
+
+const menus: Menus = {
+    Menu1: { component: TestDiv1 },
+    Menu2: { component: TestDiv2 }
+}
+
+const menuComp = ref<string>('Menu1')
 
 const apiKey = ref(import.meta.env.VITE_GOOGLE_MAPS_KEY)
 const center = ref({ lat: 35.2418, lng: 137.1146 })
@@ -120,15 +143,19 @@ const markerClick = async (id: symbol) => {
     const pt = store.getPointById(id)
     pt.opacity = 0.5
     const result = await markerPopup(id)
+
+    console.log('markerClick', result)
 }
 
 const markerPopup = async (id: symbol) => {
+
+    menuComp.value = 'Menu2'
 
     const pt = store.getPointById(id)
     const position = new google.maps.LatLng(pt)
     const result = await popup(position)
 
-    console.log('markerPopup result', result)
+    return result
 
 }
 
@@ -143,8 +170,8 @@ const popup = async (position: google.maps.LatLng) => {
      * 「VueでもユーザーのタイミングでPromiseをresolve()できへんか？」
      */
 
-    return new Promise((resolve)=>{
-        popupOptions.value={
+    return new Promise((resolve) => {
+        popupOptions.value = {
             activated: true,
             resolve: resolve,
             position: position

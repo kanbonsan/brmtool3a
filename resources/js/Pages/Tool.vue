@@ -31,7 +31,7 @@ import 'splitpanes/dist/splitpanes.css'
 import MapPane from "@/Components/MapPane.vue"
 
 import Renderless from "@/Components/Renderless.vue"
-import TestDiv from "@/Components/TestDiv.vue"
+import TestDiv from "@/Components/TestDiv1.vue"
 
 const props = defineProps(["canLogin", "canRegister"])
 
