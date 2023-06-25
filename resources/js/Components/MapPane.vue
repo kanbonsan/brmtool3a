@@ -5,17 +5,16 @@
         </Marker>
         <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
         <CustomPopup :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" v-slot="{ submit }"
-            :options="popupOptions">
+            :params="popupParams">
 
-            <component :is="menus[menuComp!].component" :submit="submit"></component>
-
+            <component :is="menus[menuComp]?.component" :submit="submit" :params="menuParams"></component>
 
         </CustomPopup>
     </GoogleMap>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from "vue"
+import { ref, watch, onMounted, computed, provide } from "vue"
 import type { Component } from 'vue'
 import WaveUI from 'wave-ui'
 
@@ -37,51 +36,67 @@ import TestDiv from "@/Components/TestDiv1.vue"
 import TestDiv1 from "@/Components/TestDiv1.vue"
 import TestDiv2 from "@/Components/TestDiv2.vue"
 
-
-interface menuComponent {
-    component: Component
+interface menuComponentOptions {
     offsetX?: number
     offsetY?: number
     width?: number
     height?: number
+    timeout?: number
+}
+
+interface menuComponent {
+    component: Component
+    options?: menuComponentOptions
 }
 
 type Menus = {
     [key: string]: menuComponent
 }
 
-const menus: Menus = {
-    Menu1: { component: TestDiv1 },
-    Menu2: { component: TestDiv2 }
+const defaultOptions: menuComponentOptions = {
+    offsetX: 0,
+    offsetY: 0,
+    timeout: 60_000
 }
 
-const menuComp = ref<string>('Menu1')
+const menus: Menus = {
+    Menu1: { component: TestDiv1 },
+    Menu2: {
+        component: TestDiv2,
+        options: { timeout: 3000 }
+    }
+}
+
+const menuParams = ref<any>({})
 
 const apiKey = ref(import.meta.env.VITE_GOOGLE_MAPS_KEY)
 const center = ref({ lat: 35.2418, lng: 137.1146 })
 
-const store = useBrmRouteStore()
+const routeStore = useBrmRouteStore()
 const gmapStore = useGmapStore()
 const messageStore = useMessage()
 
-const availablePoints = computed(() => store.availablePoints)
+const availablePoints = computed(() => routeStore.availablePoints)
 
-const popupOptions = ref<{
-    activated: boolean,
-    position: google.maps.LatLng,
-    resolve: (payload: any) => void
-} | null>(null)
+const menuComp = ref<string>('')
+const popupParams = ref<{
+    activated?: boolean,
+    position?: google.maps.LatLng,
+    options?: menuComponentOptions,
+    resolve?: (payload: any) => void
+    reject?: (payload: any) => void
+}>({ activated: false })
 
 const gmap = ref<InstanceType<typeof GoogleMap> | null>(null)
 onMounted(() => {
     setTimeout(() => {
-        store.deviate()
-        store.setExclude(10, 50)
-        store.setExclude(300, 350)
+        routeStore.deviate()
+        routeStore.setExclude(10, 50)
+        routeStore.setExclude(300, 350)
         console.log('deviated')
     }, 5000)
     setTimeout(() => {
-        store.delete(100, 200)
+        routeStore.delete(100, 200)
         console.log('delete')
     }, 10000)
 
@@ -101,7 +116,7 @@ watch(
         gmapStore.map = map
 
         /** ルートの設定 */
-        store.setPoints(brm.encodedPathAlt)
+        routeStore.setPoints(brm.encodedPathAlt)
 
         map.addListener(
             "bounds_changed",
@@ -140,18 +155,19 @@ const markerOption = (pt: RoutePoint) => {
 }
 
 const markerClick = async (id: symbol) => {
-    const pt = store.getPointById(id)
+    const pt = routeStore.getPointById(id)
     pt.opacity = 0.5
     const result = await markerPopup(id)
 
-    console.log('markerClick', result)
+    console.log('markerClick', result, popupParams.value)
 }
 
 const markerPopup = async (id: symbol) => {
 
     menuComp.value = 'Menu2'
+    menuParams.value = { ts: Date.now() }
 
-    const pt = store.getPointById(id)
+    const pt = routeStore.getPointById(id)
     const position = new google.maps.LatLng(pt)
     const result = await popup(position)
 
@@ -159,26 +175,32 @@ const markerPopup = async (id: symbol) => {
 
 }
 
-
-
 const popup = async (position: google.maps.LatLng) => {
 
     /**
-     * Promiseオブジェクトのresult関数を取り出して子コンポーネントに渡して
+     * Promiseオブジェクトの resolve 関数を取り出して子コンポーネントに渡して
      * そちらで解決する。
      * 長らく悩んでいた問題が解決！！ 
      * 「VueでもユーザーのタイミングでPromiseをresolve()できへんか？」
      */
 
-    return new Promise((resolve) => {
-        popupOptions.value = {
+    return new Promise((resolve, reject) => {
+
+        const resolveFunc = (payload: any) => {
+            popupParams.value.activated = false 
+            resolve(payload)
+        }
+
+        popupParams.value = {
             activated: true,
-            resolve: resolve,
-            position: position
+            resolve: resolveFunc,
+            reject: reject,
+            position: position,
+            options: Object.assign({}, defaultOptions, menus[menuComp.value].options)
         }
     })
 
 }
 
-
+provide('popup', { popup, menuComp, popupOptions: popupParams })
 </script>

@@ -7,8 +7,8 @@ export default {
 </script>
 
 <template>
-    <Splitpanes class="default-theme">
-        <Pane>
+    <Splitpanes class="default-theme" @resized="onResized">
+        <Pane class="map-pain">
             <MapPane></MapPane>
         </Pane>
         <Pane>
@@ -37,5 +37,7 @@ const props = defineProps(["canLogin", "canRegister"])
 
 
 const onTestDiv = () => { console.log('click on testdiv') }
+
+const onResized = (arr:any)=>console.log(arr)
 </script>
 

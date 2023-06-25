@@ -6,16 +6,17 @@
 
 <script lang="ts">
 import { Popup } from "@/classes/Popup"
-import { useBrmRouteStore } from "@/stores/BrmRouteStore"
+import { debounce } from "lodash"
 
 export default {
 
-    props: ['api', 'map', 'ready', 'options'],
+    props: ['api', 'map', 'ready', 'params'],
 
     data() {
 
-        return <{ popup: Popup | null }>{
-            popup: null
+        return <{ popup: Popup | null, timer: number|null }>{
+            popup: null,
+            timer: null,    // タイムアウト処理のためのタイマー
         }
     },
 
@@ -42,7 +43,7 @@ export default {
                     this.containerDiv.classList.add("popup-container")
                     this.containerDiv.appendChild(bubbleAnchor)
 
-                    // Optionally stop clicks, etc., from bubbling up to the map.
+                    // ionally stop clicks, etc., from bubbling up to the map.
                     Popup.preventMapHitsAndGesturesFrom(this.containerDiv)
                 }
 
@@ -69,6 +70,8 @@ export default {
 
                 /** Called each frame when the popup needs to draw itself. */
                 draw() {
+                    // fromLatLngToDivPixel() によって地図の中央を(0,0)px とした位置を返すよう
+                    // 地図の左上が (0,0) ではないみたい
                     const divPosition = this.getProjection().fromLatLngToDivPixel(
                         this.position!
                     )!
@@ -81,7 +84,7 @@ export default {
 
                     if (display === "block") {
                         this.containerDiv.style.left = divPosition.x + "px"
-                        this.containerDiv.style.top = divPosition.y + "px"
+                        this.containerDiv.style.top = divPosition.y-10 + "px"
                     }
 
                     if (this.containerDiv.style.display !== display) {
@@ -92,14 +95,16 @@ export default {
             this.popup = new Popup()
         },
 
-        options: {
-            async handler(options) {
-                if (options?.activated === true) {
+        params: {
+            handler(params) {
+                if (params?.activated === true) {
                     const el = this.$refs.content as HTMLElement
                     el.parentNode?.removeChild(el)
                     this.popup?.setContent(el)
-                    this.popup?.setPosition(options.position)
+                    this.popup?.setPosition(params.position)
                     this.popup?.setMap(this.map)
+                } else {
+                    this.popup?.setMap(null)
                 }
 
             },
@@ -119,20 +124,13 @@ export default {
         async submit(payload: any) {
 
             try {
-                this.options.resolve(payload)
+                this.params.resolve(payload)
                 this.popup?.setMap(null)
             } catch (e) {
                 console.log('error return, remain popup', e)
             }
 
-        },
-
-        closePopup(){
-
         }
-
-
-
     }
 }
 
