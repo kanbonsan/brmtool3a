@@ -36,6 +36,9 @@ import TestDiv from "@/Components/TestDiv1.vue"
 import TestDiv1 from "@/Components/TestDiv1.vue"
 import TestDiv2 from "@/Components/TestDiv2.vue"
 
+import {useDimension} from "@/Composables/dimension"
+const {panes} = useDimension()
+
 interface menuComponentOptions {
     offsetX?: number
     offsetY?: number
@@ -157,6 +160,7 @@ const markerOption = (pt: RoutePoint) => {
 const markerClick = async (id: symbol) => {
     const pt = routeStore.getPointById(id)
     pt.opacity = 0.5
+    console.log(panes)
     const result = await markerPopup(id)
 
     console.log('markerClick', result, popupParams.value)

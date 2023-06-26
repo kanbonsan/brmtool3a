@@ -6,7 +6,9 @@
 
 <script lang="ts">
 import { Popup } from "@/classes/Popup"
-import { debounce } from "lodash"
+import { useDimension } from "@/Composables/dimension"
+
+const {panes} = useDimension()
 
 export default {
 
