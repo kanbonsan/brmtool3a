@@ -16,5 +16,5 @@
         },
         "resolvePackageJsonExports": false
     },
-    "include": ["resources/js/**/*.ts", "resources/js/**/*.d.ts", "resources/js/**/*.vue", "resources/js/Composables/dimension.js"]
+    "include": ["resources/js/**/*.ts", "resources/js/**/*.d.ts", "resources/js/**/*.vue", "resources/js/Composables/dimension.ts"]
 }

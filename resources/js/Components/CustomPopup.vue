@@ -6,9 +6,16 @@
 
 <script lang="ts">
 import { Popup } from "@/classes/Popup"
-import { useDimension } from "@/Composables/dimension"
 
-const {panes} = useDimension()
+interface PaneInfo {
+    el?: HTMLElement
+    top?: number
+    bottom?: number
+    left?: number
+    right?: number
+    width?: number
+    height?: number
+}
 
 export default {
 
@@ -16,10 +23,15 @@ export default {
 
     data() {
 
-        return <{ popup: Popup | null, timer: number|null }>{
-            popup: null,
-            timer: null,    // タイムアウト処理のためのタイマー
-        }
+        return <{
+            popup: Popup | null,
+            timer: number | null,
+        }>
+
+            {
+                popup: null,
+                timer: null,    // タイムアウト処理のためのタイマー
+            }
     },
 
     render() { },
@@ -58,6 +70,7 @@ export default {
                     this.containerDiv.querySelector(".popup-bubble-anchor")?.appendChild(content)
                 }
 
+
                 /** Called when the popup is added to the map. */
                 onAdd() {
                     this.getPanes()!.floatPane.appendChild(this.containerDiv)
@@ -71,7 +84,12 @@ export default {
                 }
 
                 /** Called each frame when the popup needs to draw itself. */
-                draw() {
+                draw() {       
+                    
+                    const map = this.getMap()
+                    const div = map.getDiv() as HTMLElement
+                    console.log(div.getBoundingClientRect())
+
                     // fromLatLngToDivPixel() によって地図の中央を(0,0)px とした位置を返すよう
                     // 地図の左上が (0,0) ではないみたい
                     const divPosition = this.getProjection().fromLatLngToDivPixel(
@@ -86,7 +104,7 @@ export default {
 
                     if (display === "block") {
                         this.containerDiv.style.left = divPosition.x + "px"
-                        this.containerDiv.style.top = divPosition.y-10 + "px"
+                        this.containerDiv.style.top = divPosition.y - 10 + "px"
                     }
 
                     if (this.containerDiv.style.display !== display) {
