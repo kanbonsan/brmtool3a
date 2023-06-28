@@ -1,5 +1,9 @@
 <template>
     <div class="testdiv">
+        
+        <p>TestDiv 2 {{ params.ts }}</p>
+        <p>TestDiv 2 {{ params.ts }}</p>
+        <p>TestDiv 2 {{ params.ts }}</p>
         <p>TestDiv 2 {{ params.ts }}</p>
         <w-button class="ma1" bg-color="secondary" xs @click="onClick">Button</w-button>
     </div>
@@ -10,10 +14,7 @@ import { onMounted , onUnmounted} from 'vue'
 const props = defineProps(['submit', 'params'])
 
 const onClick = () => {
-    props.submit('Test Div 2')
+    props.submit(props.params.ts)
 }
-
-onMounted(()=>console.log('test div 2 mounted'))
-onUnmounted(()=>console.log('test div 2 unmounted'))
 
 </script>

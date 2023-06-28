@@ -25,7 +25,7 @@ export class RoutePoint {
     brmDistance: number = 0.0;
 
     /** 透明度 */
-    opacity: number = 1.0;
+    opacity: number = 0.0;
 
     constructor(lat: number = 0.0, lng: number = 0.0, alt?: number) {
         this.id = Symbol();

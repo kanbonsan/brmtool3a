@@ -1,9 +1,10 @@
 <script lang="ts">
+
 import Layout from "@/Layouts/WaveLayout.vue"
 import { useDimension } from "@/Composables/dimension"
 const { dimensionUpdate, panes } = useDimension()
 
-export default {
+export default { 
     layout: Layout,
 }
 </script>

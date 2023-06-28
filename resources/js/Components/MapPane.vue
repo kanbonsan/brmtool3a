@@ -1,14 +1,16 @@
 <template>
     <GoogleMap ref="gmap" :api-key="apiKey" style="width: 100%; height: 100%" :center="center" :zoom="15"
         v-slot="slotProps">
-        <Marker :options="markerOption(pt)" v-for="(pt) in availablePoints" :key="pt.id" @click="markerClick(pt.id)">
+        <Marker :options="markerOption(pt)" 
+        v-for="(pt) in availablePoints" :key="pt.id"
+         @click="markerClick(pt.id)"
+         @mouseover="markerMouseover(pt.id)"
+         @mouseout="markerMouseout(pt.id)">
         </Marker>
         <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
         <CustomPopup :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" v-slot="{ submit }"
             :params="popupParams">
-
             <component :is="menus[menuComp]?.component" :submit="submit" :params="menuParams"></component>
-
         </CustomPopup>
     </GoogleMap>
 </template>
@@ -31,13 +33,13 @@ import { RoutePoint } from "@/classes/routePoint"
 
 import CustomPopup from "@/Components/CustomPopup.vue"
 import { debounce } from "lodash"
-
-import TestDiv from "@/Components/TestDiv1.vue"
+// ポップアップメニュー
 import TestDiv1 from "@/Components/TestDiv1.vue"
 import TestDiv2 from "@/Components/TestDiv2.vue"
+import ExcludePolyMenu from "@/Components/PopupMenu/ExcludedPolylineMenu.vue"
 
-import {useDimension} from "@/Composables/dimension"
-const {panes} = useDimension()
+import { useDimension } from "@/Composables/dimension"
+const { panes } = useDimension()
 
 
 interface menuComponentOptions {
@@ -45,7 +47,7 @@ interface menuComponentOptions {
     offsetY?: number
     width?: number
     height?: number
-    timeout?: number
+    timeout?: number | undefined    // nullable で auto close しない
 }
 
 interface menuComponent {
@@ -58,15 +60,19 @@ type Menus = {
 }
 
 const defaultOptions: menuComponentOptions = {
-    offsetX: 0,
-    offsetY: 0,
-    timeout: 60_000
+    offsetX: 15,
+    offsetY: -15,
+    timeout: undefined
 }
 
 const menus: Menus = {
     Menu1: { component: TestDiv1 },
     Menu2: {
         component: TestDiv2,
+        options: { timeout: 3000 }
+    },
+    ExcludePoly: {
+        component: ExcludePolyMenu,
         options: { timeout: 3000 }
     }
 }
@@ -161,14 +167,32 @@ const markerOption = (pt: RoutePoint) => {
 const markerClick = async (id: symbol) => {
     const pt = routeStore.getPointById(id)
     pt.opacity = 0.5
-    console.log(panes)
+
     const result = await markerPopup(id)
 
     console.log('markerClick', result, popupParams.value)
 }
 
+const markerMouseover = (id:symbol)=>{
+
+    const pt = routeStore.getPointById(id)
+    pt.opacity = 0.8
+
+    console.log('markerMouseover')
+}
+
+const markerMouseout = (id:symbol)=>{
+    const pt = routeStore.getPointById(id)
+    pt.opacity = 0.0
+
+    console.log('markerMouseout')
+}
+
 const markerPopup = async (id: symbol) => {
 
+    if (popupParams.value.activated) {
+        return Promise.reject('n/a')
+    }
     menuComp.value = 'Menu2'
     menuParams.value = { ts: Date.now() }
 
@@ -192,7 +216,7 @@ const popup = async (position: google.maps.LatLng) => {
     return new Promise((resolve, reject) => {
 
         const resolveFunc = (payload: any) => {
-            popupParams.value.activated = false 
+            popupParams.value.activated = false
             resolve(payload)
         }
 
@@ -207,5 +231,5 @@ const popup = async (position: google.maps.LatLng) => {
 
 }
 
-provide('popup', { popup, menuComp, popupOptions: popupParams })
+provide('popup', { popup, menuComp, popupParams, menuParams })
 </script>

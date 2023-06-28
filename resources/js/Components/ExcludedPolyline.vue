@@ -1,13 +1,13 @@
 <script setup>
 import { Polyline } from "vue3-google-map"
-import { useBrmRouteStore } from "@/stores/BrmRouteStore";
-import {computed, inject} from "vue"
+import { useBrmRouteStore } from "@/stores/BrmRouteStore"
+import { computed, inject } from "vue"
 
-const store=useBrmRouteStore()
+const store = useBrmRouteStore()
 
-const excludes = computed(()=>store.excludedRanges)
+const excludes = computed(() => store.excludedRanges)
 
-const getOption=(ex)=>{
+const getOption = (ex) => {
     return {
         strokeColor: "black",
         strokeWidth: 2,
@@ -15,17 +15,21 @@ const getOption=(ex)=>{
     }
 }
 
-const {popup,menuComp,popupOptions} = inject('popup')
+const { popup, menuComp, popupParams, menuParams } = inject('popup')
 
-const onClick = async (id,ev)=>{
-    const target = excludes.value.find((ex)=>ex.id===id)
-    store.restoreExclude(target.begin, target.end)
-    console.log(ev)
-    menuComp.value = 'Menu1'
+const onClick = async (id, ev) => {
 
-    const result = await popup(ev.latLng)
+    if (popupParams.value.activated === true) {
+        return
+    }
 
-    console.log(result)
+    const target = excludes.value.find((ex) => ex.id === id)
+    menuComp.value = 'ExcludePoly'
+
+    const res = await popup(ev.latLng)
+    if( res.status === 'success' && res.result === true){
+        store.restoreExclude(target.begin, target.end)
+    }
 }
 
 </script>
