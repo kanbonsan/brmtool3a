@@ -1,11 +1,8 @@
 <template>
     <GoogleMap ref="gmap" :api-key="apiKey" style="width: 100%; height: 100%" :center="center" :zoom="15"
         v-slot="slotProps">
-        <Marker :options="markerOption(pt)" 
-        v-for="(pt) in availablePoints" :key="pt.id"
-         @click="markerClick(pt.id)"
-         @mouseover="markerMouseover(pt.id)"
-         @mouseout="markerMouseout(pt.id)">
+        <Marker :options="markerOption(pt)" v-for="(pt) in availablePoints" :key="pt.id" @click="markerClick(pt)"
+            @mouseover="markerMouseover(pt)" @mouseout="markerMouseout(pt)">
         </Marker>
         <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
         <CustomPopup :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" v-slot="{ submit }"
@@ -91,6 +88,7 @@ const availablePoints = computed(() => routeStore.availablePoints)
 const menuComp = ref<string>('')
 const popupParams = ref<{
     activated?: boolean,
+    activator?: RoutePoint, // popup の対象オブジェクト（eg メニュー表示中にマーカーを消さないように）
     position?: google.maps.LatLng,
     options?: menuComponentOptions,
     resolve?: (payload: any) => void
@@ -164,31 +162,35 @@ const markerOption = (pt: RoutePoint) => {
     }
 }
 
-const markerClick = async (id: symbol) => {
-    const pt = routeStore.getPointById(id)
+const markerClick = async (pt: RoutePoint) => {
+
     pt.opacity = 0.5
 
-    const result = await markerPopup(id)
+    const result = await markerPopup(pt)
+    pt.opacity = 0.0
 
     console.log('markerClick', result, popupParams.value)
 }
 
-const markerMouseover = (id:symbol)=>{
-
-    const pt = routeStore.getPointById(id)
+const markerMouseover = (pt: RoutePoint) => {
+    if (popupParams.value.activator === pt) {
+        return
+    }
     pt.opacity = 0.8
 
     console.log('markerMouseover')
 }
 
-const markerMouseout = (id:symbol)=>{
-    const pt = routeStore.getPointById(id)
+const markerMouseout = (pt: RoutePoint) => {
+    if (popupParams.value.activator === pt) {
+        return
+    }
     pt.opacity = 0.0
 
     console.log('markerMouseout')
 }
 
-const markerPopup = async (id: symbol) => {
+const markerPopup = async (pt: RoutePoint) => {
 
     if (popupParams.value.activated) {
         return Promise.reject('n/a')
@@ -196,15 +198,14 @@ const markerPopup = async (id: symbol) => {
     menuComp.value = 'Menu2'
     menuParams.value = { ts: Date.now() }
 
-    const pt = routeStore.getPointById(id)
     const position = new google.maps.LatLng(pt)
-    const result = await popup(position)
+    const result = await popup(position, pt)
 
     return result
 
 }
 
-const popup = async (position: google.maps.LatLng) => {
+const popup = async (position: google.maps.LatLng, activator?) => {
 
     /**
      * Promiseオブジェクトの resolve 関数を取り出して子コンポーネントに渡して
@@ -217,11 +218,13 @@ const popup = async (position: google.maps.LatLng) => {
 
         const resolveFunc = (payload: any) => {
             popupParams.value.activated = false
+            popupParams.value.activator = undefined
             resolve(payload)
         }
 
         popupParams.value = {
             activated: true,
+            activator,
             resolve: resolveFunc,
             reject: reject,
             position: position,
