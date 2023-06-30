@@ -34,6 +34,7 @@ import { debounce } from "lodash"
 import TestDiv1 from "@/Components/TestDiv1.vue"
 import TestDiv2 from "@/Components/TestDiv2.vue"
 import ExcludePolyMenu from "@/Components/PopupMenu/ExcludedPolylineMenu.vue"
+import PointMenu from "@/Components/PopupMenu/PointMenu.vue"
 
 import { useDimension } from "@/Composables/dimension"
 const { panes } = useDimension()
@@ -52,16 +53,20 @@ interface menuComponent {
     options?: menuComponentOptions
 }
 
+type Activator = RoutePoint
+
 type Menus = {
     [key: string]: menuComponent
 }
 
 const defaultOptions: menuComponentOptions = {
-    offsetX: 15,
-    offsetY: -15,
+    offsetX: 0,
+    offsetY: 0,
     timeout: undefined
 }
-
+/**
+ * CustomPopup 内に表示する slot の内容
+ */
 const menus: Menus = {
     Menu1: { component: TestDiv1 },
     Menu2: {
@@ -71,6 +76,10 @@ const menus: Menus = {
     ExcludePoly: {
         component: ExcludePolyMenu,
         options: { timeout: 3000 }
+    },
+    PointMenu: {
+        component: PointMenu,
+        options: { timeout: 50000, offsetY: -10 }
     }
 }
 
@@ -158,7 +167,7 @@ const markerOption = (pt: RoutePoint) => {
     return {
         position: pt,
         opacity: pt.opacity,
-        icon: circle
+        icon: { url: circle, anchor: new google.maps.Point(8, 8) }
     }
 }
 
@@ -195,7 +204,7 @@ const markerPopup = async (pt: RoutePoint) => {
     if (popupParams.value.activated) {
         return Promise.reject('n/a')
     }
-    menuComp.value = 'Menu2'
+    menuComp.value = 'PointMenu'
     menuParams.value = { ts: Date.now() }
 
     const position = new google.maps.LatLng(pt)
@@ -205,7 +214,7 @@ const markerPopup = async (pt: RoutePoint) => {
 
 }
 
-const popup = async (position: google.maps.LatLng, activator?) => {
+const popup = async (position: google.maps.LatLng, activator?: Activator) => {
 
     /**
      * Promiseオブジェクトの resolve 関数を取り出して子コンポーネントに渡して

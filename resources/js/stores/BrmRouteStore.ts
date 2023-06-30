@@ -7,6 +7,7 @@ import { HubenyCorrection } from '@/config.js'
 import { useGmapStore } from '@/stores/GmapStore.js'
 import { useMessage } from './MessageStore'
 import { RoutePoint } from '@/classes/routePoint'
+import { isArray } from 'lodash'
 
 const simplifyParam = [
     { weight: 3, tolerance: 0.000015 },
@@ -19,6 +20,9 @@ type State = {
     points: RoutePoint[],
 }
 
+type Range = [ number,number] | []
+type Editable = [ Range,Range,Range ]
+
 export const useBrmRouteStore = defineStore('brmroute', {
 
     state: (): State => ({
@@ -27,15 +31,15 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
     getters: {
         /** ポイント数 */
-        count: (state) => state.points.length,
+        count: (state):number => state.points.length,
 
         /** simplify 用の配列（x,y) を用意 */
         pointsArray: (state) => state.points.map((pt, index) => ({ x: pt.lng ?? 0, y: pt.lat ?? 0, index })),
 
-        
+
         /** map 内におさまるポイント */
         availablePoints(state) {
-            const gmapStore=useGmapStore()
+            const gmapStore = useGmapStore()
             const zoom = gmapStore.zoom
             const threshold = 8
 
@@ -48,7 +52,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
         polylinePoints: (state) => state.points.filter(pt => pt.weight >= 5),
 
         /** point id からポイントインデックスを抽出 */
-        getPointById: (state) => (id:symbol)=>{
+        getPointById: (state) => (id: symbol) => {
             const idx = state.points.findIndex(pt => pt.id === id)
             return state.points[idx]
         },
@@ -67,18 +71,22 @@ export const useBrmRouteStore = defineStore('brmroute', {
             for (let i = 0; i < this.count; i++) {
                 const pt = state.points[i]
                 if (pt.excluded === true) {
-                    if (!begin) {
+                    if (begin === null) {
                         begin = i
                     }
                     end = i
                 } else {
-                    if (begin) {
+                    if (begin !== null) {
                         arr.push({ begin, end })
                         begin = null
                         end = null
                     }
                 }
             }
+            if (begin !== null && end !== null) {
+                arr.push({ begin, end })
+            }
+
             // 除外区間がない場合
             if (arr.length === 0) { return arr }
 
@@ -93,13 +101,44 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 const points = []
                 points.push(state.points[begin])
                 for (let i = begin + 1; i < end; i++) {
-                    if (state.points[i].weight >= 3) {
+                    if (state.points[i].weight >= 5) {
                         points.push(state.points[i])
                     }
                 }
                 points.push(state.points[end])
                 return ({ begin, end, points, id: Symbol() })
             })
+        },
+
+        editableRanges(state): Editable {
+
+            const arr =[]
+            let begin: number | null = null
+            let end: number | null = null
+            for (let i = 0; i < this.count; i++) {
+                const pt = state.points[i]
+                if (pt.editable === true) {
+                    if (begin === null) {
+                        begin = i
+                    }
+                    end = i
+                }
+            }
+            // pre
+            if( begin !== 0 ){
+                arr.push([0,begin])
+            } else {
+                arr.push([])
+            }
+            // editable
+            arr.push([begin,end])
+            // post
+            if( end !== this.count-1){
+                arr.push([end,this.count-1])
+            } else {
+                arr.push([])
+            }
+            return arr as Editable
         }
 
     },
@@ -223,6 +262,19 @@ export const useBrmRouteStore = defineStore('brmroute', {
             for (let i = begin; i <= end; i++) {
                 this.points[i].excluded = false
             }
+        },
+
+        /**
+         * 指定範囲のポイントの削除
+         * @param begin 
+         * @param end 
+         * @returns 
+         */
+        removePoints(begin: number, end: number) {
+            if (begin < 0 || end >= this.count || end < begin) {
+                throw new Error('removePoints: パラメータが不正です')
+            }
+            return this.points.splice(begin, end - begin + 1)
         },
 
         // 以下はテスト・実験用
