@@ -20,6 +20,9 @@ export const GEOCODE_TOLERANCE = 20 * 0.00005
 // 距離計算時の補正倍率 RideWithGps と カシミール3D での距離を元に.
 export const HubenyCorrection = 1.0013
 
+// Polyline に使うポイントの weight の閾値（weight は min 1～max 10）
+export const weighedThreshold = 5
+
 // パス上の mouseover イベントでポイントにスナップする範囲（ピクセル）
 export const NeighborThreshold = 10
 

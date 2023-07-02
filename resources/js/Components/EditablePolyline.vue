@@ -7,22 +7,20 @@ const store = useBrmRouteStore()
 
 const editableRanges = computed(() => store.editableRanges)
 
-
-
-const getOption = (ex) => {
+const getOption = (range) => {
     return {
-        strokeColor: "black",
+        strokeColor: "red",
+        strokeOpacity: range.editable === true ? 1.0 : 0.3,
         strokeWidth: 2,
-        path: ex.points,
+        path: range.points,
     }
 }
 
 </script>
 
 <template>
-    <template v-for="(range,key,index) in editableRanges">
-        <Polyline v-if="range.available" :key="ex.id" :options="getOption(ex)" @click="onClick(ex.id, $event)">
+    <Polyline v-for="range in editableRanges" :key="range.id" :options="getOption(range)"
+        @click="onClick(range.id, $event)">
 
-        </Polyline>
-    </template>
+    </Polyline>
 </template>

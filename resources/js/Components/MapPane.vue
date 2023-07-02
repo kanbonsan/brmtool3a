@@ -9,6 +9,7 @@
             :params="popupParams">
             <component :is="menus[menuComp]?.component" :submit="submit" :params="menuParams"></component>
         </CustomPopup>
+        <Marker :options="test" @drag="onTestDrag"></Marker>
     </GoogleMap>
 </template>
 
@@ -110,6 +111,7 @@ onMounted(() => {
         routeStore.deviate()
         routeStore.setExclude(10, 50)
         routeStore.setExclude(300, 350)
+        routeStore.setEditableTest()
         console.log('deviated')
     }, 5000)
     setTimeout(() => {
@@ -163,6 +165,15 @@ watch(
     }
 )
 
+const test = ref({
+    position: { lat: 35.23943409063303, lng: 137.11307650527957 },
+    draggable: true,
+})
+
+const onTestDrag = (ev: google.maps.MapMouseEvent) => {
+    console.log('dragging', ev)
+}
+
 const markerOption = (pt: RoutePoint) => {
     return {
         position: pt,
@@ -170,6 +181,8 @@ const markerOption = (pt: RoutePoint) => {
         icon: { url: circle, anchor: new google.maps.Point(8, 8) }
     }
 }
+
+
 
 const markerClick = async (pt: RoutePoint) => {
 
@@ -185,6 +198,9 @@ const markerMouseover = (pt: RoutePoint) => {
     if (popupParams.value.activator === pt) {
         return
     }
+
+    if (!pt.editable) return
+
     pt.opacity = 0.8
 
     console.log('markerMouseover')
@@ -194,6 +210,9 @@ const markerMouseout = (pt: RoutePoint) => {
     if (popupParams.value.activator === pt) {
         return
     }
+
+    if (!pt.editable) return
+
     pt.opacity = 0.0
 
     console.log('markerMouseout')

@@ -2,12 +2,12 @@ import { defineStore } from 'pinia'
 import { polyline } from '@/lib/polyline'
 import { simplifyPath } from '@/lib/douglasPeucker'
 import { hubeny } from '@/lib/hubeny'
-import { HubenyCorrection } from '@/config.js'
+import { HubenyCorrection, weighedThreshold } from '@/config.js'
+
 
 import { useGmapStore } from '@/stores/GmapStore.js'
 import { useMessage } from './MessageStore'
 import { RoutePoint } from '@/classes/routePoint'
-import { isArray } from 'lodash'
 
 const simplifyParam = [
     { weight: 3, tolerance: 0.000015 },
@@ -20,8 +20,9 @@ type State = {
     points: RoutePoint[],
 }
 
-type Range = [ number,number] | []
-type Editable = [ Range,Range,Range ]
+
+type Editable = { begin: number, end: number, points: RoutePoint[], editable: boolean, id: symbol }
+type EditableRanges = Editable[]
 
 export const useBrmRouteStore = defineStore('brmroute', {
 
@@ -31,25 +32,40 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
     getters: {
         /** ポイント数 */
-        count: (state):number => state.points.length,
+        count: (state): number => state.points.length,
 
         /** simplify 用の配列（x,y) を用意 */
         pointsArray: (state) => state.points.map((pt, index) => ({ x: pt.lng ?? 0, y: pt.lat ?? 0, index })),
 
+        /** ある程度以上のポイント */
+        weighedPoints: (state): RoutePoint[] => state.points.filter(pt => pt.weight >= weighedThreshold),
+
 
         /** map 内におさまるポイント */
-        availablePoints(state) {
+        availablePoints(state): RoutePoint[] {
             const gmapStore = useGmapStore()
-            const zoom = gmapStore.zoom
-            const threshold = 8
-
-            return state.points.filter((pt) => {
-
-                return gmapStore.latLngBounds?.contains(pt) && pt.weight >= threshold
-            })
+            return this.weighedPoints.filter(pt => gmapStore.latLngBounds?.contains(pt))
         },
 
-        polylinePoints: (state) => state.points.filter(pt => pt.weight >= 5),
+        /**
+         * Polyline 用に抽出するポイントの配列を返す（引数付き getter）
+         * 開始・終了は weight 関係なしに設定し、その間は weight の高いポイントを返す
+         * @param begin {number}
+         * @param end {number}
+         * @returns 
+         */
+        getPolylinePoints: (state) => (begin: number, end: number) => {
+            const arr: RoutePoint[] = []
+            arr.push(state.points[begin])
+            for (let i = begin + 1; i < end; i++) {
+                const pt = state.points[i]
+                if (pt.weight >= weighedThreshold) {
+                    arr.push(pt)
+                }
+            }
+            arr.push(state.points[end])
+            return arr
+        },
 
         /** point id からポイントインデックスを抽出 */
         getPointById: (state) => (id: symbol) => {
@@ -92,27 +108,23 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
             return arr.map((range) => {
 
-                if (!range.begin || !range.end) {  // TypeScript で possible 'null' を避けるため
-                    return
-                }
+                const begin = Math.max(range.begin! - 1, 0)
+                const end = Math.min(range.end! + 1, this.count - 1)
 
-                const begin = Math.max(range.begin - 1, 0)
-                const end = Math.min(range.end + 1, this.count - 1)
-                const points = []
-                points.push(state.points[begin])
-                for (let i = begin + 1; i < end; i++) {
-                    if (state.points[i].weight >= 5) {
-                        points.push(state.points[i])
-                    }
-                }
-                points.push(state.points[end])
+                const points = this.getPolylinePoints(begin, end) as RoutePoint[]
                 return ({ begin, end, points, id: Symbol() })
             })
         },
+        /**
+         * 基本的なパスの Polyline を描画するためのポイントリストを返す
+         * 編集範囲 begin - end の前後を含め最大 3つの要素 Editable を作成するが、存在しないときは返さない。
+         * 再描画を促すために id に Symbol() を振る
+         * @param state 
+         * @returns 
+         */
+        editableRanges(state): EditableRanges {
 
-        editableRanges(state): Editable {
-
-            const arr =[]
+            // 編集可能範囲（除外と違って範囲は一つだけ）
             let begin: number | null = null
             let end: number | null = null
             for (let i = 0; i < this.count; i++) {
@@ -124,21 +136,56 @@ export const useBrmRouteStore = defineStore('brmroute', {
                     end = i
                 }
             }
+
+            const arr = []
+
             // pre
-            if( begin !== 0 ){
-                arr.push([0,begin])
-            } else {
-                arr.push([])
+            if (begin !== 0) {
+                const pre: Editable = { begin: 0, end: begin!, points: this.getPolylinePoints(0, begin!), editable: false, id: Symbol() }
+                arr.push(pre)
             }
             // editable
-            arr.push([begin,end])
+            const editable: Editable = { begin: begin!, end: end!, points: this.getPolylinePoints(begin!, end!), editable: true, id: Symbol() }
+            arr.push(editable)
             // post
-            if( end !== this.count-1){
-                arr.push([end,this.count-1])
-            } else {
-                arr.push([])
+            if (end !== this.count - 1) {
+                const post: Editable = { begin: end!, end: this.count - 1, points: this.getPolylinePoints(end!, this.count - 1), editable: false, id: Symbol() }
+                arr.push(post)
             }
-            return arr as Editable
+            return arr as EditableRanges
+        },
+
+        getClosePoint(state) {
+
+            const deviateThreshold: number = 0.0001
+
+            return (position: google.maps.LatLng) => {
+                const posLat = position.lat()
+                const posLng = position.lng()
+
+                const candidate = this.weighedPoints.filter((pt: RoutePoint) => {
+                    if (!pt.editable && pt.excluded) return false
+
+                    const deviate = Math.abs(pt.lat - posLat) + Math.abs(pt.lng - posLng)
+                    if (deviate > deviateThreshold) return false
+                })
+
+                if (candidate.length === 0) return candidate
+
+                const closest = candidate.reduce((_closest: { pt: RoutePoint | null, dist: number }, pt: RoutePoint) => {
+                    
+                        const _distance = hubeny( posLat,posLng, pt.lat,pt.lng)
+                        if( _distance<_closest.dist){
+                            return { pt, _distance}
+                        } else {
+                            return _closest
+                        }
+                     
+                }, { pt: null, dist: Infinity })
+
+                return closest.pt
+            }
+
         }
 
     },
@@ -291,6 +338,12 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
         delete(begin = 1450, end = 1499) {
             this.points.splice(begin, end - begin)
+        },
+
+        setEditableTest() {
+            for (let i = 0; i < 300; i++) {
+                this.points[i].editable = false
+            }
         }
     }
 })
