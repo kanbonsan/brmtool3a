@@ -157,30 +157,41 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
         getClosePoint(state) {
 
-            const deviateThreshold: number = 0.0001
+            type ClosePoint = {
+                pt: RoutePoint | null,
+                dist: number
+            }
+
+            const deviateThreshold: number = 0.001
 
             return (position: google.maps.LatLng) => {
+
                 const posLat = position.lat()
                 const posLng = position.lng()
 
                 const candidate = this.weighedPoints.filter((pt: RoutePoint) => {
-                    if (!pt.editable && pt.excluded) return false
+
+                    if (pt.editable === false || pt.excluded === true) {
+                        return false
+                    }
 
                     const deviate = Math.abs(pt.lat - posLat) + Math.abs(pt.lng - posLng)
                     if (deviate > deviateThreshold) return false
+
+                    return true
                 })
 
                 if (candidate.length === 0) return candidate
 
-                const closest = candidate.reduce((_closest: { pt: RoutePoint | null, dist: number }, pt: RoutePoint) => {
-                    
-                        const _distance = hubeny( posLat,posLng, pt.lat,pt.lng)
-                        if( _distance<_closest.dist){
-                            return { pt, _distance}
-                        } else {
-                            return _closest
-                        }
-                     
+                const closest: ClosePoint = candidate.reduce((_closest: ClosePoint, pt: RoutePoint) => {
+
+                    const _distance = hubeny(posLat, posLng, pt.lat, pt.lng)
+                    if (_distance < _closest.dist) {
+                        return { pt, dist: _distance }
+                    } else {
+                        return _closest
+                    }
+
                 }, { pt: null, dist: Infinity })
 
                 return closest.pt

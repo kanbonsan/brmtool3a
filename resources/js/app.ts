@@ -9,33 +9,13 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy/dist/vue.m';
 import { createPinia} from 'pinia'
 const pinia = createPinia()
 
-// Vuetify
-import 'vuetify/styles'
-import { createVuetify } from 'vuetify'
-import { aliases, mdi } from 'vuetify/iconsets/mdi'
-import '@mdi/font/css/materialdesignicons.css' // Ensure you are using css-loader
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
-
-// vue-final-plugin
-import { vfmPlugin } from 'vue-final-modal';
+// element plus
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
 
 // Wave UI
 import WaveUI from 'wave-ui'
 import 'wave-ui/dist/wave-ui.css'
-
-const vuetify = createVuetify({
-    components,
-    directives,
-    icons: {
-      defaultSet: 'mdi',
-      aliases,
-      sets: {
-        mdi,
-      }
-    },
-  })
-  
 
 const appName = window.document.getElementsByTagName('title')[0]?.innerText || 'Laravel';
 
@@ -46,10 +26,9 @@ createInertiaApp({
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue, Ziggy)
-            .use(vuetify)
             .use(WaveUI)
+            .use(ElementPlus)
             .use(pinia)
-            .use(vfmPlugin)
             .mount(el);
     },
     progress: {

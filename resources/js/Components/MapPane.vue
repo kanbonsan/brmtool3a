@@ -171,7 +171,8 @@ const test = ref({
 })
 
 const onTestDrag = (ev: google.maps.MapMouseEvent) => {
-    console.log('dragging', ev)
+    const closest = routeStore.getClosePoint(ev.latLng!)
+    console.log('dragging', closest)
 }
 
 const markerOption = (pt: RoutePoint) => {

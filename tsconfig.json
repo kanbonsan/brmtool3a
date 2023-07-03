@@ -14,7 +14,8 @@
         "paths": {
             "@/*": ["./resources/js/*"]
         },
-        "resolvePackageJsonExports": false
+        "resolvePackageJsonExports": false,
+        "types": ["element-plus/global"]
     },
     "include": ["resources/js/**/*.ts", "resources/js/**/*.d.ts", "resources/js/**/*.vue", "resources/js/Composables/dimension.ts"]
 }
