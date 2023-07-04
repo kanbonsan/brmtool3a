@@ -155,7 +155,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             return arr as EditableRanges
         },
 
-        getClosePoint(state) {
+        getClosePoint() {
 
             type ClosePoint = {
                 pt: RoutePoint | null,
@@ -181,7 +181,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
                     return true
                 })
 
-                if (candidate.length === 0) return candidate
+                if (candidate.length === 0) return null
 
                 const closest: ClosePoint = candidate.reduce((_closest: ClosePoint, pt: RoutePoint) => {
 
@@ -194,7 +194,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
                 }, { pt: null, dist: Infinity })
 
-                return closest.pt
+                return closest.pt as RoutePoint
             }
 
         }

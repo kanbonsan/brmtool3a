@@ -9,12 +9,12 @@
             :params="popupParams">
             <component :is="menus[menuComp]?.component" :submit="submit" :params="menuParams"></component>
         </CustomPopup>
-        <Marker :options="test" @drag="onTestDrag"></Marker>
+        <Marker :options="test" @drag="onTestDrag" @dragend="onTestDragEnd"></Marker>
     </GoogleMap>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed, provide } from "vue"
+import { ref, watch, onMounted, computed, provide, type Ref } from "vue"
 import type { Component } from 'vue'
 import WaveUI from 'wave-ui'
 
@@ -165,15 +165,52 @@ watch(
     }
 )
 
+
 const test = ref({
     position: { lat: 35.23943409063303, lng: 137.11307650527957 },
     draggable: true,
 })
 
+const cl = ref<RoutePoint | null>(null)
+
 const onTestDrag = (ev: google.maps.MapMouseEvent) => {
     const closest = routeStore.getClosePoint(ev.latLng!)
-    console.log('dragging', closest)
+    if (closest !== null) {
+        if (cl.value !== closest && cl.value !== null) {
+            cl.value.opacity = 0.0
+        }
+        closest.opacity = 1.0
+        cl.value = closest
+    } else {
+        if (cl.value !== null) {
+            cl.value.opacity = 0.0
+        }
+        cl.value = null
+    }
 }
+
+const onTestDragEnd = async (ev: google.maps.MapMouseEvent) => {
+    if (cl.value === null) return
+
+    const result = await markerDragPopup()
+
+    setTimeout(() => {
+            if(cl.value === null)return
+            cl.value.opacity! = 0.0
+    }, 1000)
+
+
+
+}
+
+const markerDragPopup = async () => {
+    return
+    if (popupParams.value.activated) {
+        return Promise.reject('n/a')
+    }
+}
+
+
 
 const markerOption = (pt: RoutePoint) => {
     return {
