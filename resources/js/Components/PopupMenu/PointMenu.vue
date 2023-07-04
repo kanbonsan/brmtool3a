@@ -3,11 +3,12 @@
         <template #header>
             <h3>ポイントメニュー</h3>
         </template>
-        
-        解除しますか?
-        <el-button class="ma1" bg-color="secondary" xs @click="onClick(true)">解除します</el-button>
-        <el-button class="ma1" bg-color="secondary" xs @click="onClick(false)">キャンセル</el-button>
-
+        <el-row>
+            <el-button @click="onClick('addCuePoint')">キューポイントを設定</el-button>
+        </el-row>
+        <el-row>
+            <el-button @click="onClick('cancel')">キャンセル</el-button>
+        </el-row>
     </el-card>
 </template>
 
@@ -15,7 +16,13 @@
 
 const props = defineProps(['submit'])
 
-const onClick = (result: boolean) => {
+const onClick = (result: string) => {
+    switch (result) {
+        case 'addCuePoint':
+            break
+        case 'cancel':
+            break
+    }
     props.submit({ status: 'success', result })
 }
 
