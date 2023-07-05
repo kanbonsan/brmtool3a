@@ -1,13 +1,11 @@
 import { defineStore } from 'pinia'
-import type {  CuePoint } from '@/classes/cuePoint'
-import type { RoutePoint } from '@/classes/routePoint'
+import { CuePoint } from '@/classes/cuePoint'
+import { RoutePoint } from '@/classes/routePoint'
 
 
 type State = {
     cuePoints: CuePoint[],
 }
-
-type addCuePointArg = RoutePoint | { lat:number, lng:number }
 
 export const useBrmRouteStore = defineStore('brmroute', {
 
@@ -16,16 +14,20 @@ export const useBrmRouteStore = defineStore('brmroute', {
     }),
 
     getters: {
-        
+
     },
 
     actions: {
-        
 
-        
-        addCuePoint: (arg: addCuePointArg)=>{
-            
-            
+        addCuePoint: (arg: RoutePoint | { lat: number, lng: number }) => {
+            if (arg instanceof RoutePoint) {
+                const type ='cue'
+                const routePointId = arg.id
+            } else {    
+                const type ='poi'
+            }
+            const {lat,lng} = arg
+            const cuePoint = new CuePoint(lat,lng, type)
         }
     }
 })
