@@ -226,10 +226,17 @@ const markerClick = async (pt: RoutePoint) => {
 
     pt.opacity = 0.5
 
-    const result = await markerPopup(pt)
+    const response: any = await markerPopup(pt)
     pt.opacity = 0.0
 
-    console.log('markerClick', result, popupParams.value)
+    if( response.status == 'success'){
+        if( response.result === 'addCuePoint'){
+            
+        }
+    }
+    console.log(response)
+
+    
 }
 
 const markerMouseover = (pt: RoutePoint) => {

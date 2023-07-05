@@ -1,7 +1,7 @@
 <template>
     <el-card class="ex-poly">
         <template #header>
-            <h3>ポイントメニュー</h3>
+            <h3>ポイント</h3>
         </template>
         <el-row>
             <el-button @click="onClick('addCuePoint')">キューポイントを設定</el-button>
