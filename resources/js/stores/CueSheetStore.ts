@@ -4,30 +4,44 @@ import { RoutePoint } from '@/classes/routePoint'
 
 
 type State = {
-    cuePoints: CuePoint[],
+    cuePoints: Map<symbol,CuePoint>
 }
 
-export const useBrmRouteStore = defineStore('brmroute', {
+export const useCuesheetStore = defineStore('cuesheet', {
 
     state: (): State => ({
-        cuePoints: [],
+        cuePoints: new Map(),
     }),
 
     getters: {
+        getCuePointById(state){
+            return (id:symbol)=>{
+                this.cuePoints.get(id)
+            }
+        },
 
+        getArray(state){
+            return Array.from(state.cuePoints)
+        }
     },
 
     actions: {
 
-        addCuePoint: (arg: RoutePoint | { lat: number, lng: number }) => {
+        addCuePoint(arg: RoutePoint | { lat: number, lng: number }) {
+
             if (arg instanceof RoutePoint) {
-                const type ='cue'
-                const routePointId = arg.id
-            } else {    
-                const type ='poi'
+                const pt = new CuePoint(arg.lat, arg.lng, 'cue', arg.id)
+                this.cuePoints.set(pt.id, pt)
+            } else {
+                const pt = new CuePoint(arg.lat, arg.lng, 'poi', null)
+                this.cuePoints.set(pt.id,pt)
             }
-            const {lat,lng} = arg
-            const cuePoint = new CuePoint(lat,lng, type)
+
+        },
+
+        removeCuePoint(id:symbol){
+            this.cuePoints.delete(id)
         }
     }
-})
+}
+)

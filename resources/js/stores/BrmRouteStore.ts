@@ -4,9 +4,7 @@ import { simplifyPath } from '@/lib/douglasPeucker'
 import { hubeny } from '@/lib/hubeny'
 import { HubenyCorrection, weighedThreshold } from '@/config.js'
 
-
 import { useGmapStore } from '@/stores/GmapStore.js'
-import { useMessage } from './MessageStore'
 import { RoutePoint } from '@/classes/routePoint'
 
 const simplifyParam = [
