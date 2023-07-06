@@ -5,6 +5,7 @@ import { hubeny } from '@/lib/hubeny'
 import { HubenyCorrection, weighedThreshold } from '@/config.js'
 
 import { useGmapStore } from '@/stores/GmapStore.js'
+import { useCuesheetStore } from './CueSheetStore'
 import { RoutePoint } from '@/classes/routePoint'
 
 const simplifyParam = [
@@ -195,6 +196,18 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 return closest.pt as RoutePoint
             }
 
+        },
+
+        /**
+         * RoutePoint に CuePoint が設定されているか
+         * 一つのRoutePointにはCuePointは一つしか設定できない
+         * @returns boolean
+         */
+        hasCuePoint(){
+            const cuesheetStore = useCuesheetStore()
+            return (pt:RoutePoint)=>{
+
+            }
         }
 
     },

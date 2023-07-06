@@ -4,7 +4,7 @@ import { RoutePoint } from '@/classes/routePoint'
 
 
 type State = {
-    cuePoints: Map<symbol,CuePoint>
+    cuePoints: Map<symbol, CuePoint>
 }
 
 export const useCuesheetStore = defineStore('cuesheet', {
@@ -14,15 +14,22 @@ export const useCuesheetStore = defineStore('cuesheet', {
     }),
 
     getters: {
-        getCuePointById(state){
-            return (id:symbol)=>{
+        getCuePointById(state) {
+            return (id: symbol) => {
                 this.cuePoints.get(id)
             }
         },
 
-        getArray(state){
-            return Array.from(state.cuePoints)
+        getArray(state) {
+            return Array.from(state.cuePoints, (cue) => cue[1])
+        },
+
+        getRoutePointById(state){
+            return (routePointId:symbol)=>{
+                
+            }
         }
+
     },
 
     actions: {
@@ -34,12 +41,12 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 this.cuePoints.set(pt.id, pt)
             } else {
                 const pt = new CuePoint(arg.lat, arg.lng, 'poi', null)
-                this.cuePoints.set(pt.id,pt)
+                this.cuePoints.set(pt.id, pt)
             }
 
         },
 
-        removeCuePoint(id:symbol){
+        removeCuePoint(id: symbol) {
             this.cuePoints.delete(id)
         }
     }

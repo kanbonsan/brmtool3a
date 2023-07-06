@@ -10,6 +10,7 @@
             <component :is="menus[menuComp]?.component" :submit="submit" :params="menuParams"></component>
         </CustomPopup>
         <Marker :options="test" @drag="onTestDrag" @dragend="onTestDragEnd"></Marker>
+        <CuePointMarker :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready"/>
     </GoogleMap>
 </template>
 
@@ -22,6 +23,7 @@ import { GoogleMap, Marker, Polyline } from "vue3-google-map"
 import brm from "../../sample/sample200.brm.json"
 
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
+import { useCuesheetStore } from "@/stores/CueSheetStore"
 import { useGmapStore } from "@/stores/GmapStore"
 import { useMessage } from "@/stores/MessageStore"
 import circle from '../../images/pointCircle.png'
@@ -38,6 +40,7 @@ import ExcludePolyMenu from "@/Components/PopupMenu/ExcludedPolylineMenu.vue"
 import PointMenu from "@/Components/PopupMenu/PointMenu.vue"
 
 import { useDimension } from "@/Composables/dimension"
+import CuePointMarker from "./CuePointMarker.vue"
 const { panes } = useDimension()
 
 
@@ -92,6 +95,7 @@ const center = ref({ lat: 35.2418, lng: 137.1146 })
 const routeStore = useBrmRouteStore()
 const gmapStore = useGmapStore()
 const messageStore = useMessage()
+const cuesheetStore =useCuesheetStore()
 
 const availablePoints = computed(() => routeStore.availablePoints)
 
@@ -231,7 +235,8 @@ const markerClick = async (pt: RoutePoint) => {
 
     if( response.status == 'success'){
         if( response.result === 'addCuePoint'){
-            
+            console.log('add cue point')
+            cuesheetStore.addCuePoint(pt)
         }
     }
     console.log(response)

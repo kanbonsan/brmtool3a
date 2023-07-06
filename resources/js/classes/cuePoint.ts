@@ -18,4 +18,9 @@ export class CuePoint {
         this.lng = lng
         this.pointId = routePointId
     }
+
+    setPosition( position:google.maps.LatLng){
+        this.lat = position.lat()
+        this.lng = position.lng()
+    }
 }
