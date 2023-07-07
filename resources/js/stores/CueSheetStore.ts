@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { CuePoint } from '@/classes/cuePoint'
 import { RoutePoint } from '@/classes/routePoint'
-
+import { useBrmRouteStore } from './BrmRouteStore'
 
 type State = {
     cuePoints: Map<symbol, CuePoint>
@@ -28,6 +28,17 @@ export const useCuesheetStore = defineStore('cuesheet', {
             return (routePointId:symbol)=>{
                 
             }
+        },
+
+        routePoints(state){
+            const brmStore = useBrmRouteStore()
+            const arr: RoutePoint[] = []
+            state.cuePoints.forEach(cpt=>{
+                if(cpt.pointId!==null){
+                    arr.push( brmStore.getPointById(cpt.pointId))
+                }
+            })
+            return arr
         }
 
     },

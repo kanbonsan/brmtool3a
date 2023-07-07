@@ -3,6 +3,8 @@
         <template #header>
             <h3>ポイント</h3>
         </template>
+        <el-row v-if="params.cuePoint">
+        すでに設定済み</el-row>
         <el-row>
             <el-button @click="onClick('addCuePoint')">キューポイントを設定</el-button>
         </el-row>
@@ -14,7 +16,7 @@
 
 <script setup lang="ts">
 
-const props = defineProps(['submit'])
+const props = defineProps(['submit','params'])
 
 const onClick = (result: string) => {
     switch (result) {

@@ -274,7 +274,9 @@ const markerPopup = async (pt: RoutePoint) => {
         return Promise.reject('n/a')
     }
     menuComp.value = 'PointMenu'
-    menuParams.value = { ts: Date.now() }
+
+
+    menuParams.value = { ts: Date.now(), cuePoint: cuesheetStore.routePoints.includes(pt) }
 
     const position = new google.maps.LatLng(pt)
     const result = await popup(position, pt)
