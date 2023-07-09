@@ -8,6 +8,8 @@ import { useGmapStore } from '@/stores/GmapStore.js'
 import { useCuesheetStore } from './CueSheetStore'
 import { RoutePoint } from '@/classes/routePoint'
 
+import { worldCoord } from '@/lib/mapcoord'
+
 const simplifyParam = [
     { weight: 3, tolerance: 0.000015 },
     { weight: 5, tolerance: 0.00005 },
@@ -66,7 +68,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             return arr
         },
 
-        /** point id からポイントインデックスを抽出 */
+        /** point id からルートポイントを返す */
         getPointById: (state) => (id: symbol) => {
             const idx = state.points.findIndex(pt => pt.id === id)
             return state.points[idx]
@@ -199,15 +201,32 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
 
         /**
+         * RoutePoint id: symbole の一覧
+         * CueSheetStore で routepoint id の振り直しに利用
+         */
+        idList(state): symbol[] {
+            return state.points.map(pt => pt.id)
+        },
+
+        /**
          * RoutePoint に CuePoint が設定されているか
          * 一つのRoutePointにはCuePointは一つしか設定できない
          * @returns boolean
          */
-        hasCuePoint(){
+        hasCuePoint() {
             const cuesheetStore = useCuesheetStore()
-            return (pt:RoutePoint)=>{
+            return (pt: RoutePoint) => {
 
             }
+        },
+
+        tiles(state) {
+            const _tiles = new Set<string>()
+            state.points.forEach(pt => {
+                const { x, y } = worldCoord(pt.lat, pt.lng, 15)
+                _tiles.add(`${Math.ceil(x / 256)}/${Math.ceil(y / 256)}`)
+            })
+            return _tiles
         }
 
     },
@@ -340,15 +359,20 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * @returns 
          */
         removePoints(begin: number, end: number) {
+            const cuesheetStore = useCuesheetStore()
+
             if (begin < 0 || end >= this.count || end < begin) {
                 throw new Error('removePoints: パラメータが不正です')
             }
-            return this.points.splice(begin, end - begin + 1)
+            this.points.splice(begin, end - begin + 1)
+            // キューポイントの更新
+            cuesheetStore.checkAttach()
         },
 
         // 以下はテスト・実験用
 
         deviate(begin = 100, end = 200) {
+            const cuesheetStore = useCuesheetStore()
             for (let i = begin; i <= 100; i++) {
 
                 this.points[i].lng += 0.01
@@ -356,10 +380,15 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
             }
             this.setWeight()
+            // キューポイントの更新
+            cuesheetStore.checkAttach()
         },
 
         delete(begin = 1450, end = 1499) {
+            const cuesheetStore = useCuesheetStore()
             this.points.splice(begin, end - begin)
+            // キューポイントの更新
+            cuesheetStore.checkAttach()
         },
 
         setEditableTest() {
