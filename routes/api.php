@@ -18,4 +18,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('dem', 'App\Http\Controllers\Api\DemController@getAlt');
+Route::get('dem', 'App\Http\Controllers\Api\DemController@test');
