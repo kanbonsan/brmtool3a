@@ -2,6 +2,10 @@
 
 /**
  * 国土地理院 標高タイルを用いて標高値を得る API
+ * - $dem_source を上から順に検索
+ * - タイルが用意されていなければ .na とし読み込み時のタイムスタンプを記録
+ *    --- 一定期間（1年）はスキップ
+ * - 読み込めたタイルには末尾に source が分かるようにしてキャッシュする eg .5a
  */
 
 namespace App\Http\Controllers\Api;
@@ -15,8 +19,17 @@ use Illuminate\Support\Facades\Storage;
 class DemController extends Controller
 {
 
-    public function altitude ( Request $request ){
-
+    public function getAlt ( Request $request ){
+        $query = $request->query();
+        if(!array_key_exists('lat', $query) || !array_key_exists('lng',$query)){
+            throw new Exception('クエリパラメーターがありません.');
+        }
+        $lat = (float) $query['lat'];
+        $lng = (float) $query['lng'];
+        if( abs($lat>84 )|| abs($lng)>=180){
+            throw new Exception('パラメータの範囲が不適切です.');
+        }
+        return self::singleAlt($lat,$lng);
     }
 
     private function deg2rad($deg)
@@ -36,17 +49,17 @@ class DemController extends Controller
 
     public function test()
     {
-        return self::getAlt(27.988015973527055,86.9251820047539);
+        return self::singleAlt(27.988015973527055,86.9251820047539);
     }
 
-    public function getAlt($lat, $lng)
+    public function singleAlt($lat, $lng)
     {
         $dem_source = [
             ['name' => '5a', 'zoom' => 15, 'url' => "https://cyberjapandata.gsi.go.jp/xyz/dem5a_png/{z}/{x}/{y}.png"],
             ['name' => '5b', 'zoom' => 15, 'url' => "https://cyberjapandata.gsi.go.jp/xyz/dem5b_png/{z}/{x}/{y}.png"],
             ['name' => '5c', 'zoom' => 15, 'url' => "https://cyberjapandata.gsi.go.jp/xyz/dem5c_png/{z}/{x}/{y}.png"],
             ['name' => '10b', 'zoom' => 14, 'url' => "https://cyberjapandata.gsi.go.jp/xyz/dem_png/{z}/{x}/{y}.png"],
-            ['name' => 'aster', 'zoom' => 12, 'url' => "https://tiles.gsj.jp/tiles/elev/astergdemv3/{z}/{y}/{x}.png"],
+            ['name' => 'aster', 'zoom' => 12, 'url' => "https://tiles.gsj.jp/tiles/elev/astergdemv3/{z}/{y}/{x}.png"],  // {y}/{x} が入れ替わっている
         ];
         foreach ($dem_source as $dem) {
             $coord = self::tilePixel($lat, $lng, $dem['zoom']);
@@ -60,13 +73,14 @@ class DemController extends Controller
                 if ($r === 128 && $g === 0 && $b === 0) {   // ファイルはあるが、標高値が無効
                     continue;
                 }
-                return ['alt' => ($r * 256 * 256 + $g * 256 + $b) * 0.01, 'dem' => $dem['name']];
+                return ['alt' => ($r * 256 * 256 + $g * 256 + $b) * 0.01, 'dem' => $dem['name'], 'lat'=>$lat, 'lng'=>$lng];
             } catch (Exception $e) {
                 continue;
             }
         }
-
-        return ['alt' => -9999, 'dem' => "n/a"];
+        // source を回っていずれも取得できない場合（海上など？）
+        //return ['alt' => -9999, 'dem' => "n/a"];
+        throw new Exception("いずれのソースからもデータが得られませんでした.");
     }
 
 

@@ -41,6 +41,7 @@ import PointMenu from "@/Components/PopupMenu/PointMenu.vue"
 
 import { useDimension } from "@/Composables/dimension"
 import CuePointMarker from "./CuePointMarker.vue"
+import axios from "axios"
 const { panes } = useDimension()
 
 
@@ -163,8 +164,10 @@ watch(
                 messageStore.setFooterMessage(`zoom: ${map.getZoom()}`)
             })
 
-        map.addListener("click", (ev: google.maps.MapMouseEvent) => {
-            console.log(`${ev.latLng?.lat()}:${ev.latLng?.lng()}`)
+        map.addListener("click", async (ev: google.maps.MapMouseEvent) => {
+            console.log(`?lat=${ev.latLng?.lat()}&lng=${ev.latLng?.lng()}`)
+            const res = await axios.get("/api/getAlt", { params: {lat:ev.latLng?.lat(),lng:ev.latLng?.lng()}})
+            console.log(res.data)
         })
     }
 )
