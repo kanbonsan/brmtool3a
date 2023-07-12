@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 国土地理院 標高タイルを用いて標高値を得る API
  * - $dem_source を上から順に検索
@@ -26,17 +27,18 @@ class DemController extends Controller
         ['name' => 'aster', 'zoom' => 12, 'url' => "https://tiles.gsj.jp/tiles/elev/astergdemv3/{z}/{y}/{x}.png"],  // {y}/{x} が入れ替わっている
     ];
 
-    public function getAlt ( Request $request ){
+    public function getAlt(Request $request)
+    {
         $query = $request->query();
-        if(!array_key_exists('lat', $query) || !array_key_exists('lng',$query)){
+        if (!array_key_exists('lat', $query) || !array_key_exists('lng', $query)) {
             throw new Exception('クエリパラメーターがありません.');
         }
         $lat = (float) $query['lat'];
         $lng = (float) $query['lng'];
-        if( abs($lat>84 )|| abs($lng)>=180){
+        if (abs($lat > 84) || abs($lng) >= 180) {
             throw new Exception('パラメータの範囲が不適切です.');
         }
-        return self::singleAlt($lat,$lng);
+        return self::singleAlt($lat, $lng);
     }
 
     private function deg2rad($deg)
@@ -48,31 +50,39 @@ class DemController extends Controller
     {
         return (180 * $rad) / pi();
     }
-
-    public function cacheDemTiles( Request $request ){
+    
+    /**
+     * 標高データ獲得用にあらかじめタイルを読み込んでおく
+     * サーバー負荷対策： getTilePath() で サーバー呼び出しのたびに 250ms、各ポイント キャッシュされてなければ 500ms
+     */
+    public function cacheDemTiles(Request $request)
+    {
         $points = $request->input('points');
 
         $download_tiles = [];
         $cached_tiles = [];
         $na_points = [];
 
-        foreach($points as $point){
+        foreach ($points as $point) {
             try {
-                $result = self::singleAlt( $point->lat, $point->lng );
-                if( $result['cached']===true){
-                    array_push($cached_tiles, $result['path']);
+                $result = self::singleAlt($point['lat'], $point['lng']);
+                if ($result['cached'] === true) {
+                    $cached_tiles[] = $result['path'];
                 } else {
-                    array_push($download_tiles, $result['path']);
-                    usleep( 500_000 );
+                    $download_tiles[] = $result['path'];
+                    usleep(500_000);
                 }
-            } catch ( Exception $e){
-                array_push($na_points, $point);
+            } catch (Exception $e) {
+                $na_points[] = $point;
             }
         }
 
-        
+        $download_count = count(array_unique( $download_tiles, SORT_STRING));
+        $cached_count = count($cached_tiles);
+        $na_count = count($na_points);
 
-        return $points;
+        return ['download'=>$download_count, 'cached'=>$cached_count, 'na_points'=>$na_count];
+        
     }
 
     /**
@@ -108,7 +118,7 @@ class DemController extends Controller
                 if ($r === 128 && $g === 0 && $b === 0) {   // ファイルはあるが、標高値が無効
                     continue;
                 }
-                return ['alt' => ($r * 256 * 256 + $g * 256 + $b) * 0.01, 'dem' => $dem['name'], 'cached'=>$png_file['cached'], 'lat'=>$lat, 'lng'=>$lng, 'path'=>$png_file['path']];
+                return ['alt' => ($r * 256 * 256 + $g * 256 + $b) * 0.01, 'dem' => $dem['name'], 'cached' => $png_file['cached'], 'lat' => $lat, 'lng' => $lng, 'path' => $png_file['path']];
             } catch (Exception $e) {
                 continue;
             }
@@ -142,14 +152,14 @@ class DemController extends Controller
             }
         }
         if (Storage::exists($local)) {
-            return ['path'=>Storage::path($local), 'cached'=>true];
+            return ['path' => Storage::path($local), 'cached' => true];
         }
 
         try {
             usleep(250_000);    // サーバーの負荷軽減
             $png = file_get_contents($url);
             Storage::put($local, $png);
-            return ['path'=>Storage::path($local), 'cached'=>false];
+            return ['path' => Storage::path($local), 'cached' => false];
         } catch (Exception $e) {
             Storage::put($local . ".na", time());
             throw new \Exception('N/A');
