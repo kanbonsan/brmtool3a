@@ -9,6 +9,8 @@ import { useCuesheetStore } from './CueSheetStore'
 import { RoutePoint } from '@/classes/routePoint'
 
 import { worldCoord } from '@/lib/mapcoord'
+import axios from 'axios'
+import { Route } from 'ziggy-js'
 
 const simplifyParam = [
     { weight: 3, tolerance: 0.000015 },
@@ -220,15 +222,6 @@ export const useBrmRouteStore = defineStore('brmroute', {
             }
         },
 
-        tiles(state) {
-            const _tiles = new Set<string>()
-            state.points.forEach(pt => {
-                const { x, y } = worldCoord(pt.lat, pt.lng, 15)
-                _tiles.add(`${Math.ceil(x / 256)}/${Math.ceil(y / 256)}`)
-            })
-            return _tiles
-        }
-
     },
 
     actions: {
@@ -246,6 +239,9 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
             // 距離を計算
             this.setDistance()
+
+            // 標高獲得用の DEM タイルを予めサーバーにキャッシュしておく
+            this.cacheDemTiles()
 
         },
 
@@ -310,6 +306,21 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 prevIsExcluded = _current.excluded
             }
         },
+
+        async cacheDemTiles(){
+
+            const result = await axios({
+                method: "post",
+                url: "api/cacheDemTiles",
+                data: {
+                    points: this.pointsArray.map((pt)=>({lat:pt.y, lng:pt.x}))
+                }
+            })
+
+            console.log(result.data)
+
+        },
+
         /**
          * 除外区間の設定
          *     begin と end に含まれるポイントの exclude プロパティを true にする.

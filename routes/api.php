@@ -19,3 +19,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::get('getAlt', 'App\Http\Controllers\Api\DemController@getAlt');
+
+Route::post('cacheDemTiles', 'App\Http\Controllers\Api\DemController@cacheDemTiles');
