@@ -1,17 +1,23 @@
 <template>
-    <GoogleMap ref="gmap" :api-key="apiKey" style="width: 100%; height: 100%" :center="center" :zoom="15"
-        v-slot="slotProps">
-        <Marker :options="markerOption(pt)" v-for="(pt) in availablePoints" :key="pt.id" @click="markerClick(pt)"
-            @mouseover="markerMouseover(pt)" @mouseout="markerMouseout(pt)">
-        </Marker>
-        <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
-        <CustomPopup :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" v-slot="{ submit }"
-            :params="popupParams">
-            <component :is="menus[menuComp]?.component" :submit="submit" :params="menuParams"></component>
-        </CustomPopup>
-        <Marker :options="test" @drag="onTestDrag" @dragend="onTestDragEnd"></Marker>
-        <CuePointMarker :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready"/>
-    </GoogleMap>
+    <div style="position:relative;width:100%;height:100%;">
+        <GoogleMap ref="gmap" :api-key="apiKey" style="width: 100%; height: 100%" :center="center" :zoom="15"
+            v-slot="slotProps">
+            <Marker :options="markerOption(pt)" v-for="(pt) in availablePoints" :key="pt.id" @click="markerClick(pt)"
+                @mouseover="markerMouseover(pt)" @mouseout="markerMouseout(pt)">
+            </Marker>
+            <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
+            <CustomPopup :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" v-slot="{ submit }"
+                :params="popupParams">
+                <component :is="menus[menuComp]?.component" :submit="submit" :params="menuParams"></component>
+            </CustomPopup>
+            <Marker :options="test" @drag="onTestDrag" @dragend="onTestDragEnd"></Marker>
+            <CuePointMarker :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
+        </GoogleMap>
+        
+        <lower-drawer>
+            <EditableRangeSliderVue></EditableRangeSliderVue>
+        </lower-drawer>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -33,6 +39,9 @@ import { RoutePoint } from "@/classes/routePoint"
 
 import CustomPopup from "@/Components/CustomPopup.vue"
 import { debounce } from "lodash"
+
+import LowerDrawer from "@/Components/gmap/LowerDrawer.vue"
+import EditableRangeSliderVue from "./gmap/EditableRangeSlider.vue"
 // ポップアップメニュー
 import TestDiv1 from "@/Components/TestDiv1.vue"
 import TestDiv2 from "@/Components/TestDiv2.vue"
@@ -42,14 +51,21 @@ import PointMenu from "@/Components/PopupMenu/PointMenu.vue"
 import { useDimension } from "@/Composables/dimension"
 import CuePointMarker from "./CuePointMarker.vue"
 import axios from "axios"
+import EditablePolyline from "./EditablePolyline.vue"
 const { panes } = useDimension()
 
 
 interface menuComponentOptions {
+    /**
+     * ポップアップ下中央の座標をずらすpx
+     */
     offsetX?: number
     offsetY?: number
     width?: number
     height?: number
+    /**
+     * タイムアウト ms
+     */
     timeout?: number | undefined    // nullable で auto close しない
 }
 
@@ -96,7 +112,7 @@ const center = ref({ lat: 35.2418, lng: 137.1146 })
 const routeStore = useBrmRouteStore()
 const gmapStore = useGmapStore()
 const messageStore = useMessage()
-const cuesheetStore =useCuesheetStore()
+const cuesheetStore = useCuesheetStore()
 
 const availablePoints = computed(() => routeStore.availablePoints)
 
@@ -111,17 +127,15 @@ const popupParams = ref<{
 }>({ activated: false })
 
 const gmap = ref<InstanceType<typeof GoogleMap> | null>(null)
+
 onMounted(() => {
     setTimeout(() => {
         routeStore.deviate()
         routeStore.setExclude(10, 50)
         routeStore.setExclude(300, 350)
-        routeStore.setEditableTest()
-        console.log('deviated')
     }, 5000)
     setTimeout(() => {
         routeStore.delete(100, 200)
-        console.log('delete')
     }, 10000)
 
 })
@@ -166,7 +180,7 @@ watch(
 
         map.addListener("click", async (ev: google.maps.MapMouseEvent) => {
             console.log(`?lat=${ev.latLng?.lat()}&lng=${ev.latLng?.lng()}`)
-            const res = await axios.get("/api/getAlt", { params: {lat:ev.latLng?.lat(),lng:ev.latLng?.lng()}})
+            const res = await axios.get("/api/getAlt", { params: { lat: ev.latLng?.lat(), lng: ev.latLng?.lng() } })
             console.log(res.data)
         })
     }
@@ -202,8 +216,8 @@ const onTestDragEnd = async (ev: google.maps.MapMouseEvent) => {
     const result = await markerDragPopup()
 
     setTimeout(() => {
-            if(cl.value === null)return
-            cl.value.opacity! = 0.0
+        if (cl.value === null) return
+        cl.value.opacity! = 0.0
     }, 1000)
 
 
@@ -217,7 +231,7 @@ const markerDragPopup = async () => {
     }
 }
 
-
+// ポイントマーカー
 
 const markerOption = (pt: RoutePoint) => {
     return {
@@ -227,8 +241,6 @@ const markerOption = (pt: RoutePoint) => {
     }
 }
 
-
-
 const markerClick = async (pt: RoutePoint) => {
 
     pt.opacity = 0.5
@@ -236,15 +248,15 @@ const markerClick = async (pt: RoutePoint) => {
     const response: any = await markerPopup(pt)
     pt.opacity = 0.0
 
-    if( response.status == 'success'){
-        if( response.result === 'addCuePoint'){
+    if (response.status == 'success') {
+        if (response.result === 'addCuePoint') {
             console.log('add cue point')
             cuesheetStore.addCuePoint(pt)
         }
     }
     console.log(response)
 
-    
+
 }
 
 const markerMouseover = (pt: RoutePoint) => {
@@ -318,4 +330,8 @@ const popup = async (position: google.maps.LatLng, activator?: Activator) => {
 }
 
 provide('popup', { popup, menuComp, popupParams, menuParams })
+
+
+
+
 </script>

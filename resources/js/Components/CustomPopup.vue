@@ -5,6 +5,10 @@
 </template>
 
 <script lang="ts">
+/**
+ * Gmap 内のカスタムポップアップ
+ 
+ */
 import type { Popup } from "@/classes/Popup"
 
 export default {
@@ -31,6 +35,7 @@ export default {
             if (!ready) return
 
             // google maps api が読み込まれたあとでないと Popup クラスが作れない
+            // Popup クラスは google maps のドキュメントから引用
             // Popup.ts を参照
             import("@/classes/Popup").then((module) => {
                 this.popup = new module.Popup()

@@ -119,14 +119,11 @@ export const useBrmRouteStore = defineStore('brmroute', {
             })
         },
         /**
-         * 基本的なパスの Polyline を描画するためのポイントリストを返す
-         * 編集範囲 begin - end の前後を含め最大 3つの要素 Editable を作成するが、存在しないときは返さない。
-         * 再描画を促すために id に Symbol() を振る
+         * 編集範囲のインデックスを返す
          * @param state 
-         * @returns 
+         * @returns
          */
-        editableRanges(state): EditableRanges {
-
+        editableIndex(state) {
             // 編集可能範囲（除外と違って範囲は一つだけ）
             let begin: number | null = null
             let end: number | null = null
@@ -139,6 +136,20 @@ export const useBrmRouteStore = defineStore('brmroute', {
                     end = i
                 }
             }
+            return [begin, end]
+        },
+
+
+        /**
+         * 基本的なパスの Polyline を描画するためのポイントリストを返す
+         * 編集範囲 begin - end の前後を含め最大 3つの要素 Editable を作成するが、存在しないときは返さない。
+         * 再描画を促すために id に Symbol() を振る
+         * @param state 
+         * @returns 
+         */
+        editableRanges(state): EditableRanges {
+
+            const [begin, end] = this.editableIndex
 
             const arr = []
 
@@ -307,13 +318,13 @@ export const useBrmRouteStore = defineStore('brmroute', {
             }
         },
 
-        async cacheDemTiles(){
+        async cacheDemTiles() {
 
             const result = await axios({
                 method: "post",
                 url: "api/cacheDemTiles",
                 data: {
-                    points: this.pointsArray.map((pt)=>({lat:pt.y, lng:pt.x}))
+                    points: this.pointsArray.map((pt) => ({ lat: pt.y, lng: pt.x }))
                 }
             })
 
@@ -402,9 +413,20 @@ export const useBrmRouteStore = defineStore('brmroute', {
             cuesheetStore.checkAttach()
         },
 
-        setEditableTest() {
-            for (let i = 0; i < 300; i++) {
-                this.points[i].editable = false
+        setEditRange(range: [number, number]) {
+            const [begin, end] = range
+            if (begin > 0) {
+                for (let i = 0; i < begin; i++) {
+                    this.points[i].editable = false
+                }
+            }
+            for (let i = begin; i <= end; i++) {
+                this.points[i].editable = true
+            }
+            if (end < this.count - 1) {
+                for (let i = end + 1; i < this.count; i++) {
+                    this.points[i].editable = false
+                }
             }
         }
     }

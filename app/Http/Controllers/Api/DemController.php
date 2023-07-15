@@ -70,8 +70,6 @@ class DemController extends Controller
             }
         }
 
-        
-
         return $points;
     }
 

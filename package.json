@@ -25,6 +25,7 @@
         "vue-tsc": "^1.2.0"
     },
     "dependencies": {
+        "@element-plus/icons-vue": "^2.1.0",
         "@types/google.maps": "^3.53.2",
         "@types/lodash": "^4.14.195",
         "element-plus": "^2.3.7",
