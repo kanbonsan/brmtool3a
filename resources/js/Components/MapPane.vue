@@ -14,7 +14,7 @@
             <CuePointMarker :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
         </GoogleMap>
         
-        <lower-drawer>
+        <lower-drawer v-show="drawerActive" title="編集範囲指定" @close="onDrawerClose">
             <EditableRangeSliderVue></EditableRangeSliderVue>
         </lower-drawer>
     </div>
@@ -186,6 +186,12 @@ watch(
     }
 )
 
+// Lower Drawer Menu
+const drawerActive = ref(true)
+const onDrawerClose = ()=>{
+    console.log('call drawer close')
+    drawerActive.value=false
+}
 
 const test = ref({
     position: { lat: 35.23943409063303, lng: 137.11307650527957 },
