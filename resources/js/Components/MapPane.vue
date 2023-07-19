@@ -14,8 +14,8 @@
             <CuePointMarker :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
         </GoogleMap>
         
-        <lower-drawer v-show="drawerActive" title="編集範囲指定" @close="onDrawerClose">
-            <EditableRangeSliderVue></EditableRangeSliderVue>
+        <lower-drawer v-model="drawerActive" title="編集範囲指定" @close="onDrawerClose">
+            <component :is="drawers[drawerComp]?.component"></component>
         </lower-drawer>
     </div>
 </template>
@@ -41,7 +41,8 @@ import CustomPopup from "@/Components/CustomPopup.vue"
 import { debounce } from "lodash"
 
 import LowerDrawer from "@/Components/gmap/LowerDrawer.vue"
-import EditableRangeSliderVue from "./gmap/EditableRangeSlider.vue"
+import EditableRangeSlider from "./gmap/EditableRangeSlider.vue"
+import SubpathRangeSlider from "./gmap/SubpathRangeSlider.vue"
 // ポップアップメニュー
 import TestDiv1 from "@/Components/TestDiv1.vue"
 import TestDiv2 from "@/Components/TestDiv2.vue"
@@ -74,10 +75,19 @@ interface menuComponent {
     options?: menuComponentOptions
 }
 
+interface drawerComponent {
+    component: Component
+    title?: string
+}
+
 type Activator = RoutePoint
 
 type Menus = {
     [key: string]: menuComponent
+}
+
+type Drawers = {
+    [key:string]: drawerComponent
 }
 
 const defaultOptions: menuComponentOptions = {
@@ -89,11 +99,6 @@ const defaultOptions: menuComponentOptions = {
  * CustomPopup 内に表示する slot の内容
  */
 const menus: Menus = {
-    Menu1: { component: TestDiv1 },
-    Menu2: {
-        component: TestDiv2,
-        options: { timeout: 3000 }
-    },
     ExcludePoly: {
         component: ExcludePolyMenu,
         options: { timeout: 3000 }
@@ -101,6 +106,19 @@ const menus: Menus = {
     PointMenu: {
         component: PointMenu,
         options: { timeout: 50000, offsetY: -10 }
+    }
+}
+/**
+ * LowerDrawerメニューの内容
+ */
+const drawers: Drawers = {
+    Editable: {
+        component: EditableRangeSlider,
+        title: "編集範囲"
+    },
+    Subpath: {
+        component: SubpathRangeSlider,
+        title: "サブパス編集"
     }
 }
 
@@ -127,6 +145,8 @@ const popupParams = ref<{
 }>({ activated: false })
 
 const gmap = ref<InstanceType<typeof GoogleMap> | null>(null)
+
+const drawerComp = ref<string>('Editable')
 
 onMounted(() => {
     setTimeout(() => {
@@ -188,10 +208,6 @@ watch(
 
 // Lower Drawer Menu
 const drawerActive = ref(true)
-const onDrawerClose = ()=>{
-    console.log('call drawer close')
-    drawerActive.value=false
-}
 
 const test = ref({
     position: { lat: 35.23943409063303, lng: 137.11307650527957 },
