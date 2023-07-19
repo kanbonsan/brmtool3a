@@ -14,7 +14,7 @@
             <CuePointMarker :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
         </GoogleMap>
         
-        <lower-drawer v-model="drawerActive" title="編集範囲指定" @close="onDrawerClose">
+        <lower-drawer v-model="drawerActive" :title="drawers[drawerComp]?.title">
             <component :is="drawers[drawerComp]?.component"></component>
         </lower-drawer>
     </div>
@@ -105,7 +105,7 @@ const menus: Menus = {
     },
     PointMenu: {
         component: PointMenu,
-        options: { timeout: 50000, offsetY: -10 }
+        options: { timeout: 50000, offsetY: 0 }
     }
 }
 /**

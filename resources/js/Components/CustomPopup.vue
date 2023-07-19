@@ -130,7 +130,7 @@ export default {
     height: 0;
     position: absolute;
     /* The max width of the info window. */
-    width: 500px;
+    width: 300px;
 }
 </style>
 

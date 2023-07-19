@@ -16,7 +16,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 interface Props {
-    title: string
+    title: string|undefined
     modelValue: boolean
 }
 
