@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-
+import { onMounted } from 'vue'
 const props = defineProps(['submit', 'params'])
 
 const onClick = (result: string) => {
@@ -50,6 +50,10 @@ const onClick = (result: string) => {
     }
     props.submit({ status: 'success', result })
 }
+
+onMounted(()=>{
+    console.log(props.params)
+})
 
 </script>
 

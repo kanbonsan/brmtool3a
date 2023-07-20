@@ -31,5 +31,11 @@ const emit = defineEmits(['close', 'update:modelValue'])
     bottom: 0;
     width: 100%;
     height: 100px;
+    
+}
+:deep(.el-card__header){
+    --el-card-padding: 10px;
+    background: var(--el-color-primary);
+    font-weight: bold;
 }
 </style>

@@ -23,7 +23,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed, provide, type Ref } from "vue"
 import type { Component } from 'vue'
-import WaveUI from 'wave-ui'
 
 import { GoogleMap, Marker, Polyline } from "vue3-google-map"
 import brm from "../../sample/sample200.brm.json"
@@ -43,16 +42,14 @@ import { debounce } from "lodash"
 import LowerDrawer from "@/Components/gmap/LowerDrawer.vue"
 import EditableRangeSlider from "./gmap/EditableRangeSlider.vue"
 import SubpathRangeSlider from "./gmap/SubpathRangeSlider.vue"
+
 // ポップアップメニュー
-import TestDiv1 from "@/Components/TestDiv1.vue"
-import TestDiv2 from "@/Components/TestDiv2.vue"
 import ExcludePolyMenu from "@/Components/PopupMenu/ExcludedPolylineMenu.vue"
 import PointMenu from "@/Components/PopupMenu/PointMenu.vue"
 
 import { useDimension } from "@/Composables/dimension"
 import CuePointMarker from "./CuePointMarker.vue"
 import axios from "axios"
-import EditablePolyline from "./EditablePolyline.vue"
 const { panes } = useDimension()
 
 
@@ -146,7 +143,7 @@ const popupParams = ref<{
 
 const gmap = ref<InstanceType<typeof GoogleMap> | null>(null)
 
-const drawerComp = ref<string>('Editable')
+
 
 onMounted(() => {
     setTimeout(() => {
@@ -208,6 +205,7 @@ watch(
 
 // Lower Drawer Menu
 const drawerActive = ref(true)
+const drawerComp = ref<string>('Editable')
 
 const test = ref({
     position: { lat: 35.23943409063303, lng: 137.11307650527957 },
@@ -274,6 +272,8 @@ const markerClick = async (pt: RoutePoint) => {
         if (response.result === 'addCuePoint') {
             console.log('add cue point')
             cuesheetStore.addCuePoint(pt)
+        } else if (response.result === 'editableRange'){
+            drawerActive.value = true
         }
     }
     console.log(response)
@@ -313,7 +313,7 @@ const markerPopup = async (pt: RoutePoint) => {
     menuComp.value = 'PointMenu'
 
 
-    menuParams.value = { ts: Date.now(), cuePoint: cuesheetStore.routePoints.includes(pt) }
+    menuParams.value = { ts: Date.now(), cuePoint: cuesheetStore.routePoints.includes(pt), pt }
 
     const position = new google.maps.LatLng(pt)
     const result = await popup(position, pt)
