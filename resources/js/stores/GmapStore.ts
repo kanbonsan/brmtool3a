@@ -1,6 +1,4 @@
-
 import { defineStore } from 'pinia'
-import { useMessage } from './MessageStore'
 
 type State = {
     map: google.maps.Map | null
