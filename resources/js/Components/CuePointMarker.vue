@@ -10,16 +10,16 @@ import { CuePoint } from "@/classes/cuePoint"
 const routeStore = useBrmRouteStore()
 const cuesheetStore = useCuesheetStore()
 
+const props = defineProps(["visible"])
 const cuePoints = computed(()=>cuesheetStore.getArray)
-
-//const { popup, menuComp, popupParams, menuParams } = inject('popup')
 
 const getOption = (cpt: CuePoint) => {
     console.log('getOption')
     return {
         position: { lat: cpt.lat, lng: cpt.lng },
         opacity: 1.0,
-        draggable: true
+        draggable: true,
+        visible: props.visible
     }
 }
 

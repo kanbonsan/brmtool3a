@@ -59,8 +59,6 @@ export default {
             },
             immediate: true
         }
-
-
     },
 
     methods: {
@@ -130,7 +128,7 @@ export default {
     height: 0;
     position: absolute;
     /* The max width of the info window. */
-    width: 300px;
+    width: 400px;
 }
 </style>
 

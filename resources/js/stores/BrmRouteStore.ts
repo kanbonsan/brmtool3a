@@ -21,16 +21,28 @@ const simplifyParam = [
 
 type State = {
     points: RoutePoint[],
+    subpath: {
+        begin: number | null,
+        end: number | null
+    }
 }
 
-
+/**
+ * 編集可能範囲の指定
+ */
 type Editable = { begin: number, end: number, points: RoutePoint[], editable: boolean, id: symbol }
 type EditableRanges = Editable[]
+
+type SubpathIndex = [number | null, number | null]
 
 export const useBrmRouteStore = defineStore('brmroute', {
 
     state: (): State => ({
         points: [],
+        subpath: {
+            begin: null,
+            end: null
+        }
     }),
 
     getters: {
@@ -168,6 +180,14 @@ export const useBrmRouteStore = defineStore('brmroute', {
             }
             return arr as EditableRanges
         },
+
+        /**
+                 * サブパス範囲のインデックスを返す
+                 * el-slider で使えるように [begin, end] の配列（タプル）を返す
+                 * @param state 
+                 * @returns 
+                 */
+        subpathIndex(state): SubpathIndex { return [state.subpath.begin, state.subpath.end] },
 
         getClosePoint() {
 
@@ -389,6 +409,14 @@ export const useBrmRouteStore = defineStore('brmroute', {
             this.points.splice(begin, end - begin + 1)
             // キューポイントの更新
             cuesheetStore.checkAttach()
+        },
+
+        setSubpath(range: [number, number]) {
+            this.subpath = { begin: range[0], end: range[1] }
+        },
+
+        resetSubpath() {
+            this.subpath = { begin: null, end: null }
         },
 
         // 以下はテスト・実験用

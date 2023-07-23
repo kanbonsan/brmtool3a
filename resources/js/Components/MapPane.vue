@@ -5,17 +5,19 @@
             <Marker :options="markerOption(pt)" v-for="(pt) in availablePoints" :key="pt.id" @click="markerClick(pt)"
                 @mouseover="markerMouseover(pt)" @mouseout="markerMouseout(pt)">
             </Marker>
-            <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
+            <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" :visible="mapObjectVisible" />
             <CustomPopup :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" v-slot="{ submit }"
                 :params="popupParams">
                 <component :is="menus[menuComp]?.component" :submit="submit" :params="menuParams"></component>
             </CustomPopup>
             <Marker :options="test" @drag="onTestDrag" @dragend="onTestDragEnd"></Marker>
-            <CuePointMarker :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" />
+            <CuePointMarker :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready"
+                :visible="mapObjectVisible" />
         </GoogleMap>
-        
-        <lower-drawer v-model="drawerActive" :title="drawers[drawerComp]?.title">
-            <component :is="drawers[drawerComp]?.component"></component>
+
+        <lower-drawer v-model="drawerActive" :title="drawers[drawerComp]?.title" :timeout="drawers[drawerComp]?.timeout"
+            v-slot="{ reset }">
+            <component :is="drawers[drawerComp]?.component" :resetTimeout="reset"></component>
         </lower-drawer>
     </div>
 </template>
@@ -75,6 +77,7 @@ interface menuComponent {
 interface drawerComponent {
     component: Component
     title?: string
+    timeout: number
 }
 
 type Activator = RoutePoint
@@ -84,7 +87,7 @@ type Menus = {
 }
 
 type Drawers = {
-    [key:string]: drawerComponent
+    [key: string]: drawerComponent
 }
 
 const defaultOptions: menuComponentOptions = {
@@ -111,15 +114,26 @@ const menus: Menus = {
 const drawers: Drawers = {
     Editable: {
         component: EditableRangeSlider,
-        title: "編集範囲"
+        title: "編集範囲",
+        timeout: 15_000
     },
     Subpath: {
         component: SubpathRangeSlider,
-        title: "サブパス編集"
+        title: "サブパス編集",
+        timeout: 15_000
     }
 }
 
+/** マップのモード（排他処理用） */
+// 'edit': 通常モード, 'subpathSelect': サブパス選択中, 'subpath': サブパス作業中
+type MapMode = 'edit' | 'subpathSelect' | 'subpath'
+
 const menuParams = ref<any>({})
+const mode = ref<MapMode>('edit')
+
+//マップ上の表示を一時消去するタイマー（重複処理用）
+let mapObjectVisibleTimer: number | null = null
+const mapObjectVisible = ref<boolean>(true)
 
 const apiKey = ref(import.meta.env.VITE_GOOGLE_MAPS_KEY)
 const center = ref({ lat: 35.2418, lng: 137.1146 })
@@ -200,11 +214,20 @@ watch(
             const res = await axios.get("/api/getAlt", { params: { lat: ev.latLng?.lat(), lng: ev.latLng?.lng() } })
             console.log(res.data)
         })
+
+        // 地図上右クリックで polyline を一時消去
+        map.addListener("contextmenu", (ev: google.maps.MapMouseEvent) => {
+            if (mapObjectVisibleTimer != null) {
+                clearTimeout(mapObjectVisibleTimer)
+            }
+            mapObjectVisibleTimer = setTimeout(() => { mapObjectVisible.value = true }, 3000)
+            mapObjectVisible.value = false
+        })
     }
 )
 
 // Lower Drawer Menu
-const drawerActive = ref(true)
+const drawerActive = ref<number>(0)
 const drawerComp = ref<string>('Editable')
 
 const test = ref({
@@ -257,7 +280,8 @@ const markerOption = (pt: RoutePoint) => {
     return {
         position: pt,
         opacity: pt.opacity,
-        icon: { url: circle, anchor: new google.maps.Point(8, 8) }
+        icon: { url: circle, anchor: new google.maps.Point(8, 8) },
+        visible: mapObjectVisible.value && pt.editable && !pt.excluded
     }
 }
 
@@ -269,15 +293,23 @@ const markerClick = async (pt: RoutePoint) => {
     pt.opacity = 0.0
 
     if (response.status == 'success') {
-        if (response.result === 'addCuePoint') {
-            console.log('add cue point')
-            cuesheetStore.addCuePoint(pt)
-        } else if (response.result === 'editableRange'){
-            drawerActive.value = true
+
+        switch (response.result) {
+            case 'addCuePoint':
+                console.log('add cue point')
+                cuesheetStore.addCuePoint(pt)
+                break
+            case 'editableRange':
+                drawerComp.value = 'Editable'
+                drawerActive.value += 1
+                break
+            case 'subpathBegin':
+                drawerComp.value = 'Subpath'
+                drawerActive.value += 1
+                console.log('subpath begin')
+                break
         }
     }
-    console.log(response)
-
 
 }
 

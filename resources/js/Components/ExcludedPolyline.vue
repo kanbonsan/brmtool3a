@@ -4,7 +4,7 @@ import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { computed, inject } from "vue"
 
 const store = useBrmRouteStore()
-
+const props = defineProps(["visible"])
 const excludes = computed(() => store.excludedRanges)
 
 const getOption = (ex) => {
@@ -12,6 +12,8 @@ const getOption = (ex) => {
         strokeColor: "black",
         strokeWidth: 2,
         path: ex.points,
+        visible: props.visible,
+        zIndex: 2
     }
 }
 
