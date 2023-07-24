@@ -304,9 +304,12 @@ const markerClick = async (pt: RoutePoint) => {
                 drawerActive.value += 1
                 break
             case 'subpathBegin':
+                mode.value='subpathSelect'
+                routeStore.resetSubpath(pt)
                 drawerComp.value = 'Subpath'
                 drawerActive.value += 1
-                console.log('subpath begin')
+                break
+            case 'subpathEnd':
                 break
         }
     }
@@ -384,6 +387,7 @@ const popup = async (position: google.maps.LatLng, activator?: Activator) => {
 }
 
 provide('popup', { popup, menuComp, popupParams, menuParams })
+provide('mode', mode)
 
 
 

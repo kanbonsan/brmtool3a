@@ -87,6 +87,12 @@ export const useBrmRouteStore = defineStore('brmroute', {
             const idx = state.points.findIndex(pt => pt.id === id)
             return state.points[idx]
         },
+
+        /** point の インデックスを返す */
+        getPointIndex: (state) => (pt: RoutePoint) => {
+            return state.points.findIndex(_pt => _pt.id === pt.id)
+        },
+
         /**
          * (getter) 除外範囲の開始と終了の各インデックスを求める
          * リアクティブに polyline を書き換えてもらうために unique ID を Symbol() で振る
@@ -415,8 +421,12 @@ export const useBrmRouteStore = defineStore('brmroute', {
             this.subpath = { begin: range[0], end: range[1] }
         },
 
-        resetSubpath() {
-            this.subpath = { begin: null, end: null }
+        resetSubpath(pt?: RoutePoint) {
+            if (pt !== undefined) {
+                this.subpath = { begin: this.getPointIndex(pt), end: this.getPointIndex(pt) }
+            } else {
+                this.subpath = { begin: null, end: null }
+            }
         },
 
         // 以下はテスト・実験用

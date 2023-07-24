@@ -4,7 +4,7 @@
             <h4>ポイント</h4>
         </template>
         <el-row>
-            <el-tooltip placement="right" content="キューポイントを設定します" :auto-close="2000">
+            <el-tooltip :disabled="true" placement="right" content="キューポイントを設定します" :auto-close="2000">
                 <el-button class="menu-button" size="small" type="info"
                     @click="onClick('addCuePoint')">キューポイント設定</el-button>
             </el-tooltip>
@@ -16,12 +16,13 @@
         </el-row>
         <el-row>
             <el-tooltip placement="right" content="サブパス選択を開始します" :auto-close="2000">
-                <el-button class="menu-button" size="small" type="info" @click="onClick('subpathBegin')">サブパス選択開始</el-button>
+                <el-button class="menu-button" size="small" type="info"
+                    @click="onClick('subpathBegin')">サブパス選択開始</el-button>
             </el-tooltip>
         </el-row>
         <el-row>
             <el-tooltip placement="right" content="この点をサブパスの終点にします" :auto-close="2000">
-                <el-button class="menu-button" size="small" type="info">サブパス範囲確定</el-button>
+                <el-button class="menu-button" size="small" type="info" @click="onClick('subpathEnd')">サブパス範囲確定</el-button>
             </el-tooltip>
         </el-row>
 
@@ -40,7 +41,9 @@
 </template>
 
 <script setup lang="ts">
+import { inject } from 'vue'
 const props = defineProps(['submit', 'params'])
+const mode = inject('mode')
 
 const onClick = (result: string) => {
     props.submit({ status: 'success', result })
