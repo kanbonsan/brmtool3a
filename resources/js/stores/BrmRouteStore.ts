@@ -54,7 +54,6 @@ export const useBrmRouteStore = defineStore('brmroute', {
             end: null
         },
         subpathEdit: false
-        subpathSecondPoints:[ RoutePoint, RoutePoint]
     }),
 
     getters: {
@@ -209,7 +208,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
         /**
          * サブパス描画用のポイント一覧を返す
-         * 編集用に両端の1区間は別のリストにする(両端のポイントは不動にしたい)
+         * サブパスは最低 5ポイントないと成立しない ことにする
          * @param state 
          * @returns 
          */
@@ -220,12 +219,26 @@ export const useBrmRouteStore = defineStore('brmroute', {
             const begin = state.subpath.begin
             const end = state.subpath.end
 
-            // 両端＋中 で最低 4ポイント必要
-            if (begin !== null && end !== null && end - begin > 3) {
+            if (!begin || !end) {
+                return arr  // []
+            }
+
+            if (end - begin < 4) {
+                return arr  // []
+            }
+
+            if (begin > 0) {
                 arr.push({ begin: begin, end: begin + 1, points: this.getPolylinePoints(begin, begin + 1, 1), editable: false, id: Symbol() })
-                arr.push({ begin: begin + 1, end: end - 1, points: this.getPolylinePoints(begin + 1, end - 1, 1), editable: state.subpathEdit, id: Symbol() })
+            }
+
+            const _begin = begin === 0 ? 0 : 1
+            const _end = end === this.count - 1 ? end : end - 1
+            arr.push({ begin: _begin, end: _end, points: this.getPolylinePoints(_begin, _end, 1), editable: state.subpathEdit, id: Symbol() })
+
+            if (end < this.count - 1) {
                 arr.push({ begin: end - 1, end: end, points: this.getPolylinePoints(end - 1, end, 1), editable: false, id: Symbol() })
             }
+
             return arr
         },
 
