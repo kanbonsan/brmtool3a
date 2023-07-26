@@ -1,7 +1,7 @@
 <template>
     <Transition>
         <div v-if="modelValue > 0" class="drawer">
-            <el-card style="height:100%;" :title="title">
+            <el-card style="height:100%;">
                 <template #header>{{ title }}
                     <div style="position:absolute;top:5px;right:5px">
                         <el-icon :size="32" @click="() => emit('update:modelValue', 0)">
@@ -9,7 +9,7 @@
                         </el-icon>
                     </div>
                 </template>
-                <slot :reset="resetTimeout"></slot>
+                <slot :reset="resetTimeout" :submit="submitFunc"></slot>
             </el-card>
         </div>
     </Transition>
@@ -25,7 +25,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'timeout', 'submit'])
 
 const activateCount = computed(() => props.modelValue)
 
@@ -36,6 +36,11 @@ onMounted(()=>resetTimeout())
 watch(activateCount, () => {
     resetTimeout()
 })
+
+const onCancelClose = ()=>{
+    emit('update:modelValue', 0)    // クローズ
+    emit('timeout') // タイムアウトを emit して設定をリセットしてもらう
+}
 
 const resetTimeout = debounce(() => {
     if (timer !== null) {
@@ -48,8 +53,23 @@ const resetTimeout = debounce(() => {
 
     timer = setTimeout(() => {
         emit('update:modelValue', 0)
+        emit('timeout')
     }, props.timeout)
 }, 250)
+
+/**
+ * 親コンポーネントに submit 内容を送って drawer は消去
+ * @param payload 
+ */
+const submitFunc = (payload: any)=>{
+    // timeout 処理が残っていると次に timeout=0 がきたときにも残りの timeout を食らう
+    if( timer !== null){
+        clearTimeout(timer)
+    }
+    emit('update:modelValue', 0)
+    emit('submit', payload)
+    
+}
 
 
 </script>

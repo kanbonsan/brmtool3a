@@ -3,15 +3,16 @@
         <template #header>
             <h4>ポイント</h4>
         </template>
-        <el-row>
-            <el-tooltip :disabled="true" placement="right" content="キューポイントを設定します" :auto-close="2000">
-                <el-button class="menu-button" size="small" type="info"
+        <el-row v-if="toolStore.editMode">
+            <el-tooltip placement="right" content="キューポイントを設定します" :auto-close="2000">
+                <el-button class="menu-button" size="small" type="info" :disabled="!toolStore.editMode"
                     @click="onClick('addCuePoint')">キューポイント設定</el-button>
             </el-tooltip>
         </el-row>
         <el-row>
             <el-tooltip placement="right" content="編集範囲設定スライダーを表示します" :auto-close="2000">
-                <el-button class="menu-button" size="small" type="info" @click="onClick('editableRange')">編集範囲設定</el-button>
+                <el-button :disabled="!toolStore.editMode" class="menu-button" size="small" type="info"
+                    @click="onClick('editableRange')">編集範囲設定</el-button>
             </el-tooltip>
         </el-row>
         <el-row>
@@ -41,9 +42,11 @@
 </template>
 
 <script setup lang="ts">
-import { inject } from 'vue'
+import { inject, computed } from 'vue'
+import { useToolStore } from '@/stores/ToolStore'
+
 const props = defineProps(['submit', 'params'])
-const mode = inject('mode')
+const toolStore = useToolStore()
 
 const onClick = (result: string) => {
     props.submit({ status: 'success', result })

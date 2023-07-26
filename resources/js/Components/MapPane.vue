@@ -16,8 +16,8 @@
         </GoogleMap>
 
         <lower-drawer v-model="drawerActive" :title="drawers[drawerComp]?.title" :timeout="drawers[drawerComp]?.timeout"
-            v-slot="{ reset }">
-            <component :is="drawers[drawerComp]?.component" :resetTimeout="reset"></component>
+            @timeout="drawers[drawerComp]?.timeoutFunc" @submit="onLowerDrawerSubmit" v-slot="{ reset, submit }">
+            <component :is="drawers[drawerComp]?.component" :resetTimeout="reset" :submitFunc="submit"></component>
         </lower-drawer>
     </div>
 </template>
@@ -29,6 +29,7 @@ import type { Component } from 'vue'
 import { GoogleMap, Marker, Polyline } from "vue3-google-map"
 import brm from "../../sample/sample200.brm.json"
 
+import { useToolStore } from "@/stores/ToolStore"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useCuesheetStore } from "@/stores/CueSheetStore"
 import { useGmapStore } from "@/stores/GmapStore"
@@ -44,6 +45,7 @@ import { debounce } from "lodash"
 import LowerDrawer from "@/Components/gmap/LowerDrawer.vue"
 import EditableRangeSlider from "./gmap/EditableRangeSlider.vue"
 import SubpathRangeSlider from "./gmap/SubpathRangeSlider.vue"
+import SubpathCommand from "./gmap/SubpathCommand.vue"
 
 // ポップアップメニュー
 import ExcludePolyMenu from "@/Components/PopupMenu/ExcludedPolylineMenu.vue"
@@ -77,7 +79,8 @@ interface menuComponent {
 interface drawerComponent {
     component: Component
     title?: string
-    timeout: number
+    timeout: number,
+    timeoutFunc?: () => void   // タイムアウト時の後処理
 }
 
 type Activator = RoutePoint
@@ -115,21 +118,32 @@ const drawers: Drawers = {
     Editable: {
         component: EditableRangeSlider,
         title: "編集範囲",
-        timeout: 15_000
+        timeout: 15_000,
+        timeoutFunc: () => {
+            toolStore.setMode('edit')
+        }
     },
     Subpath: {
         component: SubpathRangeSlider,
-        title: "サブパス編集",
-        timeout: 15_000
+        title: "サブパス範囲設定",
+        timeout: 15_000,
+        timeoutFunc: () => {
+            toolStore.setMode('edit')
+            routeStore.resetSubpath()
+        }
+    },
+    SubpathCommand: {
+        component: SubpathCommand,
+        title: "サブパスコマンド",
+        timeout: 0,
+        timeoutFunc:()=>{   // タイムアウトにならない設定だがクローズボタンを押したときに呼んでもらって設定をリセットする
+            toolStore.setMode('edit')
+            routeStore.resetSubpath()
+        }
     }
 }
 
-/** マップのモード（排他処理用） */
-// 'edit': 通常モード, 'subpathSelect': サブパス選択中, 'subpath': サブパス作業中
-type MapMode = 'edit' | 'subpathSelect' | 'subpath'
-
 const menuParams = ref<any>({})
-const mode = ref<MapMode>('edit')
 
 //マップ上の表示を一時消去するタイマー（重複処理用）
 let mapObjectVisibleTimer: number | null = null
@@ -138,6 +152,7 @@ const mapObjectVisible = ref<boolean>(true)
 const apiKey = ref(import.meta.env.VITE_GOOGLE_MAPS_KEY)
 const center = ref({ lat: 35.2418, lng: 137.1146 })
 
+const toolStore = useToolStore()
 const routeStore = useBrmRouteStore()
 const gmapStore = useGmapStore()
 const messageStore = useMessage()
@@ -304,7 +319,7 @@ const markerClick = async (pt: RoutePoint) => {
                 drawerActive.value += 1
                 break
             case 'subpathBegin':
-                mode.value='subpathSelect'
+                toolStore.setMode('subpathSelect')
                 routeStore.resetSubpath(pt)
                 drawerComp.value = 'Subpath'
                 drawerActive.value += 1
@@ -386,10 +401,26 @@ const popup = async (position: google.maps.LatLng, activator?: Activator) => {
 
 }
 
+/**
+ * 画面下のドロワー内 slot からの submit をキャッチ
+ * @param payload 
+ */
+const onLowerDrawerSubmit = (payload: string) => {
+
+    switch (payload) {
+        case 'subpathRange:cancel':
+            toolStore.setMode('edit')
+            routeStore.resetSubpath()
+            break
+        case 'subpathRange:submit':
+            toolStore.setMode('subpath')
+            drawerComp.value = 'SubpathCommand'
+            drawerActive.value += 1
+            break
+
+    }
+}
+
 provide('popup', { popup, menuComp, popupParams, menuParams })
-provide('mode', mode)
-
-
-
 
 </script>

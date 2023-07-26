@@ -2,6 +2,7 @@
 <script setup>
 import ExcludedPolyline from "./ExcludedPolyline.vue"
 import EditablePolyline from "./EditablePolyline.vue";
+import SubpathPolyline from "./SubpathPolyline.vue";
 
 const props = defineProps(["api", "map", "ready", "visible"])
 
@@ -10,4 +11,5 @@ const props = defineProps(["api", "map", "ready", "visible"])
 <template>
     <EditablePolyline :visible="visible"/>
     <ExcludedPolyline :visible="visible"/>
+    <SubpathPolyline :visible="visible" />
 </template>

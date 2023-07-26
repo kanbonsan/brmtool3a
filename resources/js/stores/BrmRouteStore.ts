@@ -25,6 +25,7 @@ type State = {
         begin: number | null,
         end: number | null
     }
+    subpathEdit: boolean    // subpath を編集可にするかいなか（きれいな実装じゃないなぁ）
 }
 
 /**
@@ -34,6 +35,15 @@ type Editable = { begin: number, end: number, points: RoutePoint[], editable: bo
 type EditableRanges = Editable[]
 
 type SubpathIndex = [number | null, number | null]
+type Subpath = {
+    begin: number
+    end: number
+    points: RoutePoint[]
+    editable: boolean
+    id: symbol
+}
+type SubpathRanges = Subpath[]  //
+
 
 export const useBrmRouteStore = defineStore('brmroute', {
 
@@ -42,7 +52,9 @@ export const useBrmRouteStore = defineStore('brmroute', {
         subpath: {
             begin: null,
             end: null
-        }
+        },
+        subpathEdit: false
+        subpathSecondPoints:[ RoutePoint, RoutePoint]
     }),
 
     getters: {
@@ -69,12 +81,12 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * @param end {number}
          * @returns 
          */
-        getPolylinePoints: (state) => (begin: number, end: number) => {
+        getPolylinePoints: (state) => (begin: number, end: number, threshold: number = weighedThreshold) => {
             const arr: RoutePoint[] = []
             arr.push(state.points[begin])
             for (let i = begin + 1; i < end; i++) {
                 const pt = state.points[i]
-                if (pt.weight >= weighedThreshold) {
+                if (pt.weight >= threshold) {
                     arr.push(pt)
                 }
             }
@@ -194,6 +206,28 @@ export const useBrmRouteStore = defineStore('brmroute', {
                  * @returns 
                  */
         subpathIndex(state): SubpathIndex { return [state.subpath.begin, state.subpath.end] },
+
+        /**
+         * サブパス描画用のポイント一覧を返す
+         * 編集用に両端の1区間は別のリストにする(両端のポイントは不動にしたい)
+         * @param state 
+         * @returns 
+         */
+        subpathRanges(state): SubpathRanges {
+
+            const arr: SubpathRanges = []
+
+            const begin = state.subpath.begin
+            const end = state.subpath.end
+
+            // 両端＋中 で最低 4ポイント必要
+            if (begin !== null && end !== null && end - begin > 3) {
+                arr.push({ begin: begin, end: begin + 1, points: this.getPolylinePoints(begin, begin + 1, 1), editable: false, id: Symbol() })
+                arr.push({ begin: begin + 1, end: end - 1, points: this.getPolylinePoints(begin + 1, end - 1, 1), editable: state.subpathEdit, id: Symbol() })
+                arr.push({ begin: end - 1, end: end, points: this.getPolylinePoints(end - 1, end, 1), editable: false, id: Symbol() })
+            }
+            return arr
+        },
 
         getClosePoint() {
 
@@ -419,6 +453,10 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
         setSubpath(range: [number, number]) {
             this.subpath = { begin: range[0], end: range[1] }
+        },
+
+        setSubpathEdit(arg: boolean) {
+            this.subpathEdit = arg
         },
 
         resetSubpath(pt?: RoutePoint) {
