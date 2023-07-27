@@ -40,6 +40,7 @@ type Subpath = {
     end: number
     points: RoutePoint[]
     editable: boolean
+    position: 'pre' | 'middle' | 'post'
     id: symbol
 }
 type SubpathRanges = Subpath[]  //
@@ -226,17 +227,17 @@ export const useBrmRouteStore = defineStore('brmroute', {
             if (end - begin < 4) {
                 return arr  // []
             }
-
+            // 端ではない
             if (begin > 0) {
-                arr.push({ begin: begin, end: begin + 1, points: this.getPolylinePoints(begin, begin + 1, 1), editable: false, id: Symbol() })
+                arr.push({ begin: begin, end: begin + 1, points: this.getPolylinePoints(begin, begin + 1, 1), editable: false, position: 'pre', id: Symbol() })
             }
 
-            const _begin = begin === 0 ? 0 : 1
+            const _begin = begin === 0 ? 0 : begin + 1
             const _end = end === this.count - 1 ? end : end - 1
-            arr.push({ begin: _begin, end: _end, points: this.getPolylinePoints(_begin, _end, 1), editable: state.subpathEdit, id: Symbol() })
+            arr.push({ begin: _begin, end: _end, points: this.getPolylinePoints(_begin, _end, 1), editable: state.subpathEdit, position: 'middle', id: Symbol() })
 
             if (end < this.count - 1) {
-                arr.push({ begin: end - 1, end: end, points: this.getPolylinePoints(end - 1, end, 1), editable: false, id: Symbol() })
+                arr.push({ begin: end - 1, end: end, points: this.getPolylinePoints(end - 1, end, 1), editable: false, position: 'post', id: Symbol() })
             }
 
             return arr

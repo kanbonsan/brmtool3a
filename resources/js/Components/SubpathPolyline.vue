@@ -1,16 +1,20 @@
-<script setup>
+<script setup lang="ts">
 import { Polyline } from "vue3-google-map"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
-import { computed, inject } from "vue"
+import { computed, inject, ref } from "vue"
 
 const store = useBrmRouteStore()
 const props = defineProps(["visible"])
 const subpaths = computed(() => store.subpathRanges)
 
-const getOption = (subpath, index) => {
+const subpathEditMode = computed(()=>store.subpathEdit)
+
+const prePath = ref()
+
+const getOption = (subpath, arg:number) => {
 
     return {
-        strokeColor: "blue",
+        strokeColor: arg===1 ?"blue": "darkgray",
         strokeWidth: 2,
         path: subpath.points,
         visible: props.visible,
@@ -39,7 +43,14 @@ const onClick = async (id, ev) => {
 </script>
 
 <template>
-    <Polyline v-for="(sp, index) in subpaths" :key="sp.id" :options="getOption(sp, index)" @mouseup="()=>{console.log('dragend')}">
+    <template v-if="!subpathEditMode">
+        <Polyline v-for="sp in subpaths" :key="sp.id" :options="getOption(sp, 1)">
 
-    </Polyline>
+        </Polyline>
+    </template>
+    <template v-else>
+        <Polyline v-for="sp in subpaths" :key="sp.id" :options="getOption(sp, 2)">
+
+        </Polyline>
+    </template>
 </template>
