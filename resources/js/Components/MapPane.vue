@@ -27,6 +27,7 @@ import { ref, watch, onMounted, computed, provide, type Ref } from "vue"
 import type { Component } from 'vue'
 
 import { GoogleMap, Marker, Polyline } from "vue3-google-map"
+import { googleMapsKey} from "@/Components/gmap/keys"
 import brm from "../../sample/sample200.brm.json"
 
 import { useToolStore } from "@/stores/ToolStore"
@@ -421,6 +422,6 @@ const onLowerDrawerSubmit = (payload: string) => {
     }
 }
 
-provide('popup', { popup, menuComp, popupParams, menuParams })
+provide(googleMapsKey, { popup, menuComp, popupParams, menuParams })
 
 </script>

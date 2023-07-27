@@ -4,6 +4,7 @@ import { Marker } from "vue3-google-map"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useCuesheetStore } from "@/stores/CueSheetStore"
 import { computed, inject } from "vue"
+import { googleMapsKey } from "./gmap/keys"
 import { RoutePoint } from "@/classes/routePoint"
 import { CuePoint } from "@/classes/cuePoint"
 

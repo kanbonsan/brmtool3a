@@ -26,6 +26,7 @@ type State = {
         end: number | null
     }
     subpathEdit: boolean    // subpath を編集可にするかいなか（きれいな実装じゃないなぁ）
+    subpathEditPoints: google.maps.LatLng[]
 }
 
 /**
@@ -43,7 +44,13 @@ type Subpath = {
     position: 'pre' | 'middle' | 'post'
     id: symbol
 }
-type SubpathRanges = Subpath[]  //
+
+type SubpathRanges = {
+    pre?: Subpath,
+    middle?: Subpath,
+    post?: Subpath
+}
+
 
 
 export const useBrmRouteStore = defineStore('brmroute', {
@@ -54,7 +61,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
             begin: null,
             end: null
         },
-        subpathEdit: false
+        subpathEdit: false,
+        subpathEditPoints: []
     }),
 
     getters: {
@@ -215,32 +223,32 @@ export const useBrmRouteStore = defineStore('brmroute', {
          */
         subpathRanges(state): SubpathRanges {
 
-            const arr: SubpathRanges = []
+            const ranges: SubpathRanges = {}
 
             const begin = state.subpath.begin
             const end = state.subpath.end
 
             if (!begin || !end) {
-                return arr  // []
+                return ranges
             }
 
             if (end - begin < 4) {
-                return arr  // []
+                return ranges
             }
+
             // 端ではない
             if (begin > 0) {
-                arr.push({ begin: begin, end: begin + 1, points: this.getPolylinePoints(begin, begin + 1, 1), editable: false, position: 'pre', id: Symbol() })
+                ranges.pre = { begin: begin, end: begin + 1, points: this.getPolylinePoints(begin, begin + 1, 1), editable: false, position: 'pre', id: Symbol() }
             }
 
             const _begin = begin === 0 ? 0 : begin + 1
             const _end = end === this.count - 1 ? end : end - 1
-            arr.push({ begin: _begin, end: _end, points: this.getPolylinePoints(_begin, _end, 1), editable: state.subpathEdit, position: 'middle', id: Symbol() })
+            ranges.middle = { begin: _begin, end: _end, points: this.getPolylinePoints(_begin, _end, 1), editable: state.subpathEdit, position: 'middle', id: Symbol() }
 
             if (end < this.count - 1) {
-                arr.push({ begin: end - 1, end: end, points: this.getPolylinePoints(end - 1, end, 1), editable: false, position: 'post', id: Symbol() })
+                ranges.post = { begin: end - 1, end: end, points: this.getPolylinePoints(end - 1, end, 1), editable: false, position: 'post', id: Symbol() }
             }
-
-            return arr
+            return ranges
         },
 
         getClosePoint() {
@@ -479,6 +487,10 @@ export const useBrmRouteStore = defineStore('brmroute', {
             } else {
                 this.subpath = { begin: null, end: null }
             }
+        },
+
+        setSubpathEditPoints( pts: Array<google.maps.LatLng>){
+            this.subpathEditPoints = pts
         },
 
         // 以下はテスト・実験用

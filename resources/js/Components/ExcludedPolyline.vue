@@ -2,6 +2,7 @@
 import { Polyline } from "vue3-google-map"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { computed, inject } from "vue"
+import { googleMapsKey } from "./gmap/keys";
 
 const store = useBrmRouteStore()
 const props = defineProps(["visible"])
@@ -17,7 +18,7 @@ const getOption = (ex) => {
     }
 }
 
-const { popup, menuComp, popupParams, menuParams } = inject('popup')
+const { popup, menuComp, popupParams, menuParams } = inject(googleMapsKey)
 
 const onClick = async (id, ev) => {
 

@@ -2,6 +2,7 @@
 import { Polyline } from "vue3-google-map"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { computed, inject } from "vue"
+import { googleMapsKey } from "./gmap/keys";
 
 const props = defineProps(["visible"])
 
