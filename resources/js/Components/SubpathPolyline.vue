@@ -10,13 +10,17 @@ const subpaths = computed(() => store.subpathRanges)
 
 const subpathEditMode = computed(()=>store.subpathEdit)
 
-const prePath = ref()
-const middle = ref([])
+const mid = ref([])
+const hasPre = subpaths.hasOwnProperty('pre')
+const hasPost = subpaths.hasOwnProperty('post')
 
-const getOption = (subpath, arg) => {
+const headPoint = ref(subpaths.middle.points[0])
+const tailPoint = ref(subpaths.middle.points[subpaths.middle.points.length-1])
+
+const getOption = (subpath) => {
 
     return {
-        strokeColor: arg===1 ?"blue": "darkgray",
+        strokeColor: "blue",
         strokeWidth: 2,
         path: subpath.points,
         visible: props.visible,
@@ -25,7 +29,18 @@ const getOption = (subpath, arg) => {
     }
 }
 
-const updateSubpath = ()=>{
+const getEditPathOption = ( subpath, editable=false ) =>{
+    return {
+        strokeColor: "blue",
+        strokeWidth: 2,
+        path: subpath.points,
+        visible: props.visible,
+        zIndex: 3,
+        editable: true
+    }
+}
+
+const updateSubpathEdit = ()=>{
     store.setSubpathEditPoints( middle.value[1].polyline.getPath().getArray())
     console.log( middle.value[1].polyline.getPath())
 }
@@ -37,13 +52,9 @@ const { popup, menuComp, popupParams, menuParams } = inject(googleMapsKey)
 
 <template>
     <template v-if="!subpathEditMode">
-        <Polyline v-for="sp in subpaths" :key="sp.id" :options="getOption(sp, 1)">
-
-        </Polyline>
+        <Polyline v-for="sp in subpaths" :key="sp.id" :options="getOption(sp)"/>
     </template>
     <template v-else>
-        <Polyline ref='middle' v-for="sp in subpaths" :key="sp.id" :options="getOption(sp, 2)" @mouseup="updateSubpath">
-
-        </Polyline>
+        <Polyline :options="getEditPathOption(subpaths.middle)" @mouseup="updateSubpathEdit"/>
     </template>
 </template>

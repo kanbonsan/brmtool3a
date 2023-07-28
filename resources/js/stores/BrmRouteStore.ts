@@ -51,8 +51,6 @@ type SubpathRanges = {
     post?: Subpath
 }
 
-
-
 export const useBrmRouteStore = defineStore('brmroute', {
 
     state: (): State => ({
@@ -93,10 +91,14 @@ export const useBrmRouteStore = defineStore('brmroute', {
             const arr: RoutePoint[] = []
             arr.push(state.points[begin])
             for (let i = begin + 1; i < end; i++) {
-                const pt = state.points[i]
-                if (pt.weight >= threshold) {
-                    arr.push(pt)
-                }
+                try {
+                    const pt = state.points[i]
+                    if (pt.weight >= threshold) {
+                        arr.push(pt)
+                    }
+                } catch{()=>{
+                    console.log( 'error point: %d',i)
+                }}
             }
             arr.push(state.points[end])
             return arr
@@ -489,7 +491,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             }
         },
 
-        setSubpathEditPoints( pts: Array<google.maps.LatLng>){
+        setSubpathEditPoints(pts: Array<google.maps.LatLng>) {
             this.subpathEditPoints = pts
         },
 
