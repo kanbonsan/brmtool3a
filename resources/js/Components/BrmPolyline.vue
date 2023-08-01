@@ -11,5 +11,5 @@ const props = defineProps(["api", "map", "ready", "visible"])
 <template>
     <EditablePolyline :visible="visible"/>
     <ExcludedPolyline :visible="visible"/>
-    <SubpathPolyline :visible="visible" />
+    <SubpathPolyline :visible="visible" :map="map"/>
 </template>

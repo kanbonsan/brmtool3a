@@ -173,17 +173,15 @@ const popupParams = ref<{
 
 const gmap = ref<InstanceType<typeof GoogleMap> | null>(null)
 
-
-
 onMounted(() => {
-    setTimeout(() => {
-        routeStore.deviate()
-        routeStore.setExclude(10, 50)
-        routeStore.setExclude(300, 350)
-    }, 5000)
-    setTimeout(() => {
-        routeStore.delete(100, 200)
-    }, 10000)
+    // setTimeout(() => {
+    //     routeStore.deviate()
+    //     routeStore.setExclude(10, 50)
+    //     routeStore.setExclude(300, 350)
+    // }, 5000)
+    // setTimeout(() => {
+    //     routeStore.delete(100, 200)
+    // }, 10000)
 
 })
 
