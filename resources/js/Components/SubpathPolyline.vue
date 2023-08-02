@@ -16,6 +16,8 @@ const subpath = computed(() => store.subpathRange)
 
 const subpathEditMode = computed(() => store.subpathEdit)
 
+const editReady = ref<boolean>(false)
+
 const defaultOption = {
     strokeColor: "blue",
     strokeWidth: 2,
@@ -26,21 +28,32 @@ const nextToHeadPoint = ref<Point>({ ...subpath.value.points[1] })
 const nextToTailPoint = ref<Point>({ ...subpath.value.points[subpath.value.count - 2] })
 
 const headPath = computed(() => {
-    return [{ ...subpath.value.points[0] }, nextToHeadPoint]
+
+    return [{ ...subpath.value.points[0] }, nextToHeadPoint.value]
 })
 
 const tailPath = computed(() => {
-    return [{ ...subpath.value.points[subpath.value.count - 1] }, nextToTailPoint]
+    return [{ ...subpath.value.points[subpath.value.count - 1] }, nextToTailPoint.value]
 })
 
-const _key = ref()
+
 const editablePath = computed(() => {
-    if (subpath.value.tail) {
-        return subpath.value.points.slice(subpath.value.head ? 0 : 1)
+    if (!subpath.value.tail) {
+        return subpath.value.points.slice(subpath.value.head ? 1 : 0)
     } else {
-        return subpath.value.points.slice(subpath.value.head ? 0 : 1, -1)
+        return subpath.value.points.slice(subpath.value.head ? 1 : 0, -1)
     }
 })
+
+const onEditUpdate = (ev: google.maps.PolyMouseEvent) => {
+    const path = editPathRef.value?.polyline?.getPath()
+    const length = path?.getLength()
+    const _head = path?.getAt(0)
+    const _tail = path?.getAt(length! - 1)
+
+    nextToHeadPoint.value = { lat: _head?.lat(), lng: _head?.lng() }
+    nextToTailPoint.value = { lat: _tail?.lat(), lng: _tail?.lng() }
+}
 
 
 
@@ -57,7 +70,7 @@ watch(subpathEditMode, mode => {
                     if (e.vertex === undefined) {
                         return
                     }
-                    deleteMenu.open(props.map, editPathRef.value!.polyline!.getPath(), e.vertex)
+                    deleteMenu.open(props.map, editPathRef.value!.polyline!.getPath(), e.vertex, onEditUpdate)
                 })
 
 
@@ -66,19 +79,16 @@ watch(subpathEditMode, mode => {
         nextToHeadPoint.value = { ...subpath.value.points[1] }
         nextToTailPoint.value = { ...subpath.value.points[subpath.value.count - 2] }
 
-        setInterval(()=>{
-            console.log( headPath.value, tailPath.value)
-            _key.value=Symbol()},1000)
     }
 
 })
-const getOption = (points: any) => {
+const getOption = (points: any, editable: boolean = true) => {
 
     return {
         ...defaultOption,
         path: points,
         visible: props.visible,
-        editable: subpath.value.editable
+        editable: subpath.value.editable && editable
     }
 }
 
@@ -89,11 +99,9 @@ const getOption = (points: any) => {
         <Polyline v-if="subpath.count" :key="subpath.id" :options="getOption(subpath.points)" />
     </template>
     <template v-else>
-
-        <Polyline :key="_key" :options="getOption(headPath)" />
-        <Polyline :key="_key" :options="getOption(tailPath)" />
-
-        <Polyline ref="editPathRef" :options="getOption(editablePath)" />
+        <Polyline :options="getOption(headPath, false)" />
+        <Polyline :options="getOption(tailPath, false)" />
+        <Polyline ref="editPathRef" :options="getOption(editablePath)" @mouseup="onEditUpdate"/>
     </template>
 </template>
 

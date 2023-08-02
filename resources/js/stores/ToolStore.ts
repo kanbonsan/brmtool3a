@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 
-type MapMode = 'edit' | 'subpath' | 'subpathSelect'
+type MapMode = 'edit' | 'subpath' | 'subpathSelect' | 'subpathEdit'
 type MapLock = null | 'cuePoint' | 'subpath'
 
 type State = {
@@ -22,6 +22,7 @@ export const useToolStore = defineStore('tool', {
         editMode: (state) => state.mapMode === 'edit',
         subpathMode: (state) => state.mapMode === 'subpath',
         subpathSelectMode: (state) => state.mapMode === 'subpathSelect',
+        subpathEditMode: (state)=>state.mapMode === 'subpathEdit'
 
     },
 
