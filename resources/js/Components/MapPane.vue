@@ -251,7 +251,7 @@ const markerOption = (pt: RoutePoint) => {
         position: pt,
         opacity: pt.opacity,
         icon: { url: circle, anchor: new google.maps.Point(8, 8) },
-        visible: mapObjectVisible.value && pt.editable && !pt.excluded
+        visible: mapObjectVisible.value && pt.editable && !pt.excluded && !toolStore.subpathEditMode
     }
 }
 
@@ -259,6 +259,7 @@ const markerClick = async (pt: RoutePoint) => {
 
     pt.opacity = 0.5
 
+    // popup を開く。閉じられて　Promise が返るまで待機。
     const response: any = await markerPopup(pt)
     pt.opacity = 0.0
 
@@ -319,6 +320,7 @@ const markerPopup = async (pt: RoutePoint) => {
     menuParams.value = { ts: Date.now(), cuePoint: cuesheetStore.routePoints.includes(pt), pt }
 
     const position = new google.maps.LatLng(pt)
+
     const result = await popup(position, pt)
 
     return result
@@ -331,7 +333,7 @@ const popup = async (position: google.maps.LatLng, activator?: Activator) => {
      * Promiseオブジェクトの resolve 関数を取り出して子コンポーネントに渡して
      * そちらで解決する。
      * 長らく悩んでいた問題が解決！！ 
-     * 「VueでもユーザーのタイミングでPromiseをresolve()できへんか？」
+     * 「VueでもユーザーのタイミングでPromiseをresolve()できへんか？」(Web page)
      */
 
     return new Promise((resolve, reject) => {

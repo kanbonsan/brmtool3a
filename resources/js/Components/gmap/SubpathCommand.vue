@@ -36,6 +36,7 @@ const onDelete = () => {
 }
 
 const onEdit=()=>{
+    toolStore.setMode('subpathEdit')
     routeStore.setSubpathEdit(true)
 }
 
