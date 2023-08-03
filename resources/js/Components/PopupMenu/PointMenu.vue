@@ -3,19 +3,19 @@
         <template #header>
             <h4>ポイント</h4>
         </template>
-        <el-row v-if="toolStore.editMode">
+        <el-row v-if="toolStore.editMode || toolStore.subpathMode">
             <el-tooltip placement="right" content="キューポイントを設定します" :auto-close="2000">
-                <el-button class="menu-button" size="small" type="info" :disabled="!toolStore.editMode"
+                <el-button class="menu-button" size="small" type="info"
                     @click="onClick('addCuePoint')">キューポイント設定</el-button>
             </el-tooltip>
         </el-row>
-        <el-row>
+        <el-row v-if="toolStore.editMode">
             <el-tooltip placement="right" content="編集範囲設定スライダーを表示します" :auto-close="2000">
                 <el-button :disabled="!toolStore.editMode" class="menu-button" size="small" type="info"
                     @click="onClick('editableRange')">編集範囲設定</el-button>
             </el-tooltip>
         </el-row>
-        <el-row>
+        <el-row v-if="toolStore.editMode">
             <el-tooltip placement="right" content="サブパス選択を開始します" :auto-close="2000">
                 <el-button class="menu-button" size="small" type="info"
                     @click="onClick('subpathBegin')">サブパス選択開始</el-button>
@@ -27,7 +27,7 @@
             </el-tooltip>
         </el-row>
 
-        <el-row>
+        <el-row v-if="toolStore.editMode">
             <el-tooltip placement="right" content="このポイントを削除します" :auto-close="2000">
                 <el-button class="menu-button" size="small" type="info">ポイント削除</el-button>
             </el-tooltip>

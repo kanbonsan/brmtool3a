@@ -26,7 +26,7 @@ import { ref, watch, onMounted, computed, provide, type Ref } from "vue"
 import type { Component } from 'vue'
 
 import { GoogleMap, Marker, Polyline } from "vue3-google-map"
-import { googleMapsKey} from "@/Components/gmap/keys"
+import { googleMapsKey } from "@/Components/gmap/keys"
 import brm from "../../sample/sample200.brm.json"
 
 import { useToolStore } from "@/stores/ToolStore"
@@ -137,7 +137,7 @@ const drawers: Drawers = {
         component: SubpathCommand,
         title: "サブパスコマンド",
         timeout: 0,
-        timeoutFunc:()=>{   // タイムアウトにならない設定だがクローズボタンを押したときに呼んでもらって設定をリセットする
+        timeoutFunc: () => {   // タイムアウトにならない設定だがクローズボタンを押したときに呼んでもらって設定をリセットする
             toolStore.setMode('edit')
             routeStore.resetSubpath()
         }
@@ -146,7 +146,7 @@ const drawers: Drawers = {
         component: SubpathEditConfirm,
         title: "サブパス編集",
         timeout: 0,
-        timeoutFunc:()=>{
+        timeoutFunc: () => {
             toolStore.setMode('edit')
             routeStore.resetSubpath()
         }
@@ -286,11 +286,16 @@ const markerClick = async (pt: RoutePoint) => {
                 break
             case 'subpathBegin':
                 toolStore.setMode('subpathSelect')
-                routeStore.resetSubpath(pt)
+                routeStore.resetSubpath(pt) // サブパスインデックスの設定
                 drawerComp.value = 'Subpath'
                 drawerActive.value += 1
                 break
             case 'subpathEnd':
+            toolStore.setMode('subpath')
+            drawerComp.value = 'SubpathCommand'
+            drawerActive.value += 1
+
+                routeStore.subpathSync()
                 break
         }
     }
@@ -298,11 +303,20 @@ const markerClick = async (pt: RoutePoint) => {
 }
 
 const markerMouseover = (pt: RoutePoint) => {
+
+    const ptIndex = routeStore.getPointIndex(pt)
+
     if (popupParams.value.activator === pt) {
         return
     }
 
     if (!pt.editable) return
+
+    if (toolStore.subpathSelectMode) {
+        const _begin: number = Math.min(ptIndex, routeStore.subpathTemp.begin!)
+        const _end: number = Math.max(ptIndex, routeStore.subpathTemp.end!)
+        routeStore.setSubpath([_begin,_end])
+    }
 
     pt.opacity = 0.8
 
@@ -314,6 +328,11 @@ const markerMouseout = (pt: RoutePoint) => {
     }
 
     if (!pt.editable) return
+
+    if (toolStore.subpathSelectMode) {
+
+        routeStore.setSubpath([routeStore.subpathTemp.begin!, routeStore.subpathTemp.end!])
+    }
 
     pt.opacity = 0.0
 
@@ -385,8 +404,8 @@ const onLowerDrawerSubmit = (payload: string) => {
         case 'subpath:pathEdit':
             toolStore.setMode('subpathEdit')
             routeStore.setSubpathEdit(true)
-            drawerComp.value='SubpathEditConfirm'
-            drawerActive.value +=1
+            drawerComp.value = 'SubpathEditConfirm'
+            drawerActive.value += 1
             break
     }
 }

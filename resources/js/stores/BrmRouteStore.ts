@@ -22,12 +22,16 @@ const simplifyParam = [
 type State = {
     points: RoutePoint[],
     subpath: {
-        selectStartAt: number | null,   // スライダーを動かしても変わらない最初の選択
+        begin: number | null,
+        end: number | null
+    }
+    subpathTemp: {  // マップ上のポイント操作でもサブパスを調整できるように
         begin: number | null,
         end: number | null
     }
     subpathEdit: boolean    // subpath を編集可にするかいなか（きれいな実装じゃないなぁ）
     subpathTempPath: Array<{ lat: number, lng: number }>
+
 }
 
 /**
@@ -58,7 +62,10 @@ export const useBrmRouteStore = defineStore('brmroute', {
     state: (): State => ({
         points: [],
         subpath: {
-            selectStartAt: null,
+            begin: null,
+            end: null
+        },
+        subpathTemp: {
             begin: null,
             end: null
         },
@@ -479,10 +486,6 @@ export const useBrmRouteStore = defineStore('brmroute', {
             this.subpath.end = range[1]
         },
 
-        setSubpathSelectStartAt( index: number){
-            this.subpath.selectStartAt = index
-        },
-
         setSubpathEdit(arg: boolean) {
             this.subpathEdit = arg
         },
@@ -493,6 +496,11 @@ export const useBrmRouteStore = defineStore('brmroute', {
             } else {
                 this.subpath = { begin: null, end: null }
             }
+            this.subpathTemp = { ...this.subpath }
+        },
+
+        subpathSync(){
+            this.subpathTemp = { ...this.subpath }
         },
 
         setSubpathTempPath(points: Array<{ lat: number, lng: number }>) {

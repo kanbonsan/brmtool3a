@@ -2,11 +2,10 @@
     <el-row>
         サブパスのポイントを手動で編集します。キューポイントが設定されているポイントを編集した場合、キューポイントは一旦POIとしてキューシートから分離されます。
     </el-row>
-    <el-row justify="center">
-        <el-button @click="onSubmit">編集確定</el-button>
+    <el-row justify="end">
         <el-button @click="onCancel">キャンセル</el-button>
+        <el-button @click="onSubmit">編集確定</el-button>
     </el-row>
-    <el-row justify="end"><el-button @click="submitFunc('subpath:cancel')">キャンセル</el-button></el-row>
 </template>
 
 <script setup lang="ts">
