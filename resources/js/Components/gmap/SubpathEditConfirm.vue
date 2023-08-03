@@ -1,11 +1,10 @@
 <template>
     <el-row>
-        サブパスに対するコマンドを指定してください
+        サブパスのポイントを手動で編集します。キューポイントが設定されているポイントを編集した場合、キューポイントは一旦POIとしてキューシートから分離されます。
     </el-row>
     <el-row justify="center">
-        <el-button @click="onDelete">削除</el-button>
-        <el-button @click="onEdit">編集</el-button>
-        <el-button @click="submitFunc('subpath:flat')">トンネル</el-button>
+        <el-button @click="onSubmit">編集確定</el-button>
+        <el-button @click="onCancel">キャンセル</el-button>
     </el-row>
     <el-row justify="end"><el-button @click="submitFunc('subpath:cancel')">キャンセル</el-button></el-row>
 </template>
@@ -19,24 +18,25 @@ const routeStore = useBrmRouteStore()
 const toolStore = useToolStore()
 const props = defineProps(['resetTimeout', 'submitFunc'])
 
-const onDelete = () => {
+const onSubmit = () => {
     ElMessageBox.confirm(
-        'サブパス範囲内のポイントを消去します. サブパス上のキューポイントはPOIになります.',
-        'ポイント削除',
+        'パスの編集を確定させます.',
+        '編集確定',
         {
             confirmButtonText: 'OK',
             cancelButtonText: 'キャンセル',
             type: 'warning'
         }
     ).then(() => {
-        props.submitFunc('subpath:delete')
+        props.submitFunc('subpath:editPathConfirm')
     }).catch(() => {
         ElMessage({ type: 'info', message: '取り消しました.' })
     })
 }
 
-const onEdit=()=>{
-    props.submitFunc('subpath:pathEdit')
+const onCancel=()=>{
+    toolStore.setMode('subpathEdit')
+    routeStore.setSubpathEdit(true)
 }
 
 </script>

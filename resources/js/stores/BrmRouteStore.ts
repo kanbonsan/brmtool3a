@@ -22,10 +22,12 @@ const simplifyParam = [
 type State = {
     points: RoutePoint[],
     subpath: {
+        selectStartAt: number | null,   // スライダーを動かしても変わらない最初の選択
         begin: number | null,
         end: number | null
     }
     subpathEdit: boolean    // subpath を編集可にするかいなか（きれいな実装じゃないなぁ）
+    subpathTempPath: Array<{ lat: number, lng: number }>
 }
 
 /**
@@ -39,14 +41,15 @@ type EditableRanges = Editable[]
  */
 type SubpathIndex = [number | null, number | null]
 
+// SubpathIndex の変化に応じて getter で変化
 type Subpath = {
     begin: number | null
     end: number | null
     points: RoutePoint[]
     count: number
-    head: boolean
-    tail: boolean
-    editable: boolean
+    head: boolean   // 先頭部分にひげが必要か（パスの途中にサブパス）
+    tail: boolean   // 終点部分にひげが必要か
+    editable: boolean   // 編集モードか
     id: symbol
 }
 
@@ -55,10 +58,12 @@ export const useBrmRouteStore = defineStore('brmroute', {
     state: (): State => ({
         points: [],
         subpath: {
+            selectStartAt: null,
             begin: null,
             end: null
         },
-        subpathEdit: false,
+        subpathEdit: false, // フラグが動くことで edit モードに入れる
+        subpathTempPath: [] // 確定前のサブパスのポイントを入れておく
     }),
 
     getters: {
@@ -470,7 +475,12 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
 
         setSubpath(range: [number, number]) {
-            this.subpath = { begin: range[0], end: range[1] }
+            this.subpath.begin = range[0]
+            this.subpath.end = range[1]
+        },
+
+        setSubpathSelectStartAt( index: number){
+            this.subpath.selectStartAt = index
         },
 
         setSubpathEdit(arg: boolean) {
@@ -483,6 +493,10 @@ export const useBrmRouteStore = defineStore('brmroute', {
             } else {
                 this.subpath = { begin: null, end: null }
             }
+        },
+
+        setSubpathTempPath(points: Array<{ lat: number, lng: number }>) {
+            this.subpathTempPath = [...points]
         },
 
         // 以下はテスト・実験用

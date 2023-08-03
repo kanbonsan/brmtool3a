@@ -53,6 +53,18 @@ const onEditUpdate = (ev: google.maps.PolyMouseEvent) => {
 
     nextToHeadPoint.value = { lat: _head?.lat(), lng: _head?.lng() }
     nextToTailPoint.value = { lat: _tail?.lat(), lng: _tail?.lng() }
+
+    // 現在のパスを保存
+    const points: Array<{ lat: number, lng: number }> = []
+    if (subpath.value.head) {
+        points.push(subpath!.value.points[0])
+    }
+    editPathRef.value?.polyline?.getPath().getArray().forEach(pt => points.push({ lat: pt.lat(), lng: pt.lng() }))
+    if (subpath.value.tail) {
+        points.push(subpath.value.points.slice(-1)[0])
+    }
+
+    store.setSubpathTempPath(points)
 }
 
 
@@ -79,6 +91,8 @@ watch(subpathEditMode, mode => {
         nextToHeadPoint.value = { ...subpath.value.points[1] }
         nextToTailPoint.value = { ...subpath.value.points[subpath.value.count - 2] }
 
+    } else {
+        console.log('サブパスを解除しなければ')
     }
 
 })
@@ -101,7 +115,7 @@ const getOption = (points: any, editable: boolean = true) => {
     <template v-else>
         <Polyline :options="getOption(headPath, false)" />
         <Polyline :options="getOption(tailPath, false)" />
-        <Polyline ref="editPathRef" :options="getOption(editablePath)" @mouseup="onEditUpdate"/>
+        <Polyline ref="editPathRef" :options="getOption(editablePath)" @mouseup="onEditUpdate" />
     </template>
 </template>
 

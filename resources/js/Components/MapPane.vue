@@ -46,6 +46,7 @@ import LowerDrawer from "@/Components/gmap/LowerDrawer.vue"
 import EditableRangeSlider from "./gmap/EditableRangeSlider.vue"
 import SubpathRangeSlider from "./gmap/SubpathRangeSlider.vue"
 import SubpathCommand from "./gmap/SubpathCommand.vue"
+import SubpathEditConfirm from "./gmap/SubpathEditConfirm.vue"
 
 // ポップアップメニュー
 import ExcludePolyMenu from "@/Components/PopupMenu/ExcludedPolylineMenu.vue"
@@ -137,6 +138,15 @@ const drawers: Drawers = {
         title: "サブパスコマンド",
         timeout: 0,
         timeoutFunc:()=>{   // タイムアウトにならない設定だがクローズボタンを押したときに呼んでもらって設定をリセットする
+            toolStore.setMode('edit')
+            routeStore.resetSubpath()
+        }
+    },
+    SubpathEditConfirm: {
+        component: SubpathEditConfirm,
+        title: "サブパス編集",
+        timeout: 0,
+        timeoutFunc:()=>{
             toolStore.setMode('edit')
             routeStore.resetSubpath()
         }
@@ -372,7 +382,12 @@ const onLowerDrawerSubmit = (payload: string) => {
             drawerComp.value = 'SubpathCommand'
             drawerActive.value += 1
             break
-
+        case 'subpath:pathEdit':
+            toolStore.setMode('subpathEdit')
+            routeStore.setSubpathEdit(true)
+            drawerComp.value='SubpathEditConfirm'
+            drawerActive.value +=1
+            break
     }
 }
 

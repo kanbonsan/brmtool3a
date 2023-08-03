@@ -21,7 +21,7 @@
                     @click="onClick('subpathBegin')">サブパス選択開始</el-button>
             </el-tooltip>
         </el-row>
-        <el-row>
+        <el-row v-if="toolStore.subpathSelectMode">
             <el-tooltip placement="right" content="この点をサブパスの終点にします" :auto-close="2000">
                 <el-button class="menu-button" size="small" type="info" @click="onClick('subpathEnd')">サブパス範囲確定</el-button>
             </el-tooltip>
