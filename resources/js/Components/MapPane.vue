@@ -291,9 +291,9 @@ const markerClick = async (pt: RoutePoint) => {
                 drawerActive.value += 1
                 break
             case 'subpathEnd':
-            toolStore.setMode('subpath')
-            drawerComp.value = 'SubpathCommand'
-            drawerActive.value += 1
+                toolStore.setMode('subpath')
+                drawerComp.value = 'SubpathCommand'
+                drawerActive.value += 1
 
                 routeStore.subpathSync()
                 break
@@ -315,7 +315,7 @@ const markerMouseover = (pt: RoutePoint) => {
     if (toolStore.subpathSelectMode) {
         const _begin: number = Math.min(ptIndex, routeStore.subpathTemp.begin!)
         const _end: number = Math.max(ptIndex, routeStore.subpathTemp.end!)
-        routeStore.setSubpath([_begin,_end])
+        routeStore.setSubpath([_begin, _end])
     }
 
     pt.opacity = 0.8
@@ -403,7 +403,6 @@ const onLowerDrawerSubmit = (payload: string) => {
             break
         case 'subpath:pathEdit':
             toolStore.setMode('subpathEdit')
-            routeStore.setSubpathEdit(true)
             drawerComp.value = 'SubpathEditConfirm'
             drawerActive.value += 1
             break

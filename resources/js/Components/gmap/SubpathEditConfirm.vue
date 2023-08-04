@@ -35,7 +35,7 @@ const onSubmit = () => {
 
 const onCancel=()=>{
     toolStore.setMode('subpathEdit')
-    routeStore.setSubpathEdit(true)
+    //routeStore.setSubpathEdit(true)
 }
 
 </script>

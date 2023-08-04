@@ -5,6 +5,7 @@ import { hubeny } from '@/lib/hubeny'
 import { HubenyCorrection, weighedThreshold } from '@/config.js'
 
 import { useGmapStore } from '@/stores/GmapStore.js'
+import { useToolStore } from './ToolStore'
 import { useCuesheetStore } from './CueSheetStore'
 import { RoutePoint } from '@/classes/routePoint'
 
@@ -29,7 +30,6 @@ type State = {
         begin: number | null,
         end: number | null
     }
-    subpathEdit: boolean    // subpath を編集可にするかいなか（きれいな実装じゃないなぁ）
     subpathTempPath: Array<{ lat: number, lng: number }>
 
 }
@@ -69,7 +69,6 @@ export const useBrmRouteStore = defineStore('brmroute', {
             begin: null,
             end: null
         },
-        subpathEdit: false, // フラグが動くことで edit モードに入れる
         subpathTempPath: [] // 確定前のサブパスのポイントを入れておく
     }),
 
@@ -131,6 +130,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /**
          * (getter) 除外範囲の開始と終了の各インデックスを求める
          * リアクティブに polyline を書き換えてもらうために unique ID を Symbol() で振る
+         * polyline で表示するために exclude でない両端を含める
          * @returns Array<{ begin, end, id: Symbol()}>
          */
         excludedRanges(state) {
@@ -164,10 +164,10 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
             return arr.map((range) => {
 
-                const begin = Math.max(range.begin! - 1, 0)
-                const end = Math.min(range.end! + 1, this.count - 1)
+                const _begin = Math.max(range.begin! - 1, 0)
+                const _end = Math.min(range.end! + 1, this.count - 1)
 
-                const points = this.getPolylinePoints(begin, end) as RoutePoint[]
+                const points = this.getPolylinePoints(_begin, _end) as RoutePoint[]
                 return ({ begin, end, points, id: Symbol() })
             })
         },
@@ -238,9 +238,11 @@ export const useBrmRouteStore = defineStore('brmroute', {
          */
         subpathRange(state): Subpath {
 
+            const toolStore = useToolStore()
+
             const begin = state.subpath.begin
             const end = state.subpath.end
-            const editable = state.subpathEdit
+            const editable = toolStore.subpathEditMode
             let head: boolean = false
             let tail: boolean = false
 
@@ -465,6 +467,19 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
 
         /**
+         * サブパスの変更適用時にサブパスが除外範囲に被っていたらその除外範囲を一旦解除する
+         * 除外範囲が細切れにならないようにする目的
+         */
+        restoreExcludeWhenSubpathSubmit() {
+            const exRange = [...this.excludedRanges]
+            exRange.forEach((ex) => {
+                if (!(this.subpath.end! < ex.begin! && this.subpath.begin! > ex.end!)) {   // 重なりがある
+                    this.restoreExclude(ex.begin!, ex.end!)
+                }
+            })
+        },
+
+        /**
          * 指定範囲のポイントの削除
          * @param begin 
          * @param end 
@@ -481,13 +496,14 @@ export const useBrmRouteStore = defineStore('brmroute', {
             cuesheetStore.checkAttach()
         },
 
+        /**
+         * サブパスの範囲を設定
+         * リアクティブにサブパスの polyline を描画
+         * @param range [number, number]
+         */
         setSubpath(range: [number, number]) {
             this.subpath.begin = range[0]
             this.subpath.end = range[1]
-        },
-
-        setSubpathEdit(arg: boolean) {
-            this.subpathEdit = arg
         },
 
         resetSubpath(pt?: RoutePoint) {
@@ -499,7 +515,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             this.subpathTemp = { ...this.subpath }
         },
 
-        subpathSync(){
+        subpathSync() {
             this.subpathTemp = { ...this.subpath }
         },
 

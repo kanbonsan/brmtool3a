@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Polyline } from "vue3-google-map"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
+import { useToolStore } from "@/stores/ToolStore"
 import { computed, inject, ref, watch } from "vue"
 import { googleMapsKey } from "./gmap/keys"
 
@@ -10,13 +11,13 @@ type Point = {
 }
 
 const store = useBrmRouteStore()
+const toolStore = useToolStore()
+
 const props = defineProps(["visible", "map"])
 
 const subpath = computed(() => store.subpathRange)
 
-const subpathEditMode = computed(() => store.subpathEdit)
-
-const editReady = ref<boolean>(false)
+const subpathEditMode = computed(() => toolStore.subpathEditMode)
 
 const defaultOption = {
     strokeColor: "blue",
