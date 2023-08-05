@@ -406,6 +406,25 @@ const onLowerDrawerSubmit = (payload: string) => {
             drawerComp.value = 'SubpathEditConfirm'
             drawerActive.value += 1
             break
+        case 'subpath:editPathConfirm':
+            routeStore.subpathReplace()
+            routeStore.resetSubpath()
+            toolStore.setMode('edit')
+            drawerActive.value = 0
+            break
+        case 'subpath:delete':
+            routeStore.subpathDelete()
+            routeStore.resetSubpath()
+            toolStore.setMode('edit')
+            drawerActive.value = 0
+            break
+        case 'subpath:exclude':
+            routeStore.subpathSetExclude()
+            routeStore.resetSubpath()
+            toolStore.setMode('edit')
+            drawerActive.value = 0
+            break
+
     }
 }
 

@@ -3,7 +3,7 @@
         編集範囲の中でサブパスの範囲を設定します
     </el-row>
     <el-slider v-model="subpathRange" range :min="editableIndex[0]" :max="editableIndex[1]"
-        @input="resetTimeout"></el-slider>
+        @input="onSliderInput"></el-slider>
     <el-row justify="end">
         <el-button @click="submitFunc('subpathRange:submit')">決定</el-button>
         <el-button @click="submitFunc('subpathRange:cancel')">キャンセル</el-button></el-row>
@@ -26,4 +26,8 @@ const subpathRange = computed({
     }
 })
 
+const onSliderInput = ()=>{
+    routeStore
+    props.resetTimeout()
+}
 </script>

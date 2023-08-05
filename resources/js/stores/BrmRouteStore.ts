@@ -168,7 +168,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 const _end = Math.min(range.end! + 1, this.count - 1)
 
                 const points = this.getPolylinePoints(_begin, _end) as RoutePoint[]
-                return ({ begin, end, points, id: Symbol() })
+                return ({ begin: _begin, end: _end, points, id: Symbol() })
             })
         },
         /**
@@ -419,15 +419,12 @@ export const useBrmRouteStore = defineStore('brmroute', {
                     points: this.pointsArray.map((pt) => ({ lat: pt.y, lng: pt.x }))
                 }
             })
-
-            console.log(result.data)
-
         },
 
         /**
          * 除外区間の設定
          *     begin と end に含まれるポイントの exclude プロパティを true にする.
-         *     ただし、両端を含む場合、直前・直後が exclude の場合はそれらも exclude にする.
+         *     ただし、両端を含む場合と、直前・直後が exclude の場合はそれらも exclude にする.
          * @param {Number} begin 除外開始インデックス
          * @param {Number} end 除外終了インデックス
          */
@@ -458,6 +455,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * @param {Number} end 終了インデックス
          */
         restoreExclude(begin: number, end: number) {
+
             if (begin < 0 || end >= this.count) {
                 throw new Error("restoreExcludeFlag: 範囲が適切ではありません.")
             }
@@ -480,23 +478,6 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
 
         /**
-         * 指定範囲のポイントの削除
-         * @param begin 
-         * @param end 
-         * @returns 
-         */
-        removePoints(begin: number, end: number) {
-            const cuesheetStore = useCuesheetStore()
-
-            if (begin < 0 || end >= this.count || end < begin) {
-                throw new Error('removePoints: パラメータが不正です')
-            }
-            this.points.splice(begin, end - begin + 1)
-            // キューポイントの更新
-            cuesheetStore.checkAttach()
-        },
-
-        /**
          * サブパスの範囲を設定
          * リアクティブにサブパスの polyline を描画
          * @param range [number, number]
@@ -515,6 +496,47 @@ export const useBrmRouteStore = defineStore('brmroute', {
             this.subpathTemp = { ...this.subpath }
         },
 
+        subpathReplace() {
+            //
+            // excluded range を考慮していない
+            // 標高の取り込みを行っていない
+            //
+            const orig = this.subpathRange.points
+            const length = orig.length
+            const arr: RoutePoint[] = []
+
+            let index = 0
+            this.subpathTempPath.forEach(pt => {
+                if (index < length && pt.lat === orig[index]?.lat && pt.lng === orig[index]?.lng) {
+                    arr.push(orig[index++])
+                } else {
+                    arr.push(new RoutePoint(pt.lat, pt.lng))
+                }
+            })
+
+            this.points.splice(this.subpath.begin!, this.subpath.end! - this.subpath.begin! + 1, ...arr)
+            // ポイントウエイトを設定
+            this.setWeight()
+
+            // 距離を計算
+            this.setDistance()
+        },
+
+        subpathDelete() {
+            this.setSubpathTempPath([
+                {...this.points[this.subpath.begin!]},
+                {...this.points[this.subpath.end!]}
+            ])
+            this.subpathReplace()
+        },
+
+        subpathSetExclude(){
+            this.setExclude( this.subpath.begin!, this.subpath.end! )
+        },
+
+
+        // Polyline 上を動かしてサブパスを決めるときの一時的なサブパス範囲
+        // mouseout でリセットされる
         subpathSync() {
             this.subpathTemp = { ...this.subpath }
         },
