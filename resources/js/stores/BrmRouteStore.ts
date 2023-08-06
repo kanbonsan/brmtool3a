@@ -436,11 +436,11 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 throw new Error("setExcludeFlag: 範囲が適切ではありません.")
             }
 
-            if (_begin === 0 || this.points[_begin - 1]?.excluded) {
-                _begin -= 1
+            if (!(_begin === 0 || this.points[_begin - 1]?.excluded)) {
+                _begin += 1
             }
-            if (_end === this.count - 1 || this.points[_end + 1]?.excluded) {
-                _end += 1
+            if (!(_end === this.count - 1 || this.points[_end + 1]?.excluded)) {
+                _end -= 1
             }
             for (let i = _begin; i <= _end; i++) {
                 this.points[i].excluded = true
@@ -531,6 +531,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
 
         subpathSetExclude(){
+            
             this.setExclude( this.subpath.begin!, this.subpath.end! )
         },
 
