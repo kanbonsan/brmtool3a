@@ -85,6 +85,13 @@ class DemController extends Controller
         
     }
 
+    public function getMultiAlt(Request $request){
+
+        
+
+
+    }
+
     /**
      * URL のパラメーター置換
      * 

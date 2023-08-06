@@ -113,7 +113,7 @@ const getOption = (points: any, editable: boolean = true) => {
     <template v-if="!subpathEditMode">
         <Polyline v-if="subpath.count" :key="subpath.id" :options="getOption(subpath.points)" />
     </template>
-    <template v-else>
+    <template v-else-if="subpathEditMode">
         <Polyline :options="getOption(headPath, false)" />
         <Polyline :options="getOption(tailPath, false)" />
         <Polyline ref="editPathRef" :options="getOption(editablePath)" @mouseup="onEditUpdate" />

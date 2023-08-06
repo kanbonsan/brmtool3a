@@ -1,12 +1,12 @@
 export class RoutePoint {
     /** v-for の key に用いる一意な ID */
-    id: symbol;
+    id: symbol
     /** latitude 緯度 */
     lat: number = 0.0;
     /** longitude 経度 */
     lng: number = 0.0;
     /** altitude 標高(m)*/
-    alt?: number;
+    alt?: number
 
     /** 除外ポイントかどうか */
     excluded: boolean = false;
@@ -28,14 +28,14 @@ export class RoutePoint {
     opacity: number = 0.0;
 
     constructor(lat: number = 0.0, lng: number = 0.0, alt?: number) {
-        this.id = Symbol();
-        this.lat = lat;
-        this.lng = lng;
-        this.alt = alt;
+        this.id = Symbol()
+        this.lat = lat
+        this.lng = lng
+        this.alt = alt
     }
 
     /** 複製したポイントを返す. ID は新たに振る */
     clone() {
-        return new RoutePoint(this.lat, this.lng, this.alt);
+        return new RoutePoint(this.lat, this.lng, this.alt)
     }
 }
