@@ -305,6 +305,18 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
         },
 
+        getLocationByDistance(state) {
+            return (
+                (distance: number) => {
+                    for (let i = 0; i < this.count; i++) {
+                        if ( this.points[i].routeDistance>distance){
+                            
+                        }
+                    }
+                })
+        }
+        ,
+
         /**
          * RoutePoint id: symbole の一覧
          * CueSheetStore で routepoint id の振り直しに利用
@@ -524,15 +536,15 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
         subpathDelete() {
             this.setSubpathTempPath([
-                {...this.points[this.subpath.begin!]},
-                {...this.points[this.subpath.end!]}
+                { ...this.points[this.subpath.begin!] },
+                { ...this.points[this.subpath.end!] }
             ])
             this.subpathReplace()
         },
 
-        subpathSetExclude(){
-            
-            this.setExclude( this.subpath.begin!, this.subpath.end! )
+        subpathSetExclude() {
+
+            this.setExclude(this.subpath.begin!, this.subpath.end!)
         },
 
 

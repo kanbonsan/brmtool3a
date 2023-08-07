@@ -5,6 +5,7 @@
     <el-row justify="center">
         <el-button @click="onDelete">削除</el-button>
         <el-button @click="onEdit">編集</el-button>
+        <el-button @click="onDirection">ルート</el-button>
         <el-button @click="onExclude">除外範囲</el-button>
         <el-button @click="submitFunc('subpath:flat')">トンネル</el-button>
     </el-row>
@@ -42,6 +43,10 @@ const onEdit = () => {
 
 const onExclude = () => {
     props.submitFunc('subpath:exclude')
+}
+
+const onDirection = ()=>{
+    props.submitFunc('subpath:direction')
 }
 
 </script>

@@ -5,7 +5,7 @@
                 <template #header>{{ title }}
                     <div style="position:absolute;top:5px;right:5px">
                         <el-icon :size="32" @click="() => emit('update:modelValue', 0)">
-                            <circle-close></circle-close>
+                            <circle-close @click="onCancelClose"></circle-close>
                         </el-icon>
                     </div>
                 </template>

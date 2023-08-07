@@ -18,6 +18,7 @@ const props = defineProps(["visible", "map"])
 const subpath = computed(() => store.subpathRange)
 
 const subpathEditMode = computed(() => toolStore.subpathEditMode)
+const subpathDirectionMode = computed(() => toolStore.subpathDirectionMode)
 
 const defaultOption = {
     strokeColor: "blue",
@@ -68,13 +69,16 @@ const onEditUpdate = (ev: google.maps.PolyMouseEvent) => {
     store.setSubpathTempPath(points)
 }
 
-
-
 const editPathRef = ref<InstanceType<typeof Polyline> | null>(null)
 
-watch(subpathEditMode, mode => {
 
-    if (mode === true) {
+// ルート探索
+const controlPoints = ref<Array<{ lat: number, lng: number }>>([])
+
+
+watch([subpathEditMode, subpathDirectionMode], ([editMode, directionMode]) => {
+
+    if (editMode === true) {
         import("@/classes/deleteMenu")
             .then((module) => {
 
@@ -85,17 +89,18 @@ watch(subpathEditMode, mode => {
                     }
                     deleteMenu.open(props.map, editPathRef.value!.polyline!.getPath(), e.vertex, onEditUpdate)
                 })
-
-
             }
             )
         nextToHeadPoint.value = { ...subpath.value.points[1] }
         nextToTailPoint.value = { ...subpath.value.points[subpath.value.count - 2] }
 
-    } else {
-        console.log('サブパスを解除しなければ')
     }
-
+    // ルート探索モード
+    if (directionMode === true) {
+        console.log('DIREC MODE')
+    } else {
+        controlPoints.value.splice(0)
+    }
 })
 const getOption = (points: any, editable: boolean = true) => {
 
@@ -117,6 +122,9 @@ const getOption = (points: any, editable: boolean = true) => {
         <Polyline :options="getOption(headPath, false)" />
         <Polyline :options="getOption(tailPath, false)" />
         <Polyline ref="editPathRef" :options="getOption(editablePath)" @mouseup="onEditUpdate" />
+    </template>
+    <template v-else-if="subpathDirectionMode">
+
     </template>
 </template>
 
