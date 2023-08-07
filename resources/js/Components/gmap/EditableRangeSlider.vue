@@ -1,5 +1,12 @@
 <template>
+    <el-row>
+        編集範囲を限定します. 重なった部分が編集しやすくなります.
+    </el-row>
     <el-slider v-model="editable" range :min="0" :max="editableMax" @input="resetTimeout"></el-slider>
+    <el-row>
+        <el-button @click="onResetRange">解除</el-button>
+        <el-button>OK</el-button>
+    </el-row>
 </template>
 
 <script setup lang="ts">
@@ -19,5 +26,10 @@ const editable = computed({
         routeStore.setEditRange(val)
     }
 })
+
+const onResetRange = ()=>{
+    props.resetTimeout()
+    editable.value = [0, routeStore.count-1]
+}
 
 </script>

@@ -392,9 +392,11 @@ const popup = async (position: google.maps.LatLng, activator?: Activator) => {
 const onLowerDrawerSubmit = (payload: string) => {
 
     switch (payload) {
-        case 'subpathRange:cancel':
+        // サブパスをキャンセル
+        case 'ReturnToEdit':
             toolStore.setMode('edit')
             routeStore.resetSubpath()
+            drawerActive.value = 0
             break
         case 'subpathRange:submit':
             toolStore.setMode('subpath')

@@ -54,6 +54,7 @@ const resetTimeout = debounce(() => {
     timer = setTimeout(() => {
         emit('update:modelValue', 0)
         emit('timeout')
+        
     }, props.timeout)
 }, 250)
 

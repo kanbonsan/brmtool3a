@@ -6,7 +6,7 @@
         @input="onSliderInput"></el-slider>
     <el-row justify="end">
         <el-button @click="submitFunc('subpathRange:submit')">決定</el-button>
-        <el-button @click="submitFunc('subpathRange:cancel')">キャンセル</el-button></el-row>
+        <el-button @click="submitFunc('ReturnToEdit')">キャンセル</el-button></el-row>
 </template>
 
 <script setup lang="ts">
