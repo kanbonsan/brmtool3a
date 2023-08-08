@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Polyline } from "vue3-google-map"
+import { Polyline, Marker } from "vue3-google-map"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useToolStore } from "@/stores/ToolStore"
 import { computed, inject, ref, watch } from "vue"
 import { googleMapsKey } from "./gmap/keys"
+import { DirectionReference } from "@/config"
 
 type Point = {
     lat?: number
@@ -73,7 +74,8 @@ const editPathRef = ref<InstanceType<typeof Polyline> | null>(null)
 
 
 // ルート探索
-const controlPoints = ref<Array<{ lat: number, lng: number }>>([])
+const controlPoints = ref<Array<{ lat: number, lng: number, terminal: boolean }>>([])
+const controlMarker = ref()
 
 
 watch([subpathEditMode, subpathDirectionMode], ([editMode, directionMode]) => {
@@ -97,7 +99,15 @@ watch([subpathEditMode, subpathDirectionMode], ([editMode, directionMode]) => {
     }
     // ルート探索モード
     if (directionMode === true) {
-        console.log('DIREC MODE')
+
+        const beginDist = subpath.value.points[0].routeDistance
+        const endDist = subpath.value.points.slice(-1)[0].routeDistance
+        const diffDist = endDist - beginDist
+        controlPoints.value.push({ ...subpath.value.points[0], terminal: true })
+        for (let i = 0; i < DirectionReference; i++) {
+            controlPoints.value.push({ ...store.getLocationByDistance(beginDist + diffDist / (DirectionReference + 1) * (i + 1)), terminal: false })
+        }
+        controlPoints.value.push({ ...subpath.value.points.slice(-1)[0], terminal: true })
     } else {
         controlPoints.value.splice(0)
     }
@@ -112,19 +122,44 @@ const getOption = (points: any, editable: boolean = true) => {
     }
 }
 
+const getControlOption = (pt: any, index: number) => {
+    return {
+        position: pt,
+        label: `${index}`,
+        draggable: pt.terminal ? false : true
+    }
+}
+
+const getControlPolylineOption = () => {
+    return {
+        ...defaultOption,
+        path: controlPoints.value,
+        visible: true
+    }
+}
+
+const onControlMarkerDragEnd = (pt:any, index:number)=>{
+
+    const marker = controlMarker.value[index].marker as google.maps.Marker
+    marker.setVisible(false)
+}
+
+
 </script>
 
 <template>
-    <template v-if="!subpathEditMode">
+    <template v-if="!subpathEditMode && !subpathDirectionMode">
         <Polyline v-if="subpath.count" :key="subpath.id" :options="getOption(subpath.points)" />
     </template>
-    <template v-else-if="subpathEditMode">
+    <template v-if="subpathEditMode">
         <Polyline :options="getOption(headPath, false)" />
         <Polyline :options="getOption(tailPath, false)" />
         <Polyline ref="editPathRef" :options="getOption(editablePath)" @mouseup="onEditUpdate" />
     </template>
-    <template v-else-if="subpathDirectionMode">
-
+    <template v-if="subpathDirectionMode">
+        <Marker ref="controlMarker" v-for="(pt, index) in controlPoints" :options="getControlOption(pt, index)"
+            @dragend="onControlMarkerDragEnd(pt,index)"/>
+        <Polyline :options="getControlPolylineOption()" />
     </template>
 </template>
 

@@ -304,15 +304,26 @@ export const useBrmRouteStore = defineStore('brmroute', {
             }
 
         },
-
+        /**
+         * 指定距離の緯度・経度を返す
+         * （route direction で参照点を求めるのに使用）
+         * @returns { lat: number, lng: number}
+         */
         getLocationByDistance(state) {
             return (
                 (distance: number) => {
-                    for (let i = 0; i < this.count; i++) {
-                        if ( this.points[i].routeDistance>distance){
-                            
+                    let i = 0
+                    for (; i < this.count; i++) {
+                        if (state.points[i].routeDistance > distance) {
+                            break
                         }
                     }
+                    i--
+                    const diffLat = state.points[i + 1].lat - state.points[i].lat
+                    const diffLng = state.points[i + 1].lng - state.points[i].lng
+                    const prop = (distance - state.points[i].routeDistance) / (state.points[i + 1].routeDistance - state.points[i].routeDistance)
+
+                    return ({ lat: state.points[i].lat + diffLat * prop, lng: state.points[i].lng + diffLng * prop })
                 })
         }
         ,

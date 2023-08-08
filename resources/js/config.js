@@ -26,6 +26,9 @@ export const weighedThreshold = 5
 // パス上の mouseover イベントでポイントにスナップする範囲（ピクセル）
 export const NeighborThreshold = 10
 
+// OPENROUTESERVICE で検索するときの参照点の数
+export const DirectionReference = 4
+
 // PoiEdit
 export const DefaultGarminIcon = 'Pin, Blue'
 export const DefaultGarminPoiIcon = 'Flag, Green'
