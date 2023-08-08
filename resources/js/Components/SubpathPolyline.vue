@@ -76,6 +76,30 @@ const editPathRef = ref<InstanceType<typeof Polyline> | null>(null)
 // ルート探索
 const controlPoints = ref<Array<{ lat: number, lng: number, terminal: boolean }>>([])
 const controlMarker = ref()
+const controlPathKey = ref(Symbol())
+const dirPathRef = ref<InstanceType<typeof Polyline>>()
+
+const dirHeadPath = computed(() => {
+    if (controlPoints.value.length === 0) return []
+    return [controlPoints.value[0], controlPoints.value[1]]
+})
+const dirTailPath = computed(() => {
+    const length = controlPoints.value.length
+    if (length === 0) return []
+
+    return [controlPoints.value[length - 2], controlPoints.value[length - 1]]
+})
+
+const dirCtrlPath = computed(() => {
+    const length = controlPoints.value.length
+    if (length === 0) return []
+
+    return controlPoints.value.slice(1, -1)
+})
+
+const onDirectionUpdate = (ev: google.maps.PolyMouseEvent) => {
+    console.log('direction update')
+}
 
 
 watch([subpathEditMode, subpathDirectionMode], ([editMode, directionMode]) => {
@@ -100,14 +124,32 @@ watch([subpathEditMode, subpathDirectionMode], ([editMode, directionMode]) => {
     // ルート探索モード
     if (directionMode === true) {
 
+        import("@/classes/deleteMenu")
+            .then((module) => {
+                const deleteMenu = new module.DeleteMenu()
+                const poly = dirPathRef.value?.polyline!
+                google.maps.event.addListener(poly , 'contextmenu', (e:any)=>{
+                    if(poly.getPath().getLength()<3){
+                        return  // 2点は残す
+                    }
+                    if(e.vertex===undefined){
+                        return
+                    }
+                    deleteMenu.open(props.map, poly.getPath(), e.vertex, onDirectionUpdate)
+                })
+
+            })
         const beginDist = subpath.value.points[0].routeDistance
         const endDist = subpath.value.points.slice(-1)[0].routeDistance
         const diffDist = endDist - beginDist
+
         controlPoints.value.push({ ...subpath.value.points[0], terminal: true })
         for (let i = 0; i < DirectionReference; i++) {
             controlPoints.value.push({ ...store.getLocationByDistance(beginDist + diffDist / (DirectionReference + 1) * (i + 1)), terminal: false })
         }
         controlPoints.value.push({ ...subpath.value.points.slice(-1)[0], terminal: true })
+        store.setSubpathDirectionControlPoints(controlPoints.value)
+
     } else {
         controlPoints.value.splice(0)
     }
@@ -118,32 +160,19 @@ const getOption = (points: any, editable: boolean = true) => {
         ...defaultOption,
         path: points,
         visible: props.visible,
-        editable: subpath.value.editable && editable
+        editable: subpath.value.editable && editable 
     }
 }
+const getDirOption = (points: any, editable: boolean = true) => {
 
-const getControlOption = (pt: any, index: number) => {
-    return {
-        position: pt,
-        label: `${index}`,
-        draggable: pt.terminal ? false : true
-    }
+return {
+    ...defaultOption,
+    strokeColor: "green",
+    path: points,
+    visible: props.visible,
+    editable: editable 
 }
-
-const getControlPolylineOption = () => {
-    return {
-        ...defaultOption,
-        path: controlPoints.value,
-        visible: true
-    }
 }
-
-const onControlMarkerDragEnd = (pt:any, index:number)=>{
-
-    const marker = controlMarker.value[index].marker as google.maps.Marker
-    marker.setVisible(false)
-}
-
 
 </script>
 
@@ -154,12 +183,12 @@ const onControlMarkerDragEnd = (pt:any, index:number)=>{
     <template v-if="subpathEditMode">
         <Polyline :options="getOption(headPath, false)" />
         <Polyline :options="getOption(tailPath, false)" />
-        <Polyline ref="editPathRef" :options="getOption(editablePath)" @mouseup="onEditUpdate" />
+        <Polyline ref="editPathRef" :options="getOption(editablePath, true)" @mouseup="onEditUpdate" />
     </template>
     <template v-if="subpathDirectionMode">
-        <Marker ref="controlMarker" v-for="(pt, index) in controlPoints" :options="getControlOption(pt, index)"
-            @dragend="onControlMarkerDragEnd(pt,index)"/>
-        <Polyline :options="getControlPolylineOption()" />
+        <Polyline :options="getDirOption(dirHeadPath, false)" />
+        <Polyline :options="getDirOption(dirTailPath, false)" />
+        <Polyline ref="dirPathRef" :options="getDirOption(dirCtrlPath, true)" />
     </template>
 </template>
 

@@ -1,5 +1,5 @@
 <template>
-    <el-row>
+    <el-row style="text-transform: capitalize;">
         {{ ctrlPts }}個のマーカーを検索したいルート上に置いてください. Openroute ServiceのAPIでルート探索します.
     </el-row>
     <el-row justify="end">

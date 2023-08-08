@@ -271,7 +271,7 @@ const markerOption = (pt: RoutePoint) => {
         position: pt,
         opacity: pt.opacity,
         icon: { url: circle, anchor: new google.maps.Point(8, 8) },
-        visible: mapObjectVisible.value && pt.editable && !pt.excluded && !toolStore.subpathEditMode
+        visible: mapObjectVisible.value && pt.editable && !pt.excluded && !toolStore.subpathEditMode && !toolStore.subpathDirectionMode
     }
 }
 

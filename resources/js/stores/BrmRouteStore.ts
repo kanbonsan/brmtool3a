@@ -31,6 +31,7 @@ type State = {
         end: number | null
     }
     subpathTempPath: Array<{ lat: number, lng: number }>
+    subpathDirectionControlPoints: Array<{ lat: number, lng: number }>
 
 }
 
@@ -69,7 +70,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
             begin: null,
             end: null
         },
-        subpathTempPath: [] // 確定前のサブパスのポイントを入れておく
+        subpathTempPath: [], // 確定前のサブパスのポイントを入れておく
+        subpathDirectionControlPoints: [],   // 確定前の direction service の経由点を入れておく    
     }),
 
     getters: {
@@ -567,6 +569,10 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
         setSubpathTempPath(points: Array<{ lat: number, lng: number }>) {
             this.subpathTempPath = [...points]
+        },
+
+        setSubpathDirectionControlPoints(points: Array<{ lat: number, lng: number }>) {
+            this.subpathDirectionControlPoints = [...points]
         },
 
         // 以下はテスト・実験用
