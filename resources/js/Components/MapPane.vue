@@ -48,6 +48,7 @@ import SubpathRangeSlider from "./gmap/SubpathRangeSlider.vue"
 import SubpathCommand from "./gmap/SubpathCommand.vue"
 import SubpathEditConfirm from "./gmap/SubpathEditConfirm.vue"
 import SubpathDirection from "./gmap/SubpathDirection.vue"
+import SubpathDirectionConfirm from "./gmap/SubpathDirectionConfirm.vue"
 
 // ポップアップメニュー
 import ExcludePolyMenu from "@/Components/PopupMenu/ExcludedPolylineMenu.vue"
@@ -56,6 +57,7 @@ import PointMenu from "@/Components/PopupMenu/PointMenu.vue"
 import { useDimension } from "@/Composables/dimension"
 import CuePointMarker from "./CuePointMarker.vue"
 import axios from "axios"
+
 const { panes } = useDimension()
 
 
@@ -152,11 +154,20 @@ const drawers: Drawers = {
             routeStore.resetSubpath()
         }
     },
-    SubpathDirectionConfirm:{
+    SubpathDirection:{
         component: SubpathDirection,
         title: "ルート探索",
         timeout:0,
         timeoutFunc: () => {
+            toolStore.setMode('edit')
+            routeStore.resetSubpath()
+        }
+    },
+    SubpathDirectionConfirm:{
+        component: SubpathDirectionConfirm,
+        title: "ルート検索",
+        timeout:0,
+        timeoutFunc:()=>{
             toolStore.setMode('edit')
             routeStore.resetSubpath()
         }
@@ -442,7 +453,11 @@ const onLowerDrawerSubmit = (payload: string) => {
             drawerActive.value +=1
             break
         case 'subpath:directionQuery':
+            routeStore.directionQuery()
             toolStore.setMode('subpathDirectionConfirm')
+            drawerComp.value= 'SubpathDirectionConfirm'
+            drawerActive.value +=1
+            break
 
     }
 }

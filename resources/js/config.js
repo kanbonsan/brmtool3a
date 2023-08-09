@@ -1,7 +1,4 @@
-export const OPENROUTESERVICE_KEY = '5b3ce3597851110001cf624823737dde01734ad793ed885288ab35d0'
 
-// Yahoo API 
-// 確認） https://e.developer.yahoo.co.jp/dashboard/app.detail/fzRRGXmzpEykRD0-
 export const YOLP_KEY = 'dj00aiZpPUpOTnhlYURJTUoxaCZzPWNvbnN1bWVyc2VjcmV0Jng9NTM-'
 // 標高問い合わせの上限ポイント数
 export const MAXIMUM_POINTS_OF_QUERY = 1000
