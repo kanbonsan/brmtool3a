@@ -575,26 +575,11 @@ export const useBrmRouteStore = defineStore('brmroute', {
             this.subpathDirectionControlPoints = [...points]
         },
 
-        // 以下はテスト・実験用
+        async directionQuery(){
+            
 
-        deviate(begin = 100, end = 200) {
-            const cuesheetStore = useCuesheetStore()
-            for (let i = begin; i <= 100; i++) {
 
-                this.points[i].lng += 0.01
-                this.points[i].id = Symbol()
 
-            }
-            this.setWeight()
-            // キューポイントの更新
-            cuesheetStore.checkAttach()
-        },
-
-        delete(begin = 1450, end = 1499) {
-            const cuesheetStore = useCuesheetStore()
-            this.points.splice(begin, end - begin)
-            // キューポイントの更新
-            cuesheetStore.checkAttach()
         },
 
         setEditRange(range: [number, number]) {

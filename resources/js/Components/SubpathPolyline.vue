@@ -75,19 +75,17 @@ const editPathRef = ref<InstanceType<typeof Polyline> | null>(null)
 
 // ルート探索
 const controlPoints = ref<Array<{ lat: number, lng: number, terminal: boolean }>>([])
-const controlMarker = ref()
-const controlPathKey = ref(Symbol())
 const dirPathRef = ref<InstanceType<typeof Polyline>>()
 
 const dirHeadPath = computed(() => {
     if (controlPoints.value.length === 0) return []
-    return [controlPoints.value[0], controlPoints.value[1]]
+    return controlPoints.value.slice(0, 2)
 })
 const dirTailPath = computed(() => {
     const length = controlPoints.value.length
     if (length === 0) return []
 
-    return [controlPoints.value[length - 2], controlPoints.value[length - 1]]
+    return controlPoints.value.slice(-2)
 })
 
 const dirCtrlPath = computed(() => {
@@ -97,9 +95,6 @@ const dirCtrlPath = computed(() => {
     return controlPoints.value.slice(1, -1)
 })
 
-const onDirectionUpdate = (ev: google.maps.PolyMouseEvent) => {
-    console.log('direction update')
-}
 
 
 watch([subpathEditMode, subpathDirectionMode], ([editMode, directionMode]) => {
@@ -128,11 +123,11 @@ watch([subpathEditMode, subpathDirectionMode], ([editMode, directionMode]) => {
             .then((module) => {
                 const deleteMenu = new module.DeleteMenu()
                 const poly = dirPathRef.value?.polyline!
-                google.maps.event.addListener(poly , 'contextmenu', (e:any)=>{
-                    if(poly.getPath().getLength()<3){
+                google.maps.event.addListener(poly, 'contextmenu', (e: any) => {
+                    if (poly.getPath().getLength() < 3) {
                         return  // 2点は残す
                     }
-                    if(e.vertex===undefined){
+                    if (e.vertex === undefined) {
                         return
                     }
                     deleteMenu.open(props.map, poly.getPath(), e.vertex, onDirectionUpdate)
@@ -160,19 +155,29 @@ const getOption = (points: any, editable: boolean = true) => {
         ...defaultOption,
         path: points,
         visible: props.visible,
-        editable: subpath.value.editable && editable 
+        editable: subpath.value.editable && editable
     }
 }
 const getDirOption = (points: any, editable: boolean = true) => {
 
-return {
-    ...defaultOption,
-    strokeColor: "green",
-    path: points,
-    visible: props.visible,
-    editable: editable 
+    return {
+        ...defaultOption,
+        strokeColor: "green",
+        path: points,
+        visible: props.visible,
+        editable: editable
+    }
 }
+
+const onDirectionUpdate = (ev: google.maps.PolyMouseEvent) => {
+
+    const length = controlPoints.value.length
+    const poly = dirPathRef.value?.polyline!
+    const points = poly.getPath().getArray().map((latlng)=>({lat:latlng.lat(),lng:latlng.lng(),terminal:false}))
+    controlPoints.value.splice(1, length - 2, ...points)
+    store.setSubpathDirectionControlPoints(controlPoints.value)
 }
+
 
 </script>
 
@@ -187,8 +192,8 @@ return {
     </template>
     <template v-if="subpathDirectionMode">
         <Polyline :options="getDirOption(dirHeadPath, false)" />
-        <Polyline :options="getDirOption(dirTailPath, false)" />
-        <Polyline ref="dirPathRef" :options="getDirOption(dirCtrlPath, true)" />
+        <Polyline :options="getDirOption(dirTailPath, false)"/>
+        <Polyline ref="dirPathRef" :options="getDirOption(dirCtrlPath, true)" @mouseup="onDirectionUpdate"/>
     </template>
 </template>
 

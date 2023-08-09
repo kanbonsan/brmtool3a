@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 
-type MapMode = 'edit' | 'subpath' | 'subpathSelect' | 'subpathEdit' | 'subpathDirection'
+type MapMode = 'edit' | 'subpath' | 'subpathSelect' | 'subpathEdit' | 'subpathDirection' | 'subpathDirectionConfirm'
+
 type MapLock = null | 'cuePoint' | 'subpath'
 
 type State = {

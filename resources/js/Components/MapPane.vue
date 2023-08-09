@@ -47,7 +47,7 @@ import EditableRangeSlider from "./gmap/EditableRangeSlider.vue"
 import SubpathRangeSlider from "./gmap/SubpathRangeSlider.vue"
 import SubpathCommand from "./gmap/SubpathCommand.vue"
 import SubpathEditConfirm from "./gmap/SubpathEditConfirm.vue"
-import SubpathDirectionConfirm from "./gmap/SubpathDirectionConfirm.vue"
+import SubpathDirection from "./gmap/SubpathDirection.vue"
 
 // ポップアップメニュー
 import ExcludePolyMenu from "@/Components/PopupMenu/ExcludedPolylineMenu.vue"
@@ -153,7 +153,7 @@ const drawers: Drawers = {
         }
     },
     SubpathDirectionConfirm:{
-        component: SubpathDirectionConfirm,
+        component: SubpathDirection,
         title: "ルート探索",
         timeout:0,
         timeoutFunc: () => {
@@ -438,9 +438,11 @@ const onLowerDrawerSubmit = (payload: string) => {
             break
         case 'subpath:direction':
             toolStore.setMode('subpathDirection')
-            drawerComp.value= 'SubpathDirectionConfirm'
+            drawerComp.value= 'SubpathDirection'
             drawerActive.value +=1
             break
+        case 'subpath:directionQuery':
+            toolStore.setMode('subpathDirectionConfirm')
 
     }
 }
