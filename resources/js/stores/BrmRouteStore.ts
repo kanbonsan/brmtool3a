@@ -582,7 +582,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
         async directionQuery(){
             const apiKey = import.meta.env.VITE_OPENROUTESERVICE_KEY
             const profile = 'cycling-regular'
-            const url = `https://api.openrouteservice.org/v2/directions/${profile}`
+            const url = `https://api.openrouteservice.org/v2/directions/${profile}/json`
             const coordinates = [...this.subpathDirectionControlPoints.map(pt=>([pt.lng,pt.lat]))]
 
             const result = await axios({
@@ -591,14 +591,12 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 method: "post",
                 data: {
                     coordinates,
-                    simplyfy: true
                 }
             })
 
             const data = result.data
 
-            console.log(data.routes[0].geometry)
-            console.log(polyline.decode(data.routes[0].geometry,false))
+            this.setSubpathTempPath(polyline.decode(data.routes[0].geometry,false) )
 
 
         },

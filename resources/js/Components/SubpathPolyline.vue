@@ -20,6 +20,7 @@ const subpath = computed(() => store.subpathRange)
 
 const subpathEditMode = computed(() => toolStore.subpathEditMode)
 const subpathDirectionMode = computed(() => toolStore.subpathDirectionMode)
+const subpathDirectionConfirmMode = computed(()=>toolStore.subpathDirectionConfirmMode)
 
 const defaultOption = {
     strokeColor: "blue",
@@ -76,6 +77,7 @@ const editPathRef = ref<InstanceType<typeof Polyline> | null>(null)
 // ルート探索
 const controlPoints = ref<Array<{ lat: number, lng: number, terminal: boolean }>>([])
 const dirPathRef = ref<InstanceType<typeof Polyline>>()
+const directionPoints = ref<Array<{ lat: number, lng: number }>>([])
 
 const dirHeadPath = computed(() => {
     if (controlPoints.value.length === 0) return []
@@ -97,7 +99,7 @@ const dirCtrlPath = computed(() => {
 
 
 
-watch([subpathEditMode, subpathDirectionMode], ([editMode, directionMode]) => {
+watch([subpathEditMode, subpathDirectionMode, subpathDirectionConfirmMode], ([editMode, directionMode, directionConfirmMode]) => {
 
     if (editMode === true) {
         import("@/classes/deleteMenu")
@@ -138,15 +140,22 @@ watch([subpathEditMode, subpathDirectionMode], ([editMode, directionMode]) => {
         const endDist = subpath.value.points.slice(-1)[0].routeDistance
         const diffDist = endDist - beginDist
 
+        // 経由ポイントは 最低 2か所、最大 DirectionReference の設定値
+        const refCount = Math.max(2, Math.min(Math.floor(diffDist / 500), DirectionReference))
         controlPoints.value.push({ ...subpath.value.points[0], terminal: true })
-        for (let i = 0; i < DirectionReference; i++) {
-            controlPoints.value.push({ ...store.getLocationByDistance(beginDist + diffDist / (DirectionReference + 1) * (i + 1)), terminal: false })
+        for (let i = 0; i < refCount; i++) {
+            controlPoints.value.push({ ...store.getLocationByDistance(beginDist + diffDist / (refCount + 1) * (i + 1)), terminal: false })
         }
         controlPoints.value.push({ ...subpath.value.points.slice(-1)[0], terminal: true })
         store.setSubpathDirectionControlPoints(controlPoints.value)
 
     } else {
         controlPoints.value.splice(0)
+    }
+    // ルート探索確定モード
+    if( directionConfirmMode === true){
+        directionPoints.value = [...store.subpathTempPath]
+        console.log(directionPoints)
     }
 })
 const getOption = (points: any, editable: boolean = true) => {
@@ -173,7 +182,7 @@ const onDirectionUpdate = (ev: google.maps.PolyMouseEvent) => {
 
     const length = controlPoints.value.length
     const poly = dirPathRef.value?.polyline!
-    const points = poly.getPath().getArray().map((latlng)=>({lat:latlng.lat(),lng:latlng.lng(),terminal:false}))
+    const points = poly.getPath().getArray().map((latlng) => ({ lat: latlng.lat(), lng: latlng.lng(), terminal: false }))
     controlPoints.value.splice(1, length - 2, ...points)
     store.setSubpathDirectionControlPoints(controlPoints.value)
 }
@@ -182,7 +191,7 @@ const onDirectionUpdate = (ev: google.maps.PolyMouseEvent) => {
 </script>
 
 <template>
-    <template v-if="!subpathEditMode && !subpathDirectionMode">
+    <template v-if="!subpathEditMode && !subpathDirectionMode && !subpathDirectionConfirmMode">
         <Polyline v-if="subpath.count" :key="subpath.id" :options="getOption(subpath.points)" />
     </template>
     <template v-if="subpathEditMode">
@@ -192,8 +201,11 @@ const onDirectionUpdate = (ev: google.maps.PolyMouseEvent) => {
     </template>
     <template v-if="subpathDirectionMode">
         <Polyline :options="getDirOption(dirHeadPath, false)" />
-        <Polyline :options="getDirOption(dirTailPath, false)"/>
-        <Polyline ref="dirPathRef" :options="getDirOption(dirCtrlPath, true)" @mouseup="onDirectionUpdate"/>
+        <Polyline :options="getDirOption(dirTailPath, false)" />
+        <Polyline ref="dirPathRef" :options="getDirOption(dirCtrlPath, true)" @mouseup="onDirectionUpdate" />
+    </template>
+    <template v-if="subpathDirectionConfirmMode">
+        <Polyline :options="getDirOption(directionPoints,false)" />
     </template>
 </template>
 

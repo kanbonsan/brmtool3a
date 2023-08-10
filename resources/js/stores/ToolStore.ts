@@ -24,7 +24,8 @@ export const useToolStore = defineStore('tool', {
         subpathMode: (state) => state.mapMode === 'subpath',
         subpathSelectMode: (state) => state.mapMode === 'subpathSelect',
         subpathEditMode: (state)=>state.mapMode === 'subpathEdit',
-        subpathDirectionMode: (state)=>state.mapMode === 'subpathDirection'
+        subpathDirectionMode: (state)=>state.mapMode === 'subpathDirection',
+        subpathDirectionConfirmMode: (state)=>state.mapMode === 'subpathDirectionConfirm'
 
     },
 

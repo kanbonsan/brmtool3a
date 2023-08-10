@@ -154,20 +154,20 @@ const drawers: Drawers = {
             routeStore.resetSubpath()
         }
     },
-    SubpathDirection:{
+    SubpathDirection: {
         component: SubpathDirection,
         title: "ルート探索",
-        timeout:0,
+        timeout: 0,
         timeoutFunc: () => {
             toolStore.setMode('edit')
             routeStore.resetSubpath()
         }
     },
-    SubpathDirectionConfirm:{
+    SubpathDirectionConfirm: {
         component: SubpathDirectionConfirm,
         title: "ルート検索",
-        timeout:0,
-        timeoutFunc:()=>{
+        timeout: 0,
+        timeoutFunc: () => {
             toolStore.setMode('edit')
             routeStore.resetSubpath()
         }
@@ -410,7 +410,7 @@ const popup = async (position: google.maps.LatLng, activator?: Activator) => {
  * 画面下のドロワー内 slot からの submit をキャッチ
  * @param payload 
  */
-const onLowerDrawerSubmit = (payload: string) => {
+const onLowerDrawerSubmit = async (payload: string) => {
 
     switch (payload) {
         // サブパスをキャンセル
@@ -449,14 +449,16 @@ const onLowerDrawerSubmit = (payload: string) => {
             break
         case 'subpath:direction':
             toolStore.setMode('subpathDirection')
-            drawerComp.value= 'SubpathDirection'
-            drawerActive.value +=1
+            drawerComp.value = 'SubpathDirection'
+            drawerActive.value += 1
             break
         case 'subpath:directionQuery':
-            routeStore.directionQuery()
+
+            await routeStore.directionQuery()
             toolStore.setMode('subpathDirectionConfirm')
-            drawerComp.value= 'SubpathDirectionConfirm'
-            drawerActive.value +=1
+            drawerComp.value = 'SubpathDirectionConfirm'
+            drawerActive.value += 1
+
             break
 
     }
