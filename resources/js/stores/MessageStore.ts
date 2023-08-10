@@ -18,7 +18,7 @@ export const useMessage = defineStore('message',{
     actions:{
 
         setFooterMessage(message:string){
-            this.footer = `${message} / ${this.footer} `
+            this.footer = `${message}`
         }
     }
 

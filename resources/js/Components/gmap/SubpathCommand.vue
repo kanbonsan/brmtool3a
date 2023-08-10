@@ -9,7 +9,7 @@
         <el-button @click="onExclude">除外範囲</el-button>
         <el-button @click="submitFunc('subpath:flat')">トンネル</el-button>
     </el-row>
-    <el-row justify="end"><el-button @click="submitFunc('subpath:cancel')">キャンセル</el-button></el-row>
+    <el-row justify="end"><el-button @click="submitFunc('ReturnToEdit')">キャンセル</el-button></el-row>
 </template>
 
 <script setup lang="ts">
