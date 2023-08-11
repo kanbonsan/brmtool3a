@@ -53,15 +53,12 @@ import SubpathDirectionConfirm from "./gmap/SubpathDirectionConfirm.vue"
 // ポップアップメニュー
 import ExcludePolyMenu from "@/Components/PopupMenu/ExcludedPolylineMenu.vue"
 import PointMenu from "@/Components/PopupMenu/PointMenu.vue"
+import CuePointMenu from "./PopupMenu/CuePointMenu.vue"
 
-import { useDimension } from "@/Composables/dimension"
 import CuePointMarker from "./CuePointMarker.vue"
 import axios from "axios"
 
-const { panes } = useDimension()
-
-
-interface menuComponentOptions {
+export type menuComponentOptions = {
     /**
      * ポップアップ下中央の座標をずらすpx
      */
@@ -75,25 +72,28 @@ interface menuComponentOptions {
     timeout?: number | undefined    // nullable で auto close しない
 }
 
-interface menuComponent {
+export type menuComponent = {
     component: Component
     options?: menuComponentOptions
 }
 
-interface drawerComponent {
+export type Activator = RoutePoint
+
+export type Menus = {
+    [key: string]: menuComponent
+}
+export type PopUp = (position: google.maps.LatLng, activator?: Activator) => Promise<unknown>
+
+
+// 地図下のメニュー    
+
+export type drawerComponent = {
     component: Component
     title?: string
     timeout: number,
     timeoutFunc?: () => void   // タイムアウト時の後処理
 }
-
-type Activator = RoutePoint
-
-type Menus = {
-    [key: string]: menuComponent
-}
-
-type Drawers = {
+export type Drawers = {
     [key: string]: drawerComponent
 }
 
@@ -108,13 +108,20 @@ const defaultOptions: menuComponentOptions = {
 const menus: Menus = {
     ExcludePoly: {
         component: ExcludePolyMenu,
-        options: { timeout: 3000 }
+        options: { timeout: 3_000 }
     },
     PointMenu: {
         component: PointMenu,
-        options: { timeout: 50000, offsetY: 0 }
+        options: { timeout: 50_000, offsetY: 0 }
+    },
+    CuePointMenu: {
+        component: CuePointMenu,
+        options: { timeout: 50_000, offsetY: -30 }
     }
 }
+
+const menuParams = ref<any>({})
+
 /**
  * LowerDrawerメニューの内容
  */
@@ -174,14 +181,14 @@ const drawers: Drawers = {
     }
 }
 
-const menuParams = ref<any>({})
+
 
 //マップ上の表示を一時消去するタイマー（重複処理用）
 let mapObjectVisibleTimer: number | null = null
 const mapObjectVisible = ref<boolean>(true)
 
 const apiKey = ref(import.meta.env.VITE_GOOGLE_MAPS_KEY)
-const center = ref({ lat: 35.2418, lng: 137.1146 })
+const center = ref({ lat: 35.2418, lng: 137.1146 }) // デフォルトの地図の中心（瀬戸しなの）
 
 const toolStore = useToolStore()
 const routeStore = useBrmRouteStore()
@@ -201,7 +208,7 @@ const popupParams = ref<{
     reject?: (payload: any) => void
 }>({ activated: false })
 
-const gmap = ref<InstanceType<typeof GoogleMap> | null>(null)
+const gmap = ref<InstanceType<typeof GoogleMap>>()
 
 watch(
     (): boolean | undefined => gmap.value?.ready,
@@ -242,7 +249,6 @@ watch(
             })
 
         map.addListener("click", async (ev: google.maps.MapMouseEvent) => {
-            console.log(`?lat=${ev.latLng?.lat()}&lng=${ev.latLng?.lng()}`)
             const res = await axios.get("/api/getAlt", { params: { lat: ev.latLng?.lat(), lng: ev.latLng?.lng() } })
             console.log(res.data)
         })
@@ -264,16 +270,12 @@ watch(
  * 0: false, >0 で true
  * boolean としないのは、表示の更新時に autoclose のタイマーをリセットするため
  */
-const drawerActive = ref<number>(0)
+ const drawerActive = ref<number>(0)
 /**
  * Drawer の表示内容
  */
 const drawerComp = ref<string>('Editable')
 
-const test = ref({
-    position: { lat: 35.23943409063303, lng: 137.11307650527957 },
-    draggable: true,
-})
 
 // ポイントマーカー
 
@@ -377,7 +379,8 @@ const markerPopup = async (pt: RoutePoint) => {
 
 }
 
-const popup = async (position: google.maps.LatLng, activator?: Activator) => {
+
+const popup: PopUp = async (position, activator?) => {
 
     /**
      * Promiseオブジェクトの resolve 関数を取り出して子コンポーネントに渡して
@@ -405,6 +408,9 @@ const popup = async (position: google.maps.LatLng, activator?: Activator) => {
     })
 
 }
+
+
+
 
 /**
  * 画面下のドロワー内 slot からの submit をキャッチ

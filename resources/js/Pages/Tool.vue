@@ -4,7 +4,7 @@ import Layout from "@/Layouts/WaveLayout.vue"
 import { useDimension } from "@/Composables/dimension"
 const { dimensionUpdate, panes } = useDimension()
 
-export default { 
+export default {
     layout: Layout,
 }
 </script>
@@ -16,9 +16,9 @@ export default {
         </Pane>
         <Pane class="side-pane">
             <div>
-                <Renderless @testdiv="onTestDiv">
-                    <TestDiv @testdiv="onTestDiv"></TestDiv>
-                </Renderless>
+
+                <TestDiv @testdiv="onTestDiv"></TestDiv>
+
 
             </div>
         </Pane>

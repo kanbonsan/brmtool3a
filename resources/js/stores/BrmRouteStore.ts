@@ -118,8 +118,11 @@ export const useBrmRouteStore = defineStore('brmroute', {
             return arr
         },
 
-        /** point id からルートポイントを返す */
-        getPointById: (state) => (id: symbol) => {
+        /** point id からルートポイントを返す
+         *  ID が null のとき（POIのとき）は undefine
+         */
+        getPointById: (state) => (id: symbol | null) => {
+            if (id === null) return undefined
             const idx = state.points.findIndex(pt => pt.id === id)
             return state.points[idx]
         },
@@ -579,15 +582,15 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * OPENROUTE SERVICEを用いてルート探索する
          * state.subpathDirectionControlPoints: [] を経由
          */
-        async directionQuery(){
+        async directionQuery() {
             const apiKey = import.meta.env.VITE_OPENROUTESERVICE_KEY
             const profile = 'cycling-regular'
             const url = `https://api.openrouteservice.org/v2/directions/${profile}/json`
-            const coordinates = [...this.subpathDirectionControlPoints.map(pt=>([pt.lng,pt.lat]))]
+            const coordinates = [...this.subpathDirectionControlPoints.map(pt => ([pt.lng, pt.lat]))]
 
             const result = await axios({
                 url,
-                headers: { Authorization: apiKey},
+                headers: { Authorization: apiKey },
                 method: "post",
                 data: {
                     coordinates,
@@ -596,7 +599,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
             const data = result.data
 
-            this.setSubpathTempPath(polyline.decode(data.routes[0].geometry,false) )
+            this.setSubpathTempPath(polyline.decode(data.routes[0].geometry, false))
 
 
         },

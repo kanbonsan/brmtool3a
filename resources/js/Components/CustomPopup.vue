@@ -7,7 +7,7 @@
 <script lang="ts">
 /**
  * Gmap 内のカスタムポップアップ
- 
+ * Composision API では作りにくかったので Options API で作っている
  */
 import type { Popup } from "@/classes/Popup"
 
@@ -38,7 +38,7 @@ export default {
             // Popup クラスは google maps のドキュメントから引用
             // Popup.ts を参照
             import("@/classes/Popup").then((module) => {
-                this.popup = new module.Popup()
+                this.popup = new module.Popup() // シングルトン
             })
         },
 
@@ -54,7 +54,7 @@ export default {
                     this.popup?.setSubmitCallback(this.submit)
                     this.popup?.setMap(this.map)
                 } else {
-                    this.popup?.setMap(null)
+                    this.popup?.setMap(null)    // params.activate ---> false で消去
                 }
             },
             immediate: true
@@ -71,7 +71,7 @@ export default {
         submit(payload: any) {
             // 親コンポーネントの Popup を完了する promise を解決
             this.params.resolve(payload)
-            this.popup?.setMap(null)
+            this.popup?.setMap(null)    // メニュー内で submit したら popup は消去される
 
         }
     }

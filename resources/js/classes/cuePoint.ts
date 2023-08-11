@@ -1,12 +1,18 @@
 type cueType = 'cue' | 'pc' | 'pass' | 'poi'
 
+type cuePreference = {
+
+}
+
 export class CuePoint {
 
     id: symbol
     type: cueType
+    
     // マーカーの位置（GPXファイルにも反映）・マーカードラッグ終了時に再設定
     lat: number
     lng: number
+
     // 対応するルートポイントのid. null のときは'poi'
     routePointId: symbol | null
     // 作成時間. poi の表示順のソートに利用

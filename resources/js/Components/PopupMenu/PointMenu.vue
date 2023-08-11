@@ -42,7 +42,6 @@
 </template>
 
 <script setup lang="ts">
-import { inject, computed } from 'vue'
 import { useToolStore } from '@/stores/ToolStore'
 
 const props = defineProps(['submit', 'params'])

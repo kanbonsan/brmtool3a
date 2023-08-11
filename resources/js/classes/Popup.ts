@@ -11,7 +11,7 @@ export class Popup extends google.maps.OverlayView {
   edgeLimit: number
 
   /** 画面内にあると判定するポップアップチップの位置 と ポップアップのサイズ
-   *  pane さいずの変更には追随しない
+   *  pane サイズの変更には追随しない
    */
   range?: {
     bottom?: number,
@@ -32,7 +32,7 @@ export class Popup extends google.maps.OverlayView {
    * }
    * とする
    */
-  onSubmit: (payload: any) => void
+  onSubmit?: (payload: any) => void
 
   /**
    * チップの位置のオフセット
@@ -56,9 +56,6 @@ export class Popup extends google.maps.OverlayView {
 
     // ionally stop clicks, etc., from bubbling up to the map.
     Popup.preventMapHitsAndGesturesFrom(this.containerDiv)
-
-    // Popup を終了させるためのコールバック
-    this.onSubmit = (payload: any) => { }
 
     // 表示に関する初期設定
     this.timeout = undefined  // undefined で auto-close しない
@@ -86,7 +83,7 @@ export class Popup extends google.maps.OverlayView {
     this.offset.y = y
   }
 
-  setTimeoutMs(ms?:number|undefined){
+  setTimeoutMs(ms?:number){
     this.timeout = ms
   }
 
@@ -98,11 +95,12 @@ export class Popup extends google.maps.OverlayView {
     window.clearTimeout(this.timeoutTimer)
     this.timeoutTimer = window.setTimeout(() => {
 
-      this.onSubmit({ status: 'timeout' })
+      this.onSubmit!({ status: 'timeout' })
 
       this.setMap(null)
     }, ms ?? this.timeout ?? this.maxTimeout)
   }
+
   /**
    * ポップアップが画面に収まる範囲を計算して設定
    */
@@ -157,7 +155,7 @@ export class Popup extends google.maps.OverlayView {
     if (r?.left! < _x && _x < r?.right! && r?.top! < _y && _y < r?.bottom!) {
       // within range
     } else {
-      // out of range
+      // out of range すぐには消さない
       this.setDisplayTimeout(50)
     }
 

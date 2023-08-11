@@ -1,8 +1,13 @@
 <template>
-    <div class="testdiv">
-        <p>TestDiv 1</p>
-        <w-button class="ma1" bg-color="secondary" xs @click="onClick">Button</w-button>
-    </div>
+    <el-card class="cue-point">
+        <template #header>
+            <div class="card-header">
+                <span>Card name</span>
+                <el-button class="button" text>Operation button</el-button>
+            </div>
+        </template>
+
+    </el-card>
 </template>
 
 <script setup lang="ts">
@@ -13,3 +18,19 @@ const onClick = () => {
 }
 
 </script>
+
+<style scoped>
+:deep(.el-card__header){
+    padding: 0px;
+}
+
+.cue-point {
+    width: 400px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+</style>
