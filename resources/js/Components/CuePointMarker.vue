@@ -1,13 +1,13 @@
 <script setup lang="ts">
 
-import { ref } from "vue"
+import { ref,watch } from "vue"
 import { Marker } from "vue3-google-map"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useCuesheetStore } from "@/stores/CueSheetStore"
 import { computed, inject } from "vue"
 import { googleMapsKey } from "./gmap/keys"
 import { CuePoint } from "@/classes/cuePoint"
-import type {RoutePoint} from "@/classes/routePoint"
+import type { RoutePoint } from "@/classes/routePoint"
 
 
 
@@ -16,6 +16,7 @@ const cuesheetStore = useCuesheetStore()
 
 const props = defineProps(["visible"])
 const cuePoints = computed(() => cuesheetStore.getArray)
+const refRoutePoint = ref<RoutePoint>()
 
 let timer: number | null = null
 
@@ -46,6 +47,15 @@ const onClick = async (cpt: CuePoint, $event: google.maps.MapMouseEvent) => {
 
 }
 
+watch(refRoutePoint, (currentPt, prevPt)=>{
+    if( currentPt){
+        currentPt.opacity = 1.0
+    }
+    if(prevPt){
+        prevPt.opacity = 0.0
+    }
+})
+
 /**
  * ダブルクリックでキューポイントを参照点に戻す
  */
@@ -63,8 +73,8 @@ const onDblClick = (cpt: CuePoint, index: number, $event: google.maps.MapMouseEv
 
 }
 
-const onDrag = (cpt: CuePoint, $event: google.maps.MapMouseEvent)=>{
-    console.log( routeStore.getClosePoint($event.latLng!))
+const onDrag = (cpt: CuePoint, $event: google.maps.MapMouseEvent) => {
+    refRoutePoint.value = routeStore.getClosePoint($event!.latLng)
 }
 
 const onDragEnd = (cpt: CuePoint, $event: google.maps.MapMouseEvent) => {
@@ -93,9 +103,7 @@ const cueMarkerPopup = async (cpt: CuePoint) => {
 
 <template>
     <Marker ref="marker" v-for="(cpt, index) in cuePoints" :key="cpt.id" :options="getOption(cpt)"
-        @click="onClick(cpt, $event)"
-        @drag="onDrag(cpt, $event)"
-        @dragend="onDragEnd(cpt, $event)"
+        @click="onClick(cpt, $event)" @drag="onDrag(cpt, $event)" @dragend="onDragEnd(cpt, $event)"
         @dblclick="onDblClick(cpt, index, $event)">
     </Marker>
 </template>
