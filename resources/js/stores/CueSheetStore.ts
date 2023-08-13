@@ -34,9 +34,13 @@ export const useCuesheetStore = defineStore('cuesheet', {
         routePoints(state) {
             const brmStore = useBrmRouteStore()
             const arr: RoutePoint[] = []
+
             state.cuePoints.forEach(cpt => {
-                if (cpt.routePointId !== null) {
-                    arr.push(brmStore.getPointById(cpt.routePointId))
+                if (!cpt.routePointId) return
+
+                const pt = brmStore.getPointById(cpt.routePointId)
+                if (pt !== undefined) {
+                    arr.push(pt)
                 }
             })
             return arr
@@ -46,6 +50,10 @@ export const useCuesheetStore = defineStore('cuesheet', {
 
     actions: {
 
+        update() {
+            console.log("CueSheet store: update")
+        },
+
         addCuePoint(point: RoutePoint | { lat: number, lng: number }) {
 
             if (point instanceof RoutePoint) {
@@ -54,11 +62,16 @@ export const useCuesheetStore = defineStore('cuesheet', {
                     throw new Error('このポイントにはすでにキューポイントが設定されています')
                 }
 
-                const cpt = new CuePoint(point.lat, point.lng, 'cue', point.id, point.pointDistance)
+                const cpt = new CuePoint(point.lat, point.lng, 'cue', point.id)
                 this.cuePoints.set(cpt.id, cpt)
+
+                this.update()
+
             } else {
                 const cpt = new CuePoint(point.lat, point.lng, 'poi', null)
                 this.cuePoints.set(cpt.id, cpt)
+
+                this.update()
             }
 
         },
@@ -74,12 +87,16 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 throw new Error('このポイントにはすでにキューポイントが設定されています')
             }
 
-            cuePoint.setRoutePoint(routePoint.id, routePoint.pointDistance)
+            cuePoint.routePointId = routePoint.id
+            if (cuePoint.type === "poi") {
+                cuePoint.type = "cue"
+            }
+
         },
 
         detachCuePoint(cuePoint: CuePoint) {
-            cuePoint.setType('poi')
-            cuePoint.setRoutePoint(null)
+            cuePoint.type = "poi"
+            cuePoint.routePointId = null
         },
 
         removeCuePoint(id: symbol) {
@@ -98,13 +115,13 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 if (!cpt.routePointId) return
                 // ルートポイントが消滅したとき
                 if (!brmStore.idList.includes(cpt.routePointId)) {
-                    cpt.setType('poi')
+                    cpt.type = "poi"
                     cpt.routePointId = null
                 } else {
                     // ルートポイントが除外区域ではないか？
                     const rpt = brmStore.getPointById(cpt.routePointId)
-                    if(rpt.excluded===true){
-                        cpt.setType('poi')
+                    if (rpt!.excluded === true) {
+                        cpt.type = "poi"
                         cpt.routePointId = null
                     }
                 }

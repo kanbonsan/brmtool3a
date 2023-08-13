@@ -7,6 +7,8 @@ import { useCuesheetStore } from "@/stores/CueSheetStore"
 import { computed, inject } from "vue"
 import { googleMapsKey } from "./gmap/keys"
 import { CuePoint } from "@/classes/cuePoint"
+import type {RoutePoint} from "@/classes/routePoint"
+
 
 
 const routeStore = useBrmRouteStore()
@@ -29,6 +31,8 @@ const getOption = (cpt: CuePoint) => {
         visible: props.visible
     }
 }
+
+const closeRoutePoint = ref<RoutePoint>()
 
 const onClick = async (cpt: CuePoint, $event: google.maps.MapMouseEvent) => {
 
@@ -59,6 +63,10 @@ const onDblClick = (cpt: CuePoint, index: number, $event: google.maps.MapMouseEv
 
 }
 
+const onDrag = (cpt: CuePoint, $event: google.maps.MapMouseEvent)=>{
+    console.log( routeStore.getClosePoint($event.latLng!))
+}
+
 const onDragEnd = (cpt: CuePoint, $event: google.maps.MapMouseEvent) => {
     cpt.setPosition($event.latLng!)
 }
@@ -85,6 +93,9 @@ const cueMarkerPopup = async (cpt: CuePoint) => {
 
 <template>
     <Marker ref="marker" v-for="(cpt, index) in cuePoints" :key="cpt.id" :options="getOption(cpt)"
-        @click="onClick(cpt, $event)" @dragend="onDragEnd(cpt, $event)" @dblclick="onDblClick(cpt, index, $event)">
+        @click="onClick(cpt, $event)"
+        @drag="onDrag(cpt, $event)"
+        @dragend="onDragEnd(cpt, $event)"
+        @dblclick="onDblClick(cpt, index, $event)">
     </Marker>
 </template>

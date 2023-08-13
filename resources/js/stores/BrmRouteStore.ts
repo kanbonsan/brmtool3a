@@ -266,6 +266,11 @@ export const useBrmRouteStore = defineStore('brmroute', {
             return { begin, end, points, count: points.length, head, tail, editable, id: Symbol() }
         },
 
+        /**
+         * （引数つきgetter）
+         * @params position: google.maps.LatLng
+         * @returns 
+         */
         getClosePoint() {
 
             type ClosePoint = {
@@ -590,7 +595,9 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
             const result = await axios({
                 url,
-                headers: { Authorization: apiKey },
+                headers: {
+                    Authorization: apiKey
+                },
                 method: "post",
                 data: {
                     coordinates,
