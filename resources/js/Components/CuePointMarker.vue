@@ -9,14 +9,12 @@ import { googleMapsKey } from "./gmap/keys"
 import { CuePoint } from "@/classes/cuePoint"
 import type { RoutePoint } from "@/classes/routePoint"
 
-
-
 const routeStore = useBrmRouteStore()
 const cuesheetStore = useCuesheetStore()
 
 const props = defineProps(["visible"])
 const cuePoints = computed(() => cuesheetStore.getArray)
-const refRoutePoint = ref<RoutePoint>()
+const refRoutePoint = ref<RoutePoint|null>()
 
 let timer: number | null = null
 
@@ -33,28 +31,26 @@ const getOption = (cpt: CuePoint) => {
     }
 }
 
-const closeRoutePoint = ref<RoutePoint>()
+watch(refRoutePoint, (currentPt, prevPt)=>{
+    if( currentPt){
+        currentPt.opacity = 0.8
+    }
+    if(prevPt){
+        prevPt.opacity = 0.0
+    }
+})
 
 const onClick = async (cpt: CuePoint, $event: google.maps.MapMouseEvent) => {
 
     if (timer !== null) { return }
 
     timer = setTimeout(async () => {
-        const response: any = await cueMarkerPopup(cpt)
+        const response: any = await cueMarkerPopup(cpt, 'CuePointMenu')
         timer = null
         console.log(response)
     }, 250)
 
 }
-
-watch(refRoutePoint, (currentPt, prevPt)=>{
-    if( currentPt){
-        currentPt.opacity = 1.0
-    }
-    if(prevPt){
-        prevPt.opacity = 0.0
-    }
-})
 
 /**
  * ダブルクリックでキューポイントを参照点に戻す
@@ -74,20 +70,31 @@ const onDblClick = (cpt: CuePoint, index: number, $event: google.maps.MapMouseEv
 }
 
 const onDrag = (cpt: CuePoint, $event: google.maps.MapMouseEvent) => {
-    refRoutePoint.value = routeStore.getClosePoint($event!.latLng)
+    refRoutePoint.value = routeStore.getClosePoint($event.latLng!)
 }
 
-const onDragEnd = (cpt: CuePoint, $event: google.maps.MapMouseEvent) => {
+const onDragEnd = async (cpt: CuePoint, $event: google.maps.MapMouseEvent) => {
     cpt.setPosition($event.latLng!)
+    refRoutePoint.value = routeStore.getClosePoint($event.latLng!)
+    const routePoint = refRoutePoint.value
+
+    if(routePoint !== null && routeStore.hasCuePoint(routePoint)===null){
+        console.log('移動可能')
+        popups!.menuParams.value = { cpt }
+        const result = await cueMarkerPopup(cpt, 'CuePointReattachMenu')
+        console.log(result)
+        routePoint.opacity = 0.0
+    }
+
 }
 
-const cueMarkerPopup = async (cpt: CuePoint) => {
+const cueMarkerPopup = async (cpt: CuePoint, menu:string) => {
 
     if (popups?.popupParams.value.activated) {
         return Promise.reject('n/a')
     }
 
-    popups!.menuComp.value = 'CuePointMenu'
+    popups!.menuComp.value = menu
 
     //popups!.menuParams.value = { ts: Date.now(), cuePoint: cuesheetStore.routePoints.includes(pt), cpt }
 
@@ -97,7 +104,6 @@ const cueMarkerPopup = async (cpt: CuePoint) => {
     return result
 
 }
-
 
 </script>
 

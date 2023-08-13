@@ -53,10 +53,12 @@ import SubpathDirectionConfirm from "./gmap/SubpathDirectionConfirm.vue"
 // ポップアップメニュー
 import ExcludePolyMenu from "@/Components/PopupMenu/ExcludedPolylineMenu.vue"
 import PointMenu from "@/Components/PopupMenu/PointMenu.vue"
-import CuePointMenu from "./PopupMenu/CuePointMenu.vue"
+import CuePointMenu from "./PopupMenu/CuePointMenu.vue" 
+import CuePointReattachMenu from "./PopupMenu/CuePointReattachMenu.vue"
 
 import CuePointMarker from "./CuePointMarker.vue"
 import axios from "axios"
+
 
 export type menuComponentOptions = {
     /**
@@ -117,6 +119,10 @@ const menus: Menus = {
     CuePointMenu: {
         component: CuePointMenu,
         options: { timeout: 50_000, offsetY: -30 }
+    },
+    CuePointReattachMenu: {
+        component: CuePointReattachMenu,
+        options: { timeout: 10_000, offsetY: -30}
     }
 }
 

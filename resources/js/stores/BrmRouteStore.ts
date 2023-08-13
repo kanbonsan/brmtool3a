@@ -269,7 +269,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /**
          * （引数つきgetter）
          * @params position: google.maps.LatLng
-         * @returns 
+         * @returns RoutePoint | null
          */
         getClosePoint() {
 
@@ -349,12 +349,18 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /**
          * RoutePoint に CuePoint が設定されているか
          * 一つのRoutePointにはCuePointは一つしか設定できない
-         * @returns boolean
+         * @returns cuePointId: symbol | null
          */
         hasCuePoint() {
+            console.log('hasCuePoint')
             const cuesheetStore = useCuesheetStore()
-            return (pt: RoutePoint) => {
-
+            return (pt: RoutePoint | null) => {
+                if (pt === null) return null
+                const arr = cuesheetStore.getArray
+                const cpt = cuesheetStore.getArray.find((cpt) => {
+                    return cpt.routePointId === pt.id
+                })
+                return cpt ? cpt.id : null
             }
         },
 

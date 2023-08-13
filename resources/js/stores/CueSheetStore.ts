@@ -36,8 +36,6 @@ export const useCuesheetStore = defineStore('cuesheet', {
             const arr: RoutePoint[] = []
 
             state.cuePoints.forEach(cpt => {
-                if (!cpt.routePointId) return
-
                 const pt = brmStore.getPointById(cpt.routePointId)
                 if (pt !== undefined) {
                     arr.push(pt)
