@@ -9,7 +9,7 @@
                 </el-icon>
             </div>
         </template>
-        <el-row>キューポイントを移動しますか</el-row>
+        <el-row>{{ messageText }}</el-row>
         <el-row>
             <el-button>はい</el-button><el-button>いいえ</el-button>
         </el-row>
@@ -18,7 +18,14 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps(['submit'])
+import { ref, onMounted } from 'vue';
+const props = defineProps(['submit', 'menuParams'])
+
+const messageText = ref('')
+
+onMounted(()=>{
+    messageText.value = props.menuParams.cuePoint.type === 'poi' ? "POIのポイントをこの地点のキューポイントにしますか?" : "キューポイントをこの地点に移動しますか?"
+})
 
 const onClick = (result: boolean) => {
     props.submit({ status: 'success', result })
@@ -27,6 +34,8 @@ const onClick = (result: boolean) => {
 const onCancelClose = () => {
     props.submit({ status: 'success', result: 'cancel' })
 }
+
+
 
 </script>
 

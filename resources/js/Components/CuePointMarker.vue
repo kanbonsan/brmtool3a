@@ -96,7 +96,7 @@ const cueMarkerPopup = async (cpt: CuePoint, menu:string) => {
 
     popups!.menuComp.value = menu
 
-    //popups!.menuParams.value = { ts: Date.now(), cuePoint: cuesheetStore.routePoints.includes(pt), cpt }
+    popups!.menuParams.value = { cuePoint: cpt }
 
     const position = new google.maps.LatLng({ ...cpt })
     const result = await popups!.popup(position!)

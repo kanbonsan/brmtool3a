@@ -367,15 +367,10 @@ export const useBrmRouteStore = defineStore('brmroute', {
     },
 
     actions: {
-        /** encoded Path を与えて初期化する */
-        setPoints(path: string) {
-
-            const _points = polyline.decode(path)
-
-            this.points = [...(_points.map((pt) => {
-                return new RoutePoint(pt.lat, pt.lng, pt.alt ?? undefined)
-            }))]
-
+        /**
+         * 諸々の操作をしたあとにパスの状態を適切にする
+         */
+        update(){
             // ポイントウエイトを設定
             this.setWeight()
 
@@ -385,6 +380,18 @@ export const useBrmRouteStore = defineStore('brmroute', {
             // 標高獲得用の DEM タイルを予めサーバーにキャッシュしておく
             this.cacheDemTiles()
 
+        },
+
+        /** encoded Path を与えて初期化する */
+        setPoints(path: string) {
+
+            const _points = polyline.decode(path)
+
+            this.points = [...(_points.map((pt) => {
+                return new RoutePoint(pt.lat, pt.lng, pt.alt ?? undefined)
+            }))]
+
+            this.update()
         },
 
         /**
@@ -485,6 +492,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 this.points[i].excluded = true
             }
 
+            this.update()
+
         },
 
         /**
@@ -501,6 +510,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
             for (let i = begin; i <= end; i++) {
                 this.points[i].excluded = false
             }
+
+            this.update()
         },
 
         /**
@@ -514,6 +525,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
                     this.restoreExclude(ex.begin!, ex.end!)
                 }
             })
+
+            this.update()
         },
 
         /**
@@ -554,11 +567,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
             })
 
             this.points.splice(this.subpath.begin!, this.subpath.end! - this.subpath.begin! + 1, ...arr)
-            // ポイントウエイトを設定
-            this.setWeight()
-
-            // 距離を計算
-            this.setDistance()
+            
+            this.update()
         },
 
         subpathDelete() {
@@ -611,7 +621,6 @@ export const useBrmRouteStore = defineStore('brmroute', {
             })
 
             const data = result.data
-
             this.setSubpathTempPath(polyline.decode(data.routes[0].geometry, false))
 
 

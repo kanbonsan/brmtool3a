@@ -1,6 +1,6 @@
 <template>
     <div ref="content" style="display:block;">
-        <slot :submit="submit"></slot>
+        <slot :submit="submit" :menuParams="menuParams"></slot>
     </div>
 </template>
 
@@ -13,7 +13,7 @@ import type { Popup } from "@/classes/Popup"
 
 export default {
 
-    props: ['api', 'map', 'ready', 'params'],
+    props: ['api', 'map', 'ready', 'params', 'menuParams'],
 
     data() {
 

@@ -6,9 +6,9 @@
                 @mouseover="markerMouseover(pt)" @mouseout="markerMouseout(pt)">
             </Marker>
             <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" :visible="mapObjectVisible" />
-            <CustomPopup :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" v-slot="{ submit }"
-                :params="popupParams">
-                <component :is="menus[menuComp]?.component" :submit="submit" :params="menuParams"></component>
+            <CustomPopup :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" :params="popupParams" :menuParams="menuParams"
+                v-slot="{ submit, menuParams }">
+                <component :is="menus[menuComp]?.component" :submit="submit" :menuParams="menuParams"></component>
             </CustomPopup>
             <CuePointMarker :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready"
                 :visible="mapObjectVisible" />
@@ -53,7 +53,7 @@ import SubpathDirectionConfirm from "./gmap/SubpathDirectionConfirm.vue"
 // ポップアップメニュー
 import ExcludePolyMenu from "@/Components/PopupMenu/ExcludedPolylineMenu.vue"
 import PointMenu from "@/Components/PopupMenu/PointMenu.vue"
-import CuePointMenu from "./PopupMenu/CuePointMenu.vue" 
+import CuePointMenu from "./PopupMenu/CuePointMenu.vue"
 import CuePointReattachMenu from "./PopupMenu/CuePointReattachMenu.vue"
 
 import CuePointMarker from "./CuePointMarker.vue"
@@ -122,7 +122,7 @@ const menus: Menus = {
     },
     CuePointReattachMenu: {
         component: CuePointReattachMenu,
-        options: { timeout: 10_000, offsetY: -30}
+        options: { timeout: 10_000, offsetY: -30 }
     }
 }
 
@@ -276,7 +276,7 @@ watch(
  * 0: false, >0 で true
  * boolean としないのは、表示の更新時に autoclose のタイマーをリセットするため
  */
- const drawerActive = ref<number>(0)
+const drawerActive = ref<number>(0)
 /**
  * Drawer の表示内容
  */
@@ -373,7 +373,6 @@ const markerPopup = async (pt: RoutePoint) => {
         return Promise.reject('n/a')
     }
     menuComp.value = 'PointMenu'
-
 
     menuParams.value = { ts: Date.now(), cuePoint: cuesheetStore.routePoints.includes(pt), pt }
 
