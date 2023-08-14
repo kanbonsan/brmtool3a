@@ -48,10 +48,6 @@ export const useCuesheetStore = defineStore('cuesheet', {
 
     actions: {
 
-        update() {
-            console.log("CueSheet store: update")
-        },
-
         addCuePoint(point: RoutePoint | { lat: number, lng: number }) {
 
             if (point instanceof RoutePoint) {
@@ -77,7 +73,8 @@ export const useCuesheetStore = defineStore('cuesheet', {
         reattachCuePoint(cuePoint: CuePoint, routePoint: RoutePoint) {
             const brmStore = useBrmRouteStore()
 
-            const currentRoutePoint = cuePoint.routePointId !== null ? brmStore.getPointById(cuePoint.routePointId) : null
+            const currentRoutePoint = (cuePoint.routePointId !== null) ? brmStore.getPointById(cuePoint.routePointId) : null
+
             if (currentRoutePoint && currentRoutePoint.id === routePoint.id) {
                 throw new Error('同じポイントに再設定しようとしています')
             }
@@ -90,15 +87,21 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 cuePoint.type = "cue"
             }
 
+            this.update()
+
         },
 
         detachCuePoint(cuePoint: CuePoint) {
             cuePoint.type = "poi"
             cuePoint.routePointId = null
+
+            this.update()
         },
 
         removeCuePoint(id: symbol) {
             this.cuePoints.delete(id)
+
+            this.update()
         },
         /**
          * キューポイントに対応する RoutePoint が存在するかのチェック
@@ -106,7 +109,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
          * - ポイントが除外範囲になったときも'poi'にする
          * ルートポイントの変更を伴う処理時には必ず呼び出すようにする
          */
-        checkAttach() {
+        update() {
             const brmStore = useBrmRouteStore()
             this.cuePoints.forEach((cpt: CuePoint) => {
                 // 元々 'poi' のときは終了

@@ -7,6 +7,8 @@ import { useCuesheetStore } from "@/stores/CueSheetStore"
 import { computed, inject } from "vue"
 import { googleMapsKey } from "./gmap/keys"
 import { CuePoint } from "@/classes/cuePoint"
+import { markerIcon }from "@/lib/gmapcueicon"
+
 import type { RoutePoint } from "@/classes/routePoint"
 
 const routeStore = useBrmRouteStore()
@@ -27,7 +29,8 @@ const getOption = (cpt: CuePoint) => {
         position: { lat: cpt.lat, lng: cpt.lng },
         opacity: 1.0,
         draggable: true,
-        visible: props.visible
+        visible: props.visible,
+        icon: {url: markerIcon()}
     }
 }
 

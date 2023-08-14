@@ -339,7 +339,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
         ,
 
         /**
-         * RoutePoint id: symbole の一覧
+         * RoutePoint id: symbol の一覧
          * CueSheetStore で routepoint id の振り直しに利用
          */
         idList(state): symbol[] {
@@ -379,6 +379,10 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
             // 標高獲得用の DEM タイルを予めサーバーにキャッシュしておく
             this.cacheDemTiles()
+
+            // キューポイントの update
+            const cuesheetStore = useCuesheetStore()
+            cuesheetStore.update()
 
         },
 
