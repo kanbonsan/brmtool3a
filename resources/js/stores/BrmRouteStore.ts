@@ -370,7 +370,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /**
          * 諸々の操作をしたあとにパスの状態を適切にする
          */
-        update(){
+        update() {
             // ポイントウエイトを設定
             this.setWeight()
 
@@ -571,7 +571,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             })
 
             this.points.splice(this.subpath.begin!, this.subpath.end! - this.subpath.begin! + 1, ...arr)
-            
+
             this.update()
         },
 

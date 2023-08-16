@@ -55,6 +55,7 @@ export default {
                     this.popup?.setMap(this.map)
                 } else {
                     this.popup?.setMap(null)    // params.activate ---> false で消去
+                    
                 }
             },
             immediate: true

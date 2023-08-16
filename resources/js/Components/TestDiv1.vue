@@ -2,10 +2,17 @@
     <el-card class="cue-point">
         <template #header>
             <div class="card-header">
-                <span>Card name</span>
-                <el-button class="button" text>Operation button</el-button>
+                <span>ポイント移動</span>
+
+                <el-icon :size="24">
+                    <circle-close></circle-close>
+                </el-icon>
             </div>
         </template>
+        <el-row>キューポイントをこの地点に移動しますか?</el-row>
+        <el-row>
+            <el-button size="small">はい</el-button><el-button size="small">いいえ</el-button>
+        </el-row>
 
     </el-card>
 </template>
@@ -20,12 +27,15 @@ const onClick = () => {
 </script>
 
 <style scoped>
-:deep(.el-card__header){
-    padding: 0px;
+.cue-point {
+    width: 120px;
 }
 
-.cue-point {
-    width: 400px;
+:deep(.el-card__header) {
+    --el-card-padding: 5px;
+    background: var(--el-color-primary-light-7);
+    color: var(--el-color-primary-dark-2);
+    font-weight: bold;
 }
 
 .card-header {

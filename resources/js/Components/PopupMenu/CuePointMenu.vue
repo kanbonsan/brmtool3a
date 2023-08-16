@@ -2,7 +2,7 @@
     <el-card class="cue-point">
         <template #header>
             <div class="card-header">
-                <span>Card name</span>
+                <span>キューポイント #{{ cuePoint.pointNo }}</span>
 
                 <el-icon :size="24">
                     <circle-close @click="onCancelClose"></circle-close>
@@ -10,19 +10,52 @@
 
             </div>
         </template>
-
+        <el-form label-width="70px" size="small">
+            <el-form-item label="名称">
+                <el-input v-model="name"></el-input>
+            </el-form-item>
+            <el-form-item label="進路">
+                <el-input v-model="form.direction"></el-input>
+            </el-form-item>
+            <el-form-item label="道路">
+                <el-input v-model="form.route"></el-input>
+            </el-form-item>
+        </el-form>
     </el-card>
 </template>
 
 <script setup lang="ts">
-const props = defineProps(['submit'])
+import { progressProps } from 'element-plus'
+import { reactive, onMounted, computed } from 'vue'
+const props = defineProps(['submit', 'menuParams'])
+
+const cuePoint = props.menuParams.cuePoint
+const cueProperties = cuePoint.properties
+
+const name = computed({
+
+    get() {
+        return cueProperties.name
+    },
+    set(newVal: string) {
+        cueProperties.name = newVal
+    }
+})
+
+
+
+onMounted(() => {
+    console.log(props.menuParams.cuePoint)
+    console.log(props.menuParams.cuePoint.properties)
+    console.log(`menu open at ${props.menuParams.cuePoint.pointNo}`)
+})
 
 const onClick = (result: boolean) => {
     props.submit({ status: 'success', result })
 }
 
-const onCancelClose = ()=>{
-    props.submit({ status: 'success', result:'cancel' })
+const onCancelClose = () => {
+    props.submit({ status: 'success', result: 'cancel' })
 }
 
 </script>

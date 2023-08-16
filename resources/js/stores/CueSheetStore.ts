@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { CuePoint } from '@/classes/cuePoint'
 import { RoutePoint } from '@/classes/routePoint'
 import { useBrmRouteStore } from './BrmRouteStore'
+import { ar } from 'element-plus/es/locale'
 
 type State = {
     cuePoints: Map<symbol, CuePoint>
@@ -21,7 +22,6 @@ export const useCuesheetStore = defineStore('cuesheet', {
         },
         /**
          * マーカーをリスト表示するためのキューポイントの配列を返す
-         * キューシート用にソート
          */
         getArray(state) {
             return Array.from(state.cuePoints, (cue) => cue[1])
@@ -127,6 +127,26 @@ export const useCuesheetStore = defineStore('cuesheet', {
                     }
                 }
             })
+            this.label()
+        },
+        /**
+         * CuePoint のラベル付け（インデックス）
+         */
+        label() {
+            const brmStore = useBrmRouteStore()
+            // POI 以外
+            this.getArray
+                .filter(cpt => {
+                    return cpt.type !== 'poi'
+                })
+                .sort((a, b) => {
+                    const aRoutePointIndex = brmStore.getPointIndex(brmStore.getPointById(a.routePointId)!)
+                    const bRoutePointIndex = brmStore.getPointIndex(brmStore.getPointById(b.routePointId)!)
+                    return aRoutePointIndex - bRoutePointIndex
+                })
+                .forEach( (cpt,index)=>{
+                    cpt.pointNo = index + 1
+                })
         }
     }
 }

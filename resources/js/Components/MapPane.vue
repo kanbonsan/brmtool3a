@@ -323,7 +323,6 @@ const markerClick = async (pt: RoutePoint) => {
                 toolStore.setMode('subpath')
                 drawerComp.value = 'SubpathCommand'
                 drawerActive.value += 1
-
                 routeStore.subpathSync()
                 break
         }
@@ -399,6 +398,7 @@ const popup: PopUp = async (position, activator?) => {
         const resolveFunc = (payload: any) => {
             popupParams.value.activated = false
             popupParams.value.activator = undefined
+            menuComp.value = ''
             resolve(payload)
         }
 

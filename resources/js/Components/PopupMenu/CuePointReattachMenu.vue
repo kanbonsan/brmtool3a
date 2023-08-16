@@ -5,33 +5,34 @@
                 <span>ポイント移動</span>
 
                 <el-icon :size="24">
-                    <circle-close @click="onCancelClose"></circle-close>
+                    <circle-close @click="onCancel"></circle-close>
                 </el-icon>
             </div>
         </template>
-        <el-row>{{ messageText }}</el-row>
-        <el-row>
-            <el-button>はい</el-button><el-button>いいえ</el-button>
+        <el-row style="margin-bottom:5px;">{{ messageText }}</el-row>
+        <el-row justify="center">
+            <el-button size="small" @click="onSubmit">はい</el-button><el-button size="small"
+                @click="onCancel">いいえ</el-button>
         </el-row>
 
     </el-card>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted } from 'vue'
 const props = defineProps(['submit', 'menuParams'])
 
 const messageText = ref('')
 
-onMounted(()=>{
+onMounted(() => {
     messageText.value = props.menuParams.cuePoint.type === 'poi' ? "POIのポイントをこの地点のキューポイントにしますか?" : "キューポイントをこの地点に移動しますか?"
 })
 
-const onClick = (result: boolean) => {
-    props.submit({ status: 'success', result })
+const onSubmit = () => {
+    props.submit({ status: 'success', result: 'reattach' })
 }
 
-const onCancelClose = () => {
+const onCancel = () => {
     props.submit({ status: 'success', result: 'cancel' })
 }
 
@@ -41,7 +42,7 @@ const onCancelClose = () => {
 
 <style scoped>
 .cue-point {
-    width: 120px;
+    width: 150px;
 }
 
 :deep(.el-card__header) {
@@ -49,6 +50,10 @@ const onCancelClose = () => {
     background: var(--el-color-primary-light-7);
     color: var(--el-color-primary-dark-2);
     font-weight: bold;
+}
+
+:deep(.el-card__body) {
+    --el-card-padding: 5px;
 }
 
 .card-header {
