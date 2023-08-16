@@ -10,15 +10,15 @@
 
             </div>
         </template>
-        <el-form label-width="70px" size="small">
+        <el-form label-width="70px" size="small" :model="cueProperties">
             <el-form-item label="名称">
-                <el-input v-model="name"></el-input>
+                <el-input v-model="cueProperties.name"></el-input>
             </el-form-item>
             <el-form-item label="進路">
-                <el-input v-model="form.direction"></el-input>
+                <el-input v-model="cueProperties.direction"></el-input>
             </el-form-item>
             <el-form-item label="道路">
-                <el-input v-model="form.route"></el-input>
+                <el-input v-model="cueProperties.route"></el-input>
             </el-form-item>
         </el-form>
     </el-card>
@@ -32,15 +32,6 @@ const props = defineProps(['submit', 'menuParams'])
 const cuePoint = props.menuParams.cuePoint
 const cueProperties = cuePoint.properties
 
-const name = computed({
-
-    get() {
-        return cueProperties.name
-    },
-    set(newVal: string) {
-        cueProperties.name = newVal
-    }
-})
 
 
 
