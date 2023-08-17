@@ -1,5 +1,4 @@
 
-export const YOLP_KEY = 'dj00aiZpPUpOTnhlYURJTUoxaCZzPWNvbnN1bWVyc2VjcmV0Jng9NTM-'
 // 標高問い合わせの上限ポイント数
 export const MAXIMUM_POINTS_OF_QUERY = 1000
 // データの有効期限(90日 ms)

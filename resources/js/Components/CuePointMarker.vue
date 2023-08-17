@@ -9,6 +9,8 @@ import { googleMapsKey } from "./gmap/keys"
 import { CuePoint } from "@/classes/cuePoint"
 import { markerIcon } from "@/lib/gmapcueicon"
 
+import { yolp_reverseGeocoder } from "@/lib/geocoderApi.js"
+
 import type { RoutePoint } from "@/classes/routePoint"
 import { ElMessage } from "element-plus"
 
@@ -117,6 +119,12 @@ const cueMarkerPopup = async (cpt: CuePoint, menu: string) => {
     }
 
     popups!.menuComp.value = menu
+
+    const ptPos = new google.maps.LatLng( routeStore.getPointById( cpt.routePointId)!)
+
+    const  geo = await yolp_reverseGeocoder(ptPos)
+    console.log(geo)
+
 
     popups!.menuParams.value = { cuePoint: cpt }
     const position = new google.maps.LatLng({ ...cpt })

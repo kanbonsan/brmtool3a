@@ -1,10 +1,10 @@
 /**
  * 各種APIをたたく YOLP, GoogleMaps Geocoder
  */
-import { GEOCODE_DATA_LIFETIME, GOOGLEMAP_API_KEY, ALL_PUBLIC_ROAD_SAME_SYMBOL } from '@/config'
+import { GEOCODE_DATA_LIFETIME, ALL_PUBLIC_ROAD_SAME_SYMBOL } from '@/config'
 import { MAXIMUM_POINTS_OF_QUERY } from '@/config'
 import axios from 'axios'
-import jsonpAdapter from 'axios-jsonp'
+import jsonpAdapter from 'axios-jsonp' 
 import _ from 'lodash'
 
 const YOLP_KEY = import.meta.env.YOLP_KEY
@@ -64,13 +64,9 @@ export function convRoadName(name) {
 
 // Yahoo Reverse Geocoder
 // adress, country, road
-async function yolp_reverseGeocoder(point) {
+export async function yolp_reverseGeocoder(point) {
 
     const type = 'yahooReverseGeocoder'
-
-    // 緯度・経度を小数以下 3桁で丸めて近隣のポイントをまとめる。だいたい直径 100m 程度におさまる
-    // Brmtool.js で定義
-    const location = point.getApproxCoord()
 
     const URL = "https://map.yahooapis.jp/geoapi/V1/reverseGeoCoder"
 
