@@ -10,7 +10,7 @@
 
             </div>
         </template>
-        <el-form label-width="70px" size="small" :model="form">
+        <el-form label-width="70px" size="small" :model="form" @input="synchronize">
             <el-form-item label="名称">
                 <el-input v-model="form.name"></el-input>
             </el-form-item>
@@ -27,16 +27,15 @@
 <script setup lang="ts">
 import { progressProps } from 'element-plus'
 import { reactive, onMounted, computed } from 'vue'
+import { useCuesheetStore } from '@/stores/CueSheetStore';
+
 const props = defineProps(['submit', 'menuParams'])
+const cuesheetStore = useCuesheetStore()
 
 const cuePoint = props.menuParams.cuePoint
 const cueProperties = cuePoint.properties
 
-const form = reactive({
-    name: '',
-    direction: '',
-    route: '',
-})
+const form = reactive({...cueProperties})
 
 onMounted(() => {
     console.log(props.menuParams.cuePoint)
@@ -51,6 +50,10 @@ const onClick = (result: boolean) => {
 const onCancelClose = () => {
     props.submit({ status: 'success', result: 'cancel' })
 }
+const synchronize = ()=>{
+    cuesheetStore.synchronize(cuePoint.id)
+}
+
 
 </script>
 

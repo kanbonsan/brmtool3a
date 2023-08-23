@@ -147,6 +147,10 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 .forEach( (cpt,index)=>{
                     cpt.pointNo = index + 1
                 })
+        },
+
+        synchronize(id:symbol){
+            console.log('sync store')
         }
     }
 }
