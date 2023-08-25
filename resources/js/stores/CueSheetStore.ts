@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { CuePoint } from '@/classes/cuePoint'
+import { CuePoint, cueProperties } from '@/classes/cuePoint'
 import { RoutePoint } from '@/classes/routePoint'
 import { useBrmRouteStore } from './BrmRouteStore'
 import { ar } from 'element-plus/es/locale'
@@ -17,7 +17,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
     getters: {
         getCuePointById(state) {
             return (id: symbol) => {
-                this.cuePoints.get(id)
+                return state.cuePoints.get(id)
             }
         },
         /**
@@ -149,8 +149,10 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 })
         },
 
-        synchronize(id:symbol){
-            console.log('sync store')
+        synchronize(id:symbol, properties: cueProperties){
+            const cuePoint = this.getCuePointById(id)
+            cuePoint!.properties = {...cuePoint!.properties, ...properties}
+            console.log(cuePoint!.properties)
         }
     }
 }

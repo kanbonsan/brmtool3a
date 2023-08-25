@@ -123,15 +123,11 @@ const cueMarkerPopup = async (cpt: CuePoint, menu: string) => {
     const ptPos = new google.maps.LatLng( routeStore.getPointById( cpt.routePointId)!)
 
     const  geo = await yolp_reverseGeocoder(ptPos)
-    console.log(geo)
-
-
+    
     popups!.menuParams.value = { cuePoint: cpt }
     const position = new google.maps.LatLng({ ...cpt })
     const result = await popups!.popup(position!)
-
     return result
-
 }
 
 </script>
