@@ -149,10 +149,9 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 })
         },
 
-        synchronize(id:symbol, properties: cueProperties){
+        synchronize(id:symbol, properties: cueProperties){            
             const cuePoint = this.getCuePointById(id)
-            cuePoint!.properties = {...cuePoint!.properties, ...properties}
-            console.log(cuePoint!.properties)
+            cuePoint!.properties = Object.assign(cuePoint!.properties,properties)
         }
     }
 }

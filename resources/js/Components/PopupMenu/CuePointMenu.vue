@@ -25,16 +25,14 @@
 </template>
 
 <script setup lang="ts">
-import { progressProps } from 'element-plus'
-import { ref, reactive, onMounted, computed } from 'vue'
+import {  ref,reactive, onMounted, computed } from 'vue'
 import { useCuesheetStore } from '@/stores/CueSheetStore'
 
 const props = defineProps(['submit', 'menuParams'])
 const cuesheetStore = useCuesheetStore()
 
-const cuePoint = ref(props.menuParams.cuePoint)
-
-const form = reactive({...cuePoint.value.cueProperties})
+const cuePoint = props.menuParams.cuePoint
+const form = reactive({...props.menuParams.cuePoint.properties})
 
 const onClick = (result: boolean) => {
     props.submit({ status: 'success', result })
@@ -44,9 +42,8 @@ const onCancelClose = () => {
     props.submit({ status: 'success', result: 'cancel' })
 }
 const synchronize = ()=>{
-    cuesheetStore.synchronize(cuePoint.value.id, form)
+    cuesheetStore.synchronize(props.menuParams.cuePoint.id, form)
 }
-
 
 </script>
 

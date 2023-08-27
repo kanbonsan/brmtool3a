@@ -64,7 +64,6 @@ const onClick = async (cpt: CuePoint, $event: google.maps.MapMouseEvent) => {
     timer = setTimeout(async () => {
         const response: any = await cueMarkerPopup(cpt, 'CuePointMenu')
         timer = null
-        console.log(response)
     }, 250)
 
 }
@@ -118,13 +117,17 @@ const cueMarkerPopup = async (cpt: CuePoint, menu: string) => {
         return Promise.reject('n/a')
     }
 
-    popups!.menuComp.value = menu
-
     const ptPos = new google.maps.LatLng( routeStore.getPointById( cpt.routePointId)!)
 
     const  geo = await yolp_reverseGeocoder(ptPos)
     
     popups!.menuParams.value = { cuePoint: cpt }
+
+    // ここで 動的テンプレートのテンプレートを設定している
+    // この行を先頭付近に持っていってしまうと先にポップアップの中身がマウントされてしまうために内容（menuParams）が更新されない。
+    // かなり悩んだ
+    popups!.menuComp.value = menu 
+
     const position = new google.maps.LatLng({ ...cpt })
     const result = await popups!.popup(position!)
     return result
