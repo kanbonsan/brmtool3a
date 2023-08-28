@@ -32,6 +32,7 @@
         "element-plus": "^2.3.7",
         "lodash": "^4.17.21",
         "pinia": "^2.0.36",
+        "pinia-plugin-persistedstate": "^3.2.0",
         "splitpanes": "^3.1.5",
         "vue-final-modal": "^3.4.11",
         "vue3-google-map": "^0.15.0",

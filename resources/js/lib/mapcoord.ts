@@ -1,5 +1,3 @@
-"use strict"
-
 // 世界座標系（ピクセル座標）と地図座標（緯度・経度）間の変換
 // 「世界は１枚の画像から : グーグルマップのしくみを探る」
 // https://www.mapli.net/blogs/google-maps-mechanism/how-google-map-works1/

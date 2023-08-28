@@ -4,7 +4,7 @@
 import { GEOCODE_DATA_LIFETIME, ALL_PUBLIC_ROAD_SAME_SYMBOL } from '@/config'
 import { MAXIMUM_POINTS_OF_QUERY } from '@/config'
 import axios from 'axios'
-import jsonpAdapter from 'axios-jsonp' 
+import jsonpAdapter from 'axios-jsonp'
 import _ from 'lodash'
 
 const YOLP_KEY = import.meta.env.YOLP_KEY
@@ -13,6 +13,19 @@ const wait = (ms) => {
     return new Promise(resolve => {
         setTimeout(resolve, ms)
     })
+}
+
+// データをキャッシュするにあたり座標を丸める。この値をインデックスに用いて、
+// 近隣の点を API に呼びに行かないようにする。
+// BRMTOOL2 では小数点以下 3桁で丸めたが 4桁に増やした。
+
+export function getApproxCoord(lat, lng) {
+    // 赤道上で 40000 x 1000 m / 360° / 10000 = 11.1m (小数点以下 4桁で約11メートル)
+    // なので小数点以下 4桁で丸めておく。
+    const _lng = Math.round((lng + 180) * 10000)    // 0～360_0000
+    const _lat = Math.round((lat + 90) * 10000)     // 0～180_0000
+
+    return ("0000000" + _lng.toString()).slice(-7) + ':' + ("0000000" + _lat.toString()).slice(-7)
 }
 
 // キューシート用の道路名に変換
