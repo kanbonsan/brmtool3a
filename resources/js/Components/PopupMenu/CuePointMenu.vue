@@ -69,7 +69,7 @@ const form = reactive({ type: cuePoint.type, ...props.menuParams.cuePoint.proper
 // select の選択肢
 const signals = [{ value: false, label: ' ' }, { value: true, label: 'S' },] 
 const crossings = ["├", "┤", "┼", "┬", "Ｙ"].map(chr => ({ value: chr, label: chr }))
-crossings.unshift({ label: '　', value: ' ' })
+crossings.unshift({ label: '　', value: '' })
 
 const onClick = (result: boolean) => {
     props.submit({ status: 'success', result })
@@ -108,7 +108,7 @@ const synchronize = () => {
 }
 
 .my-form-item :deep(.el-form-item__label) {
-    align-self: center;
+    align-self:self-end;
 }
 
 .my-form-item :deep(.el-form-item--small) {

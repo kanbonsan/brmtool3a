@@ -9,7 +9,7 @@ import _ from 'lodash'
 
 const YOLP_KEY = import.meta.env.YOLP_KEY
 
-const wait = (ms) => {
+const wait = (ms: number) => {
     return new Promise(resolve => {
         setTimeout(resolve, ms)
     })
@@ -19,7 +19,24 @@ const wait = (ms) => {
 // 近隣の点を API に呼びに行かないようにする。
 // BRMTOOL2 では小数点以下 3桁で丸めたが 4桁に増やした。
 
-export function getApproxCoord(lat, lng) {
+const code = (_num: number, round: number, add: number, digit: number) => {
+    const _approx: number = Math.round((_num) * Math.pow(10, round))
+    const _addedApprox: number = Math.round((_num + add) * Math.pow(10, round))
+
+    const code = ('0000000000' + _addedApprox.toString()).slice(-digit)
+    const upper = _approx.toString().slice(0, _approx.toString().length - round)
+    const lower = _approx.toString().slice(-round)
+    const approx = parseFloat( upper+"."+lower)
+
+    return { code, upper, lower, approx, raw: _num }
+}
+
+export function approx(lat: number, lng: number) {
+
+
+
+
+
     // 赤道上で 40000 x 1000 m / 360° / 10000 = 11.1m (小数点以下 4桁で約11メートル)
     // なので小数点以下 4桁で丸めておく。
     const _lng = Math.round((lng + 180) * 10000)    // 0～360_0000
