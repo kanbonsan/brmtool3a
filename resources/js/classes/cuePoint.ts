@@ -1,6 +1,7 @@
 export type cueType = 'cue' | 'pc' | 'pass' | 'poi'
 
 export type cueProperties = {
+    type?: cueType
     signal: boolean     // 信号の有無
     crossing: string    // 交差点記号
     name: string        // 名称

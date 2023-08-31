@@ -11,29 +11,40 @@
             </div>
         </template>
         <el-form label-width="50px" size="small" :model="form" @input="synchronize">
-            <el-radio-group v-model="form.type">
-                <el-radio-button label="Point" />
-                <el-radio-button label="PC" />
-                <el-radio-button label="Check" />
-                <el-radio-button label="POI" />
+            <el-radio-group v-model="form.type" @change="synchronize">
+                <el-radio label="cue">ポイント</el-radio>
+                <el-radio label="pc">PC</el-radio>
+                <el-radio label="pass">チェック</el-radio>
+                <el-radio label="poi">POI</el-radio>
             </el-radio-group>
-            <el-form-item label="名称">
-                <el-row>
-                    <el-col :span="4">
-                        <el-select v-model="form.signal">
-                            <el-option v-for="item in signals" :key="item.label" :label="item.label"
-                                :value="item.value"></el-option>
-                        </el-select>
-                    </el-col>
-                    <el-col :span="4">
-                        <el-select v-model="form.crossing">
-                            <el-option v-for="item in crossings" :key="item.label" :label="item.label" :value="item.value"></el-option>
-                        </el-select>
-                    </el-col>
-                    <el-col :span="16">
-                        <el-input v-model="form.name"></el-input>
-                    </el-col>
-                </el-row>
+            <el-form-item class="my-form-item" label="名称">
+                <div>
+                    <el-row>
+                        <el-col :span="4" class="desc">
+                            信号</el-col>
+                        <el-col :span="4" class="desc">
+                            交差点</el-col>
+                        <el-col :span="16" class="desc">
+                            名称</el-col>
+                    </el-row>
+                    <el-row>
+                        <el-col :span="4">
+                            <el-select v-model="form.signal" @change="synchronize">
+                                <el-option v-for="item in signals" :key="item.label" :label="item.label"
+                                    :value="item.value"></el-option>
+                            </el-select>
+                        </el-col>
+                        <el-col :span="4">
+                            <el-select v-model="form.crossing" @change="synchronize">
+                                <el-option v-for="item in crossings" :key="item.label" :label="item.label"
+                                    :value="item.value"></el-option>
+                            </el-select>
+                        </el-col>
+                        <el-col :span="16">
+                            <el-input v-model="form.name"></el-input>
+                        </el-col>
+                    </el-row>
+                </div>
             </el-form-item>
             <el-form-item label="進路">
                 <el-input v-model="form.direction"></el-input>
@@ -46,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { reactive } from 'vue'
 import { useCuesheetStore } from '@/stores/CueSheetStore'
 
 const props = defineProps(['submit', 'menuParams'])
@@ -55,8 +66,10 @@ const cuesheetStore = useCuesheetStore()
 const cuePoint = props.menuParams.cuePoint
 const form = reactive({ type: cuePoint.type, ...props.menuParams.cuePoint.properties })
 
-const signals = [{ value:false, label: ' ' },{ value: true, label: 'S' }, ]
-const crossings = ['a','b','c'].map(chr=>({ value: chr, label: chr}))
+// select の選択肢
+const signals = [{ value: false, label: ' ' }, { value: true, label: 'S' },] 
+const crossings = ["├", "┤", "┼", "┬", "Ｙ"].map(chr => ({ value: chr, label: chr }))
+crossings.unshift({ label: '　', value: ' ' })
 
 const onClick = (result: boolean) => {
     props.submit({ status: 'success', result })
@@ -66,7 +79,8 @@ const onCancelClose = () => {
     props.submit({ status: 'success', result: 'cancel' })
 }
 const synchronize = () => {
-    cuesheetStore.synchronize(props.menuParams.cuePoint.id, form)
+    const cueType = form.type
+    cuesheetStore.synchronize(props.menuParams.cuePoint.id, form, cueType)
 }
 
 </script>
@@ -87,5 +101,17 @@ const synchronize = () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.desc {
+    font-size: x-small
+}
+
+.my-form-item :deep(.el-form-item__label) {
+    align-self: center;
+}
+
+.my-form-item :deep(.el-form-item--small) {
+    line-height: 16px;
 }
 </style>

@@ -335,8 +335,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
                     return ({ lat: state.points[i].lat + diffLat * prop, lng: state.points[i].lng + diffLng * prop })
                 })
-        }
-        ,
+        },
 
         /**
          * RoutePoint id: symbol の一覧

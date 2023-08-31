@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { CuePoint, cueProperties } from '@/classes/cuePoint'
+import { CuePoint, cueProperties, cueType } from '@/classes/cuePoint'
 import { RoutePoint } from '@/classes/routePoint'
 import { useBrmRouteStore } from './BrmRouteStore'
 import { ar } from 'element-plus/es/locale'
@@ -149,10 +149,10 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 })
         },
 
-        synchronize(id:symbol, properties: cueProperties){            
+        synchronize(id:symbol, properties: cueProperties, type: cueType){            
             const cuePoint = this.getCuePointById(id)
-            cuePoint!.type = properties.type
             cuePoint!.properties = Object.assign(cuePoint!.properties,properties)
+            cuePoint!.type = type
             this.update()
         }
     }
