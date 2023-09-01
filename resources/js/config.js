@@ -13,6 +13,9 @@ export const SEEK_TIMEOUT = 1.5 * 1000
 // 実験の結果 300km コースで 300ポイントぐらいになった
 export const GEOCODE_TOLERANCE = 20 * 0.00005
 
+// LocalStorage へのキャッシュの上限( 約3M )
+export const GEOCODE_CACHE_LIMIT = 3_000_000
+
 // 距離計算時の補正倍率 RideWithGps と カシミール3D での距離を元に.
 export const HubenyCorrection = 1.0013
 

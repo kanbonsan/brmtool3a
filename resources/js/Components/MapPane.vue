@@ -59,6 +59,8 @@ import CuePointReattachMenu from "./PopupMenu/CuePointReattachMenu.vue"
 import CuePointMarker from "./CuePointMarker.vue"
 import axios from "axios"
 
+import { useGeocodeStore} from "@/stores/GeocodeStore"
+
 
 export type menuComponentOptions = {
     /**
@@ -257,6 +259,10 @@ watch(
         map.addListener("click", async (ev: google.maps.MapMouseEvent) => {
             const res = await axios.get("/api/getAlt", { params: { lat: ev.latLng?.lat(), lng: ev.latLng?.lng() } })
             console.log(res.data)
+
+            const geo = useGeocodeStore()
+            const result = await geo.getReverseGeocoder(ev.latLng?.lat()!,ev.latLng?.lng()!)
+            console.log(result)
         })
 
         // 地図上右クリックで画面上の polyline などを一時消去
