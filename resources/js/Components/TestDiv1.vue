@@ -64,7 +64,7 @@
                             </el-select>
                         </el-col>
                         <el-col :span="16">
-                            <el-input v-model="form.name"></el-input>
+                            <el-autocomplete v-model="form.name" style="width:100%;"></el-autocomplete>
                         </el-col>
                     </el-row>
                 </div>

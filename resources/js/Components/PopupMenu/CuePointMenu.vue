@@ -18,31 +18,31 @@
                 <el-radio label="poi">POI</el-radio>
             </el-radio-group>
             <el-form-item class="my-form-item" label="名称">
-                <div>
+                <div style="width:100%;">
                     <el-row>
-                        <el-col :span="4" class="desc">
+                        <el-col :span="cuePoint.type === 'cue' ? 4 : 0" class="desc">
                             信号</el-col>
-                        <el-col :span="4" class="desc">
+                        <el-col :span="cuePoint.type === 'cue' ? 4 : 0" class="desc">
                             交差点</el-col>
-                        <el-col :span="16" class="desc">
+                        <el-col :span="cuePoint.type === 'cue' ? 16 : 24" class="desc">
                             名称</el-col>
                     </el-row>
                     <el-row>
-                        <el-col :span="4">
+                        <el-col :span="cuePoint.type === 'cue' ? 4 : 0">
                             <el-select v-model="form.signal" @change="synchronize">
                                 <el-option v-for="item in signals" :key="item.label" :label="item.label"
                                     :value="item.value"></el-option>
                             </el-select>
                         </el-col>
-                        <el-col :span="4">
+                        <el-col :span="cuePoint.type === 'cue' ? 4 : 0">
                             <el-select v-model="form.crossing" @change="synchronize">
                                 <el-option v-for="item in crossings" :key="item.label" :label="item.label"
                                     :value="item.value"></el-option>
                             </el-select>
                         </el-col>
-                        <el-col :span="16">
+                        <el-col :span="cuePoint.type === 'cue' ? 16 : 24">
                             <el-autocomplete v-model="form.name" :fetch-suggestions="nameSearch" clearable
-                                style="width:100%;"></el-autocomplete>
+                                @select="synchronize" style="width:100%;"></el-autocomplete>
                         </el-col>
                     </el-row>
                 </div>
@@ -64,9 +64,9 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
 import { useCuesheetStore } from '@/stores/CueSheetStore'
-import { useBrmRouteStore } from '@/stores/BrmRouteStore';
-import { useGeocodeStore } from '@/stores/GeocodeStore';
-import { CuePoint } from '@/classes/cuePoint';
+import { useBrmRouteStore } from '@/stores/BrmRouteStore'
+import { useGeocodeStore } from '@/stores/GeocodeStore'
+import { CuePoint } from '@/classes/cuePoint'
 
 const props = defineProps(['submit', 'menuParams'])
 const cuesheetStore = useCuesheetStore()
@@ -95,20 +95,28 @@ const synchronize = () => {
 
 const nameSearch = async (queryString: string, cb: any) => {
 
-    if( cuePoint.type === 'poi'){
+    if (cuePoint.type === 'poi') {
         cb([])
         return
     }
 
-    const pt = routeStore.getPointById( cuePoint.routePointId)
+    const pt = routeStore.getPointById(cuePoint.routePointId)
 
-    const res = await geocodeStore.getData('placeInfo', pt?.lat!, pt?.lng! )
-    
-    if( cuePoint.type === 'pc' || cuePoint.type==='pass'){
-        cb( res.data.control.map((item: string)=>({value: item})))
+    const res = await geocodeStore.getData('placeInfo', pt?.lat!, pt?.lng!)
+
+    if (cuePoint.type === 'pc' || cuePoint.type === 'pass') {
+        cb(res.data.control.map((item: string) => ({ value: item })))
     } else {
-        cb( res.data.crossing.map((item: string)=>({value: item})))
+        cb(res.data.crossing.map((item: string) => ({ value: item })))
     }
+}
+
+const roadSearch = async (queryString: string, cb: any) => {
+
+}
+
+const directionSearch = async (queryString: string, cb: any) => {
+
 }
 
 </script>
@@ -125,7 +133,7 @@ const nameSearch = async (queryString: string, cb: any) => {
     font-weight: bold;
 }
 
-:deep(.el-form-item__label){
+:deep(.el-form-item__label) {
     padding-right: 5px;
     /* color: black; */
     font-weight: bold;
