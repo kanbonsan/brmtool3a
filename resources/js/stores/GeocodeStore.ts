@@ -9,66 +9,70 @@ type cache = {
 }
 
 type State = {
-    reverseGeocoder: cache[],
-    placeInfo: cache[],
+    cache: cache[]
+}
+
+interface Api {
+    fn(lat: number, lng: number): Promise<any>,
+    prefix: string
+}
+
+type Apis = { [name: string]: Api }
+
+const apis: Apis = {
+    reverseGeocoder: {
+        fn: yolp_reverseGeocoder,
+        prefix: 'rev'
+    },
+    placeInfo: {
+        fn: yolp_placeInfo,
+        prefix: 'place'
+    }
 }
 
 export const useGeocodeStore = defineStore('geocode', {
 
     state: (): State => ({
-        reverseGeocoder: [],
-        placeInfo: []
+        cache: []
     }),
 
     persist: true,
 
     getters: {
-
-        reverseGeocoderMap: (state) => {
-            return new Map(state.reverseGeocoder.map((item: cache) => [item.code, item.data]))
-        },
-
-        placeInfoMap: (state) => {
-            return new Map(state.placeInfo.map((item: cache) => [item.code, item.data]))
+        // 検索しやすいため Map オブジェクトに（localStrageに保存するには本体は Array にしておく必要がある）
+        cacheMap: (state) => {
+            return new Map(state.cache.map((item: cache) => [item.code, item.data]))
         },
 
     },
 
     actions: {
 
-        async getReverseGeocoder(lat: number, lng: number) {
-            console.log(this.$id)
-            console.log(localStorage.getItem('geocode')!.length)
-            const { code, val } = approx(lat, lng)
-            if (this.reverseGeocoderMap.has(code)) {
-                return { status: 'cached', data: this.reverseGeocoderMap.get(code) }
+        async getData(_method: string, lat: number, lng: number) {
+            const api = apis[_method]
+            const { locationCode, val } = approx(lat, lng)
+
+            const code = api.prefix + ":" + locationCode
+            if (this.cacheMap.has(code)) {
+                return { status: 'cached', data: this.cacheMap.get(code) }
             } else {
                 try {
-                    const data = await yolp_reverseGeocoder(val.lat, val.lng)
-                    this.reverseGeocoder.push({ ts: Date.now(), code, data })
+                    const data = await (api.fn)(val.lat, val.lng)
+                    this.cache.push({ ts: Date.now(), code, data })
+                    this.gc()
                     return { status: 'oti', data }
                 } catch (e) {
                     return { status: 'error' }
                 }
             }
-
         },
 
-        async getPlaceInfo(lat: number, lng: number) {
-            const { code, val } = approx(lat, lng)
-            if (this.reverseGeocoderMap.has(code)) {
-                return { status: 'cached', data: this.reverseGeocoderMap.get(code) }
-            } else {
-                try {
-                    const data = await yolp_placeInfo(val.lat, val.lng)
-                    this.reverseGeocoder.push({ ts: Date.now(), code, data })
-                    return { status: 'oti', data }
-                } catch (e) {
-                    return { status: 'error' }
-                }
-            }
-
-        },
+        gc(){
+            const length = JSON.stringify(this.cache).length
+            if( length<GEOCODE_CACHE_LIMIT) return
+            this.cache.shift()
+            this.gc()
+        }
 
     }
 

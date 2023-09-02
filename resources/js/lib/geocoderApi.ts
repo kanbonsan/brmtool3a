@@ -1,8 +1,6 @@
 /**
  * 各種APIをたたく YOLP, GoogleMaps Geocoder
  */
-
-
 import { GEOCODE_DATA_LIFETIME, ALL_PUBLIC_ROAD_SAME_SYMBOL } from '@/config'
 import axios from 'axios'
 import _ from 'lodash'
@@ -39,7 +37,7 @@ export function approx(_lat: number, _lng: number) {
     const lat = code(_lat, 4, 90, 7)
     const lng = code(_lng, 4, 180, 7)
 
-    return { code: lat.code + ":" + lng.code, val: { lat: lat.approx, lng: lng.approx }, raw: { lat: lat.raw, lng: lng.raw } }
+    return { locationCode: lat.code + ":" + lng.code, val: { lat: lat.approx, lng: lng.approx }, raw: { lat: lat.raw, lng: lng.raw } }
 }
 
 // キューシート用の道路名に変換
@@ -93,7 +91,7 @@ export function convRoadName(name: string) {
 // adress, country, road
 export async function yolp_reverseGeocoder(lat: number, lng:number) {
 
-    const type = 'yahooReverseGeocoder'
+    const api = 'yahooReverseGeocoder'
 
     const URL = "https://map.yahooapis.jp/geoapi/V1/reverseGeoCoder"
 
@@ -114,20 +112,17 @@ export async function yolp_reverseGeocoder(lat: number, lng:number) {
             }
         )
 
-        const ts = Date.now()
         const result = response.data.Feature[0].Property
         const Country = result.Country
         const Address = result.Address
 
         // 道路情報がない場合は仮の情報を追加
-        result.Road = result.Road || [{ Name: "", Kigou: "" }]
-        const Road = result.Road.map((rd: any) => {
+        result.Road = result.Road ?? [{ Name: "", Kigou: "" }]
+        const road = result.Road.map((rd: any) => {
             return ({ ...rd, Kigou: convRoadName(rd.Name) })
         })
 
-        const data = { Address, Country, Road, ts }
-
-        return ({ type, location, data, ts, rawData: result })
+               return ({ api, road, rawData: result })
 
     } catch (error) {
         console.error('yolp_reverseGeocoder', error)
@@ -138,7 +133,8 @@ export async function yolp_reverseGeocoder(lat: number, lng:number) {
 }
 
 export async function yolp_placeInfo(lat:number,lng:number) {
-    const type = 'yahooPlaceInfo'
+
+    const api = 'yahooPlaceInfo'
     const URL = "https://map.yahooapis.jp/placeinfo/V1/get"
 
     try {
@@ -156,28 +152,25 @@ export async function yolp_placeInfo(lat:number,lng:number) {
                 }
             }
         )
-        const ts = Date.now()
         const result = response.data.ResultSet
 
         const Address = result.Address
         const Country = result.Country
         const category_control = ["道の駅", "ローソン", "セブン-イレブン", "ファミリーマート", "ミニストップ", "ヤマザキデイリーストアー"]
-        const Crossing: any = []
-        const Control: any = []
+        const crossing: string[] = []
+        const control: string[] = []
 
         result.Result.forEach((pt: any) => {
             if (pt.Category === '地点名' && pt.Name.indexOf('交差点') !== -1) {
-                Crossing.push(pt.Name.replace(/交差点$/, ''))
+                crossing.push(pt.Name.replace(/交差点$/, ''))
                 return
             }
             if (category_control.includes(pt.Category)) {
-                Control.push(pt.Name)
+                control.push(pt.Name)
             }
         })
 
-        const data = { Address, Country, Crossing, Control, ts }
-
-        return ({ status: 'ok', type, location, data, ts, rawData: result })
+        return { api, crossing, control, rawData: result }
 
     } catch (error) {
 

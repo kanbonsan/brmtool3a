@@ -4,18 +4,18 @@ import { ref, watch } from "vue"
 import { Marker } from "vue3-google-map"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useCuesheetStore } from "@/stores/CueSheetStore"
+import { useGeocodeStore } from "@/stores/GeocodeStore"
 import { computed, inject } from "vue"
 import { googleMapsKey } from "./gmap/keys"
 import { CuePoint } from "@/classes/cuePoint"
 import { markerIcon } from "@/lib/gmapcueicon"
-
-import { yolp_reverseGeocoder } from "@/lib/geocoderApi.js"
 
 import type { RoutePoint } from "@/classes/routePoint"
 import { ElMessage } from "element-plus"
 
 const routeStore = useBrmRouteStore()
 const cuesheetStore = useCuesheetStore()
+const geocodeStore = useGeocodeStore()
 
 const props = defineProps(["visible"])
 const cuePoints = computed(() => cuesheetStore.getArray)
@@ -117,10 +117,6 @@ const cueMarkerPopup = async (cpt: CuePoint, menu: string) => {
         return Promise.reject('n/a')
     }
 
-    const ptPos = new google.maps.LatLng( routeStore.getPointById( cpt.routePointId)!)
-
-    const  geo = await yolp_reverseGeocoder(ptPos)
-    
     popups!.menuParams.value = { cuePoint: cpt }
 
     // ここで 動的テンプレートのテンプレートを設定している
