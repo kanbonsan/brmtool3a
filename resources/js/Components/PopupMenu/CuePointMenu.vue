@@ -49,10 +49,11 @@
             </el-form-item>
             <el-row>
                 <el-col :span="8"><el-form-item label="進路">
-                        <el-input v-model="form.direction"></el-input>
+                        <el-autocomplete v-model="form.direction" :fetch-suggestions="directionSearch" clearable
+                            @select="synchronize" @change="synchronize"></el-autocomplete>
                     </el-form-item></el-col>
                 <el-col :span="16"><el-form-item label="道路">
-                        <el-input v-model="form.route"></el-input>
+                        <el-autocomplete v-model="form.route" :fetch-suggestions="roadSearch" clearable></el-autocomplete>
                     </el-form-item></el-col>
             </el-row>
 
@@ -62,19 +63,47 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { reactive, onMounted } from 'vue'
 import { useCuesheetStore } from '@/stores/CueSheetStore'
 import { useBrmRouteStore } from '@/stores/BrmRouteStore'
 import { useGeocodeStore } from '@/stores/GeocodeStore'
 import { CuePoint } from '@/classes/cuePoint'
+import { valueEquals } from 'element-plus'
 
 const props = defineProps(['submit', 'menuParams'])
 const cuesheetStore = useCuesheetStore()
 const routeStore = useBrmRouteStore()
 const geocodeStore = useGeocodeStore()
 
+const directions: [number, number, string, string?][] = [
+    [0, 15, '直進', 'S'],
+    [75, 105, '右折', 'R'],
+    [165, 195, '戻る', ''],
+    [255, 285, '左折', 'L'],
+    [345, 360, '直進', 'S'],
+    [0, 45, 'まっすぐ', 'S'],
+    [45, 165, '右', 'R'],
+    [195, 315, '左', 'L'],
+    [315, 360, 'まっすぐ', 'S'],
+    [0, 180, '右', 'R'],
+    [180, 360, '左', 'L'],
+]
+
+
+
 const cuePoint = props.menuParams.cuePoint as CuePoint
+const routePoint = routeStore.getPointById(cuePoint.routePointId)
+
 const form = reactive({ type: cuePoint.type, ...props.menuParams.cuePoint.properties })
+
+onMounted(() => {
+
+    // 進路の初期設定
+    if (cuePoint.type !== 'poi' && form.direction === '') {
+        const dirs = Array.from(getDirection())
+        form.direction = dirs[0]
+    }
+})
 
 // select の選択肢
 const signals = [{ value: false, label: ' ' }, { value: true, label: 'S' },]
@@ -100,9 +129,7 @@ const nameSearch = async (queryString: string, cb: any) => {
         return
     }
 
-    const pt = routeStore.getPointById(cuePoint.routePointId)
-
-    const res = await geocodeStore.getData('placeInfo', pt?.lat!, pt?.lng!)
+    const res = await geocodeStore.getData('placeInfo', routePoint?.lat!, routePoint?.lng!)
 
     if (cuePoint.type === 'pc' || cuePoint.type === 'pass') {
         cb(res.data.control.map((item: string) => ({ value: item })))
@@ -111,12 +138,89 @@ const nameSearch = async (queryString: string, cb: any) => {
     }
 }
 
+const getRoads = async () => {
+
+    const roads: Set<string> = new Set()
+    const seek = [0, 300, 1000, 5000, 10000]
+
+    for (const distance of seek) {
+        const loc = routeStore.getLocationByDistance(routePoint?.routeDistance! + distance)
+        const res = await geocodeStore.getData('reverseGeocoder', loc.lat, loc.lng)
+        res.data.road.forEach((rd: any) => roads.add(rd.Kigou))
+    }
+
+    roads.add('市道')
+
+    return Array.from(roads)
+}
+
+
 const roadSearch = async (queryString: string, cb: any) => {
+    // 現在の入力内容を整形
+    const current = queryString.replace(/[ 　]+/, ' ').split('→').map(item => item.trim()).filter(item => item !== '')
+    const roadList = await getRoads()
+
+    const suggestions = []
+
+    if (current.length > 0) {
+        suggestions.push(current)
+        suggestions.push([...current, ""]) // 「→」のみ
+        for (let i: number = 0; i < 3; i++) {
+            const road = roadList[i]
+            if (roadList[i] && !current.includes(road)) {
+                suggestions.push([...current, road])
+            }
+        }
+    }
+
+    for (let i: number = 0; i < 2; i++) {
+        const road = roadList[i]
+        let exist = false
+        for (const suggestion of suggestions) {
+            if (suggestion.length === 1 && suggestion.includes(road)) {
+                exist = true
+            }
+        }
+        if (!exist) {
+            suggestions.push([road])
+        }
+    }
+
+    cb(suggestions.map((s) => ({ value: s.join(' → ') })))
 
 }
 
-const directionSearch = async (queryString: string, cb: any) => {
+// 進路
+const getDirection = () => {
+    const list = new Set()
 
+    // 参照点前後 50m、100m を元にしたときの進路（度）
+    const headings = [routeStore.getHeading(routePoint, 50).heading, routeStore.getHeading(routePoint, 100).heading]
+
+    for (const i of [0, 1, 2]) {  // ただのループ
+        for (const heading of headings) {
+            for (const item of directions) {
+                if (item[0] <= heading && heading < item[1] && !list.has(item[2])) {
+                    list.add(item[2])
+                    break
+                }
+            }
+        }
+    }
+    // 残りをリストに加える
+    for (const item of directions) {
+        list.add(item[2])
+    }
+    return list
+}
+
+const directionSearch = async (queryString: string, cb: any) => {
+    if (cuePoint.type === 'poi') {
+        return cb([])
+    } else {
+        const dirList = Array.from(getDirection()).map(item => ({ value: item }))
+        cb(dirList)
+    }
 }
 
 </script>

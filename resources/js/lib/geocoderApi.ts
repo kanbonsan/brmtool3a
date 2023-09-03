@@ -117,7 +117,7 @@ export async function yolp_reverseGeocoder(lat: number, lng:number) {
         const Address = result.Address
 
         // 道路情報がない場合は仮の情報を追加
-        result.Road = result.Road ?? [{ Name: "", Kigou: "" }]
+        result.Road = result.Road ?? [{ Name: "市道", Kigou: "市道" }]
         const road = result.Road.map((rd: any) => {
             return ({ ...rd, Kigou: convRoadName(rd.Name) })
         })

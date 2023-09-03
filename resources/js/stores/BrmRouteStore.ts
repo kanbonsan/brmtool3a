@@ -78,6 +78,9 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /** ポイント数 */
         count: (state): number => state.points.length,
 
+        /** ルート距離（除外を含む） */
+        routeDistance: (state): number => state.points.length > 0 ? state.points.slice(-1)[0].routeDistance : 0,
+
         /** simplify 用の配列（x,y) を用意 */
         pointsArray: (state) => state.points.map((pt, index) => ({ x: pt.lng ?? 0, y: pt.lat ?? 0, index })),
 
@@ -317,11 +320,37 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /**
          * 指定距離の緯度・経度を返す
          * （route direction で参照点を求めるのに使用）
+         * distance が範囲内に収まっていない場合は、折り返した点を終端を支点に反転させた点を返す
+         * 道路検索や、進路検索で端の方での計算に用いるため
+         * 
          * @returns { lat: number, lng: number}
          */
         getLocationByDistance(state) {
+
+            // fulcrum を支点とする対称点を返す
+            const getMirror = (pt: { lat: number, lng: number }, fulcrum: { lat: number, lng: number }) => {
+                return { lat: 2 * fulcrum.lat - pt.lat, lng: 2 * fulcrum.lng - pt.lng }
+            }
+
             return (
-                (distance: number) => {
+                (distance: number): { lat: number, lng: number } => {
+
+                    if (distance < 0) {
+                        if (-distance < this.routeDistance) {
+                            return getMirror(this.getLocationByDistance(-distance), this.points[0])
+                        } else {
+                            throw new Error('invalid distance: 手前すぎ')
+                        }
+                    }
+
+                    if (distance > this.routeDistance) {
+                        if (distance < 2 * this.routeDistance) {
+                            return getMirror(this.getLocationByDistance(2 * this.routeDistance - distance), this.points.slice(-1)[0])
+                        } else {
+                            throw new Error('invalid distance: 行き過ぎ')
+                        }
+                    }
+
                     let i = 0
                     for (; i < this.count; i++) {
                         if (state.points[i].routeDistance > distance) {
@@ -351,7 +380,6 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * @returns cuePointId: symbol | null
          */
         hasCuePoint() {
-            console.log('hasCuePoint')
             const cuesheetStore = useCuesheetStore()
             return (pt: RoutePoint | null) => {
                 if (pt === null) return null
@@ -362,6 +390,24 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 return cpt ? cpt.id : null
             }
         },
+
+        getHeading() {
+            return (pt: RoutePoint | undefined, distance: number = 50) => {
+
+                if (pt === undefined) {
+                    return { in: 0, out: 0, heading: 0 }
+                }
+
+                const dev = 50
+                const front = this.getLocationByDistance(pt.routeDistance - dev)
+                const beyond = this.getLocationByDistance(pt.routeDistance + dev)
+                const inAngle = google.maps.geometry.spherical.computeHeading(front, pt)
+                const outAngle = google.maps.geometry.spherical.computeHeading(pt, beyond)
+
+                return { in: inAngle, out: outAngle, heading: (outAngle - inAngle + 360) % 360 }
+
+            }
+        }
 
     },
 

@@ -266,7 +266,7 @@ watch(
             if (mapObjectVisibleTimer != null) {
                 clearTimeout(mapObjectVisibleTimer)
             }
-            mapObjectVisibleTimer = setTimeout(() => { mapObjectVisible.value = true }, 1500)
+            mapObjectVisibleTimer = window.setTimeout(() => { mapObjectVisible.value = true }, 1500)
             mapObjectVisible.value = false
         })
     }

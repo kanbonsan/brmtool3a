@@ -19,6 +19,8 @@ interface Api {
 
 type Apis = { [name: string]: Api }
 
+type ApiMethods = 'reverseGeocoder' | 'placeInfo'
+
 const apis: Apis = {
     reverseGeocoder: {
         fn: yolp_reverseGeocoder,
@@ -48,7 +50,7 @@ export const useGeocodeStore = defineStore('geocode', {
 
     actions: {
 
-        async getData(_method: string, lat: number, lng: number) {
+        async getData(_method: ApiMethods, lat: number, lng: number) {
             const api = apis[_method]
             const { locationCode, val } = approx(lat, lng)
 
