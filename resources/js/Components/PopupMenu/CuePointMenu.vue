@@ -53,9 +53,20 @@
                             @select="synchronize" @change="synchronize"></el-autocomplete>
                     </el-form-item></el-col>
                 <el-col :span="16"><el-form-item label="道路">
-                        <el-autocomplete v-model="form.route" :fetch-suggestions="roadSearch" clearable></el-autocomplete>
+                        <el-autocomplete v-model="form.route" :fetch-suggestions="roadSearch" clearable
+                            style="width:100%;" @select="synchronize"></el-autocomplete>
                     </el-form-item></el-col>
             </el-row>
+            <el-row>
+                <el-col :span="8"><el-form-item><template #label><el-icon color="#409EFC" class="no-inherit">
+    <Share />
+  </el-icon></template></el-form-item></el-col>
+                <el-col :span="8"></el-col>
+                <el-col :span="8"></el-col>
+            </el-row>
+            <el-form-item label="備考">
+                <el-input v-model="form.note" :rows="2" type="textarea" @input="synchronize"></el-input>
+            </el-form-item>
 
 
         </el-form>
@@ -173,7 +184,7 @@ const roadSearch = async (queryString: string, cb: any) => {
         }
     }
 
-    for (let i: number = 0; i < 2; i++) {
+    for (let i: number = 0; i < 3; i++) {
         const road = roadList[i]
         let exist = false
         for (const suggestion of suggestions) {
