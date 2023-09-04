@@ -10,7 +10,7 @@
 
             </div>
         </template>
-        <el-form label-width="40px" size="small" :model="form" @input="synchronize">
+        <el-form label-width="50px" size="small" :model="form" @input="synchronize">
             <el-radio-group v-model="form.type" @change="synchronize">
                 <el-radio label="cue">ポイント</el-radio>
                 <el-radio label="pc">PC</el-radio>
@@ -53,19 +53,20 @@
                             @select="synchronize" @change="synchronize"></el-autocomplete>
                     </el-form-item></el-col>
                 <el-col :span="16"><el-form-item label="道路">
-                        <el-autocomplete v-model="form.route" :fetch-suggestions="roadSearch" clearable
-                            style="width:100%;" @select="synchronize"></el-autocomplete>
+                        <el-autocomplete v-model="form.route" :fetch-suggestions="roadSearch" clearable style="width:100%;"
+                            @select="synchronize"></el-autocomplete>
                     </el-form-item></el-col>
             </el-row>
             <el-row>
-                <el-col :span="8"><el-form-item><template #label><el-icon color="#409EFC" class="no-inherit">
-    <Share />
-  </el-icon></template></el-form-item></el-col>
+                <el-col :span="8">
+                    <el-form-item>
+                        <template #label><div style="display:inline-flex; flex-flow:column; align-items: flex-end;"><img :src="garmin" style="width:100%;"><span>GPS</span></div></template>
+                    </el-form-item></el-col>
                 <el-col :span="8"></el-col>
                 <el-col :span="8"></el-col>
             </el-row>
             <el-form-item label="備考">
-                <el-input v-model="form.note" :rows="2" type="textarea" @input="synchronize"></el-input>
+                <el-input v-model="form.note" autosize type="textarea" @input="synchronize"></el-input>
             </el-form-item>
 
 
@@ -80,6 +81,8 @@ import { useBrmRouteStore } from '@/stores/BrmRouteStore'
 import { useGeocodeStore } from '@/stores/GeocodeStore'
 import { CuePoint } from '@/classes/cuePoint'
 import { valueEquals } from 'element-plus'
+
+import garmin from '@/../../resources/images/Garmin_logo_2006.svg'
 
 const props = defineProps(['submit', 'menuParams'])
 const cuesheetStore = useCuesheetStore()
