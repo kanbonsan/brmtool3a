@@ -35,6 +35,8 @@ type State = {
 
 }
 
+type BrmRange = { begin: number, end: number }
+
 /**
  * 編集可能範囲の指定
  */
@@ -77,6 +79,25 @@ export const useBrmRouteStore = defineStore('brmroute', {
     getters: {
         /** ポイント数 */
         count: (state): number => state.points.length,
+
+        /** BRM範囲（両端の除外を考慮） */
+        brmRange(state): BrmRange {
+            let begin = -1
+            let end = this.count
+            for (let i = 0; i < this.count; i++) {
+                if (!state.points[i].excluded) {
+                    begin = i
+                    break
+                }
+            }
+            for (let i = this.count - 1; i >= 0; i--) {
+                if (!state.points[i].excluded) {
+                    end = i
+                    break
+                }
+            }
+            return { begin, end }
+        },
 
         /** ルート距離（除外を含む） */
         routeDistance: (state): number => state.points.length > 0 ? state.points.slice(-1)[0].routeDistance : 0,

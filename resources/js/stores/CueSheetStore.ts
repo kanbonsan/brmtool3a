@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { CuePoint, cueProperties, cueType } from '@/classes/cuePoint'
 import { RoutePoint } from '@/classes/routePoint'
 import { useBrmRouteStore } from './BrmRouteStore'
-import { ar } from 'element-plus/es/locale'
 
 type State = {
     cuePoints: Map<symbol, CuePoint>
@@ -104,6 +103,12 @@ export const useCuesheetStore = defineStore('cuesheet', {
             this.update()
         },
         /**
+         * スタート・ゴールポイントの設定
+         * - 末端ポイントは移動できない仕様
+         * - 末端にポイントがなければ、未設定かルートの末端部分に変化があったかとなる
+         * - 末端でないところにある terminal Pt は普通の cue Pt に変更して、
+         * - 末端ポイントを新設
+         * 
          * キューポイントに対応する RoutePoint が存在するかのチェック
          * - ルートが変更されて対応するポイントがなくなったときに所属のキューポイントは'poi'にする
          * - ポイントが除外範囲になったときも'poi'にする
@@ -111,6 +116,25 @@ export const useCuesheetStore = defineStore('cuesheet', {
          */
         update() {
             const brmStore = useBrmRouteStore()
+            const brmRange = brmStore.brmRange
+
+            // 末端の処理
+            this.cuePoints.forEach((cpt:CuePoint)=>{
+                if( cpt.terminal === undefined) return
+                const routePoint = brmStore.getPointById(cpt.routePointId)
+                const ptIdx=brmStore.getPointIndex(routePoint!)
+
+                if( ptIdx !==brmRange.begin && ptIdx !==brmRange.end){
+                    cpt.terminal = undefined
+                    cpt.type = 'cue'
+                }
+            })
+
+            
+
+
+
+
             this.cuePoints.forEach((cpt: CuePoint) => {
                 // 元々 'poi' のときは終了
                 if (!cpt.routePointId) return
@@ -129,6 +153,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
             })
             this.label()
         },
+
         /**
          * CuePoint のラベル付け（インデックス）
          */
@@ -149,6 +174,13 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 })
         },
 
+        /**
+         * CuePointMenu で内容が変化するたびに呼ばれて store と同期する
+         * （CuePointMenu の form で直接 store を更新させるいい方法がなかった）
+         * @param id cuePointId
+         * @param properties 
+         * @param type cueType(properties に混ぜると型がややこしくなるので別口にした)
+         */
         synchronize(id:symbol, properties: cueProperties, type: cueType){            
             const cuePoint = this.getCuePointById(id)
             cuePoint!.properties = Object.assign(cuePoint!.properties,properties)

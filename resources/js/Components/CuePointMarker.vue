@@ -61,7 +61,7 @@ const onClick = async (cpt: CuePoint, $event: google.maps.MapMouseEvent) => {
 
     if (timer !== null) { return }
 
-    timer = setTimeout(async () => {
+    timer = window.setTimeout(async () => {
         const response: any = await cueMarkerPopup(cpt, 'CuePointMenu')
         timer = null
     }, 250)

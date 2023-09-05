@@ -42,7 +42,7 @@
                         </el-col>
                         <el-col :span="cuePoint.type === 'cue' ? 16 : 24">
                             <el-autocomplete v-model="form.name" :fetch-suggestions="nameSearch" clearable
-                                @select="synchronize" style="width:100%;"></el-autocomplete>
+                                @select="synchronize" @change="synchronize" style="width:100%;"></el-autocomplete>
                         </el-col>
                     </el-row>
                 </div>
@@ -54,7 +54,7 @@
                     </el-form-item></el-col>
                 <el-col :span="16"><el-form-item label="道路">
                         <el-autocomplete v-model="form.route" :fetch-suggestions="roadSearch" clearable style="width:100%;"
-                            @select="synchronize"></el-autocomplete>
+                            @select="synchronize" @change="synchronize"></el-autocomplete>
                     </el-form-item></el-col>
             </el-row>
             <el-form-item><template #label>
@@ -69,7 +69,7 @@
                         <el-col :span="9" :offset="1" class="desc">
                             ラベル</el-col>
                         <el-col :span="3" :offset="1" class="desc">
-                            表示</el-col>
+                            <el-tooltip placement="right" content="デバイスへの表示">表示</el-tooltip></el-col>
                     </el-row>
                     <el-row>
                         <el-col :span="2">
@@ -77,7 +77,7 @@
                                 style="height:26px;" />
                         </el-col>
                         <el-col :span="8">
-                            <el-select v-model="form.garminDeviceIcon">
+                            <el-select v-model="form.garminDeviceIcon" @change="synchronize">
                                 <el-option v-for="icon in garminIcons" :key="icon.enName" :label="icon.jaName"
                                     :value="icon.enName">
                                     <div style="display:inline-flex"><img :src="icon.dataUrl" /><span class="px-2">{{
@@ -85,9 +85,9 @@
                                 </el-option>
                             </el-select>
                         </el-col>
-                        <el-col :span="4" :offset="1"><el-input v-model="form.garminDeviceText"></el-input></el-col>
+                        <el-col :span="4" :offset="1"><el-input v-model="form.garminDeviceText" @change="synchronize" @input="synchronize"></el-input></el-col>
                         <el-col :span="4" :offset="1">LABEL</el-col>
-                        <el-col :span="3" :offset="1"><el-switch v-model="form.garminDisplay"></el-switch></el-col>
+                        <el-col :span="3" :offset="1"><el-switch v-model="form.garminDisplay" @change="synchronize"></el-switch></el-col>
                     </el-row>
                 </div>
 
@@ -183,6 +183,7 @@ const onCancelClose = () => {
 }
 
 const synchronize = () => {
+    console.log('sync')
     const cueType = form.type
     cuesheetStore.synchronize(props.menuParams.cuePoint.id, form, cueType)
 }

@@ -17,6 +17,7 @@ export class CuePoint {
 
     id: symbol
     type: cueType
+    terminal?: 'start'|'finish' 
 
     properties: cueProperties = {
         signal: false,
