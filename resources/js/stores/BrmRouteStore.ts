@@ -400,13 +400,15 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * 一つのRoutePointにはCuePointは一つしか設定できない
          * @returns cuePointId: symbol | null
          */
-        hasCuePoint() {
+        hasCuePoint(state) {
             const cuesheetStore = useCuesheetStore()
-            return (pt: RoutePoint | null) => {
+            return (pt: RoutePoint | number | null) => {
                 if (pt === null) return null
-                const arr = cuesheetStore.getArray
+
+                const routePoint = ( typeof pt === 'number') ? state.points[pt] : pt
+                
                 const cpt = cuesheetStore.getArray.find((cpt) => {
-                    return cpt.routePointId === pt.id
+                    return cpt.routePointId === routePoint.id
                 })
                 return cpt ? cpt.id : null
             }

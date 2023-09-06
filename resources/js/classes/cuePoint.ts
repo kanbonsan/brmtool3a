@@ -50,6 +50,7 @@ export class CuePoint {
     constructor(lat: number, lng: number, type: cueType = 'poi', routePointId: symbol | null = null) {
         this.id = this.groupId = Symbol()
         this.type = type
+        this.terminal = undefined
         this.lat = lat
         this.lng = lng
         this.routePointId = routePointId

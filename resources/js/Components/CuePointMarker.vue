@@ -4,7 +4,6 @@ import { ref, watch } from "vue"
 import { Marker } from "vue3-google-map"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useCuesheetStore } from "@/stores/CueSheetStore"
-import { useGeocodeStore } from "@/stores/GeocodeStore"
 import { computed, inject } from "vue"
 import { googleMapsKey } from "./gmap/keys"
 import { CuePoint } from "@/classes/cuePoint"
@@ -15,7 +14,6 @@ import { ElMessage } from "element-plus"
 
 const routeStore = useBrmRouteStore()
 const cuesheetStore = useCuesheetStore()
-const geocodeStore = useGeocodeStore()
 
 const props = defineProps(["visible"])
 const cuePoints = computed(() => cuesheetStore.getArray)
@@ -29,8 +27,15 @@ const marker = ref()
 
 const getOption = (cpt: CuePoint) => {
 
+    let cueType: string
+
+    if( cpt.type !== 'pc'){ cueType=cpt.type}
+    else {
+        cueType = cpt.terminal!==undefined ? cpt.terminal : 'pc'
+    }
+
     const iconOption = {
-        type: cpt.type,
+        type: cueType,
         inactive: true,
         show: false,
         size: 'small',
@@ -95,6 +100,14 @@ const onDragEnd = async (cpt: CuePoint, index: number, $event: google.maps.MapMo
     const routePoint = refRoutePoint.value
 
     if (routePoint !== null && routeStore.hasCuePoint(routePoint) === null) {
+
+        if (cpt.terminal !== undefined) {
+            setTimeout(() => cpt.setPosition(new google.maps.LatLng(routeStore.getPointById(cpt.routePointId)!)), 250)
+            routePoint.opacity = 0.0
+            ElMessage({ type: 'info', message: 'スタート・ゴールポイントは移動できません' })
+            return
+        }
+
         popups!.menuParams.value = { cpt }
         const res: any = await cueMarkerPopup(cpt, 'CuePointReattachMenu')
         if (res.result! === 'reattach') {
@@ -122,7 +135,7 @@ const cueMarkerPopup = async (cpt: CuePoint, menu: string) => {
     // ここで 動的テンプレートのテンプレートを設定している
     // この行を先頭付近に持っていってしまうと先にポップアップの中身がマウントされてしまうために内容（menuParams）が更新されない。
     // かなり悩んだ
-    popups!.menuComp.value = menu 
+    popups!.menuComp.value = menu
 
     const position = new google.maps.LatLng({ ...cpt })
     const result = await popups!.popup(position!)

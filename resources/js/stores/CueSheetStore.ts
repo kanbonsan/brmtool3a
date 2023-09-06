@@ -47,7 +47,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
 
     actions: {
 
-        addCuePoint(point: RoutePoint | { lat: number, lng: number }) {
+        addCuePoint(point: RoutePoint | { lat: number, lng: number }): CuePoint {
 
             if (point instanceof RoutePoint) {
 
@@ -60,11 +60,15 @@ export const useCuesheetStore = defineStore('cuesheet', {
 
                 this.update()
 
+                return cpt
+
             } else {
                 const cpt = new CuePoint(point.lat, point.lng, 'poi', null)
                 this.cuePoints.set(cpt.id, cpt)
 
                 this.update()
+
+                return cpt
             }
 
         },
@@ -119,22 +123,29 @@ export const useCuesheetStore = defineStore('cuesheet', {
             const brmRange = brmStore.brmRange
 
             // 末端の処理
-            this.cuePoints.forEach((cpt:CuePoint)=>{
-                if( cpt.terminal === undefined) return
+            this.cuePoints.forEach((cpt: CuePoint) => {
+                if (cpt.terminal === undefined) return
                 const routePoint = brmStore.getPointById(cpt.routePointId)
-                const ptIdx=brmStore.getPointIndex(routePoint!)
+                const ptIdx = brmStore.getPointIndex(routePoint!)
 
-                if( ptIdx !==brmRange.begin && ptIdx !==brmRange.end){
+                if (ptIdx !== brmRange.begin && ptIdx !== brmRange.end) {
                     cpt.terminal = undefined
                     cpt.type = 'cue'
                 }
             })
 
-            
+            if (!brmStore.hasCuePoint(brmRange.begin)) {
+                const cpt = this.addCuePoint(brmStore.points[brmRange.begin])
+                cpt.type = 'pc'
+                cpt.terminal = 'start'
+            }
+            if (!brmStore.hasCuePoint(brmRange.end)) {
+                const cpt = this.addCuePoint(brmStore.points[brmRange.end])
+                cpt.type = 'pc'
+                cpt.terminal = 'finish'
+            }
 
-
-
-
+            // キューポイントの POI 化
             this.cuePoints.forEach((cpt: CuePoint) => {
                 // 元々 'poi' のときは終了
                 if (!cpt.routePointId) return
@@ -169,7 +180,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
                     const bRoutePointIndex = brmStore.getPointIndex(brmStore.getPointById(b.routePointId)!)
                     return aRoutePointIndex - bRoutePointIndex
                 })
-                .forEach( (cpt,index)=>{
+                .forEach((cpt, index) => {
                     cpt.pointNo = index + 1
                 })
         },
@@ -181,9 +192,9 @@ export const useCuesheetStore = defineStore('cuesheet', {
          * @param properties 
          * @param type cueType(properties に混ぜると型がややこしくなるので別口にした)
          */
-        synchronize(id:symbol, properties: cueProperties, type: cueType){            
+        synchronize(id: symbol, properties: cueProperties, type: cueType) {
             const cuePoint = this.getCuePointById(id)
-            cuePoint!.properties = Object.assign(cuePoint!.properties,properties)
+            cuePoint!.properties = Object.assign(cuePoint!.properties, properties)
             cuePoint!.type = type
             this.update()
         }

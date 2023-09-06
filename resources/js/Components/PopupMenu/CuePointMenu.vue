@@ -11,12 +11,22 @@
             </div>
         </template>
         <el-form label-width="50px" size="small" :model="form" @input="synchronize">
-            <el-radio-group v-model="form.type" @change="synchronize">
-                <el-radio label="cue">ポイント</el-radio>
-                <el-radio label="pc">PC</el-radio>
-                <el-radio label="pass">チェック</el-radio>
-                <el-radio label="poi">POI</el-radio>
-            </el-radio-group>
+            <el-row>
+                <el-col :span="cuePoint.type === 'pc' ? 20 : 24" class="desc">ポイントタイプ</el-col>
+                <el-col :span="cuePoint.type === 'pc' ? 3 : 0" :offset="1" class="desc">グループ</el-col>
+            </el-row>
+            <el-row style="margin-bottom: 10px;">
+                <el-col :span="cuePoint.type === 'pc' ? 20 : 24">
+                    <el-radio-group v-model="form.type" class="cue-type" @change="synchronize">
+                        <el-radio label="cue" border>ポイント</el-radio>
+                        <el-radio label="pc" border>PC</el-radio>
+                        <el-radio label="pass" border>チェック</el-radio>
+                        <el-radio label="poi" border>POI</el-radio>
+                    </el-radio-group>
+                </el-col>
+                <el-col :span="cuePoint.type === 'pc' ? 3 : 0" :offset="1">
+                <el-switch style="align-self:flex-end;" v-model="form.pcGroup"></el-switch></el-col>
+            </el-row>
             <el-form-item class="my-form-item" label="名称">
                 <div style="width:100%;">
                     <el-row>
@@ -85,9 +95,11 @@
                                 </el-option>
                             </el-select>
                         </el-col>
-                        <el-col :span="4" :offset="1"><el-input v-model="form.garminDeviceText" @change="synchronize" @input="synchronize"></el-input></el-col>
+                        <el-col :span="4" :offset="1"><el-input v-model="form.garminDeviceText" @change="synchronize"
+                                @input="synchronize"></el-input></el-col>
                         <el-col :span="4" :offset="1">LABEL</el-col>
-                        <el-col :span="3" :offset="1"><el-switch v-model="form.garminDisplay" @change="synchronize"></el-switch></el-col>
+                        <el-col :span="3" :offset="1"><el-switch v-model="form.garminDisplay"
+                                @change="synchronize"></el-switch></el-col>
                     </el-row>
                 </div>
 
@@ -103,6 +115,7 @@
 
 <script setup lang="ts">
 import { reactive, onMounted, watch } from 'vue'
+import { ElMessageBox } from 'element-plus'
 import { useCuesheetStore } from '@/stores/CueSheetStore'
 import { useBrmRouteStore } from '@/stores/BrmRouteStore'
 import { useGeocodeStore } from '@/stores/GeocodeStore'
@@ -133,11 +146,9 @@ const directions: [number, number, string, string?][] = [
 const cuePoint = props.menuParams.cuePoint as CuePoint
 const routePoint = routeStore.getPointById(cuePoint.routePointId)
 
-const form = reactive({ type: cuePoint.type, ...props.menuParams.cuePoint.properties })
+const form = reactive({ type: cuePoint.type, pcGroup: false, ...props.menuParams.cuePoint.properties })
 
 onMounted(() => {
-
-
 
     // 進路の初期設定
     if (cuePoint.type !== 'poi' && form.direction === '') {
@@ -167,6 +178,12 @@ watch(() => form.type, (newType) => { // watcher の参照を getter(関数) に
 watch(() => form.direction, (newDirection) => {
     updateIcon()
     synchronize()
+})
+
+watch(()=>form.pcGroup, (newVal)=>{
+    if(newVal===true){
+        ElMessageBox.confirm('PCをグループ化します')
+    }
 })
 
 // select の選択肢
@@ -316,11 +333,24 @@ const updateIcon = () => {
     width: 400px;
 }
 
+.cue-type {
+    width: 100%;
+    justify-content: space-between;
+}
+
+.cue-type :deep(.el-radio--small){
+    margin-right: 2px;
+}
+
 :deep(.el-card__header) {
     --el-card-padding: 5px;
     background: var(--el-color-primary-light-7);
     color: var(--el-color-primary-dark-2);
     font-weight: bold;
+}
+
+:deep(.el-card__body){
+    padding: 5px;
 }
 
 :deep(.el-form-item__label) {

@@ -27,14 +27,17 @@
             </div>
         </template>
         <el-form label-width="50px" size="small" :model="form">
-            <el-radio-group v-model="form.type">
-                <el-radio-button label="Point">
-                    <span style="display: inline-block;width:100px">ポイント</span>
-                </el-radio-button>
-                <el-radio-button label="PC" />
-                <el-radio-button label="Check" />
-                <el-radio-button label="POI" />
-            </el-radio-group>
+            <el-row>
+                <el-col :span="20">
+                <el-radio-group class="cue-type" v-model="form.type" @change="synchronize" size="small">
+                    <el-radio label="cue" border>ポイント</el-radio>
+                    <el-radio label="pc" border>PC</el-radio>
+                    <el-radio label="pass" border>チェック</el-radio>
+                    <el-radio label="poi" border>POI</el-radio>
+                </el-radio-group>
+                </el-col>
+                <el-col :span="4">gr</el-col>
+            </el-row>
             <el-form-item class="my-item">
                 <template #label>
                     <div style="align-self: center;">
@@ -108,6 +111,14 @@ const onClick = () => {
 <style scoped>
 .cue-point {
     width: 120px;
+}
+
+.cue-type {
+    width:100%;
+    justify-content: space-around;
+}
+.cue-type :deep(.el-radio--small) {
+    margin-right: 2px;
 }
 
 :deep(.el-card__header) {
