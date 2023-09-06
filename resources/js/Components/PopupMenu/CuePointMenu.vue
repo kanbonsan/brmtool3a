@@ -25,7 +25,12 @@
                     </el-radio-group>
                 </el-col>
                 <el-col :span="cuePoint.type === 'pc' ? 3 : 0" :offset="1">
-                <el-switch style="align-self:flex-end;" v-model="form.pcGroup"></el-switch></el-col>
+                    <el-tooltip placement="right" content="前後のPCとグループ設定します">
+                        <el-switch style="align-self:flex-end;" v-model="form.pcGroup"
+                            :disabled="!groupAvailable"></el-switch>
+                    </el-tooltip>
+                </el-col>
+
             </el-row>
             <el-form-item class="my-form-item" label="名称">
                 <div style="width:100%;">
@@ -114,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, watch } from 'vue'
+import { reactive, onMounted, watch, ref, computed } from 'vue'
 import { ElMessageBox } from 'element-plus'
 import { useCuesheetStore } from '@/stores/CueSheetStore'
 import { useBrmRouteStore } from '@/stores/BrmRouteStore'
@@ -146,6 +151,9 @@ const directions: [number, number, string, string?][] = [
 const cuePoint = props.menuParams.cuePoint as CuePoint
 const routePoint = routeStore.getPointById(cuePoint.routePointId)
 
+const groupCandidate = ref(cuesheetStore.getGroupCandidate(cuePoint))
+const groupAvailable = computed(() => (groupCandidate.value.pre !== undefined || groupCandidate.value.post !== undefined))
+
 const form = reactive({ type: cuePoint.type, pcGroup: false, ...props.menuParams.cuePoint.properties })
 
 onMounted(() => {
@@ -160,7 +168,6 @@ onMounted(() => {
         updateIcon()
     }
 
-
 })
 
 // cueType の変更 → アイコンの書き換え
@@ -173,6 +180,9 @@ watch(() => form.type, (newType) => { // watcher の参照を getter(関数) に
         updateIcon()
     }
     synchronize()
+
+    // グループ状況の更新
+    groupCandidate.value = cuesheetStore.getGroupCandidate(cuePoint)
 })
 
 watch(() => form.direction, (newDirection) => {
@@ -180,8 +190,8 @@ watch(() => form.direction, (newDirection) => {
     synchronize()
 })
 
-watch(()=>form.pcGroup, (newVal)=>{
-    if(newVal===true){
+watch(() => form.pcGroup, (newVal) => {
+    if (newVal === true) {
         ElMessageBox.confirm('PCをグループ化します')
     }
 })
@@ -338,7 +348,7 @@ const updateIcon = () => {
     justify-content: space-between;
 }
 
-.cue-type :deep(.el-radio--small){
+.cue-type :deep(.el-radio--small) {
     margin-right: 2px;
 }
 
@@ -349,7 +359,7 @@ const updateIcon = () => {
     font-weight: bold;
 }
 
-:deep(.el-card__body){
+:deep(.el-card__body) {
     padding: 5px;
 }
 

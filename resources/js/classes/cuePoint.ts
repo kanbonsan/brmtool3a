@@ -10,33 +10,33 @@ export type cueProperties = {
     note: string        // 備考
     garminDeviceIcon: string    // アイコン名
     garminDeviceText: string    // デバイスに表示するテキスト
-    garminDisplay:boolean       // デバイスにアイコンを表示するか
+    garminDisplay: boolean       // デバイスにアイコンを表示するか
 }
 
 export class CuePoint {
 
     id: symbol
     type: cueType
-    terminal?: 'start'|'finish' 
+    terminal?: 'start' | 'finish'
 
     properties: cueProperties = {
         signal: false,
         crossing: '',
-        name:'',
-        direction:'',
-        route:'',
-        note:'',
-        garminDeviceIcon:'',
-        garminDeviceText:'',
-        garminDisplay:true
+        name: '',
+        direction: '',
+        route: '',
+        note: '',
+        garminDeviceIcon: '',
+        garminDeviceText: '',
+        garminDisplay: true
     }
-    
-    groupId: symbol             // 同一 ID は同じグループに（default は id と同じ）
-    pointNo: number | undefined // POIと初期値は undefined, 都度自動的に振る
-    pcLabel?: string             //
 
-    distance?: number           // そのポイントの brmDistance
-    lapDistance?: number        // 直前の cuePoint からの距離
+    groupId: symbol | undefined     // 同一 ID は同じグループに（default は undefined）
+    pointNo: number | undefined     // POIと初期値は undefined, 都度自動的に振る
+    pcLabel?: string
+
+    distance?: number               // そのポイントの brmDistance
+    lapDistance?: number            // 直前の cuePoint からの距離
 
     // マーカーの位置（GPXファイルにも反映）・マーカードラッグ終了時に再設定
     lat: number
@@ -48,7 +48,8 @@ export class CuePoint {
     timestamp: number
 
     constructor(lat: number, lng: number, type: cueType = 'poi', routePointId: symbol | null = null) {
-        this.id = this.groupId = Symbol()
+        this.id = Symbol()
+        this.groupId = undefined
         this.type = type
         this.terminal = undefined
         this.lat = lat

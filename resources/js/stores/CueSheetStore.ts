@@ -7,6 +7,11 @@ type State = {
     cuePoints: Map<symbol, CuePoint>
 }
 
+type GroupCandidate = {
+    pre: CuePoint | undefined
+    post: CuePoint | undefined
+}
+
 export const useCuesheetStore = defineStore('cuesheet', {
 
     state: (): State => ({
@@ -26,6 +31,25 @@ export const useCuesheetStore = defineStore('cuesheet', {
             return Array.from(state.cuePoints, (cue) => cue[1])
         },
 
+        pointList(state): CuePoint[] {
+            const brmStore = useBrmRouteStore()
+            // POI 以外
+
+            return this.getArray.filter(cpt => {
+                return cpt.type !== 'poi'
+            })
+                .sort((a, b) => {
+                    const aRoutePointIndex = brmStore.getPointIndex(brmStore.getPointById(a.routePointId)!)
+                    const bRoutePointIndex = brmStore.getPointIndex(brmStore.getPointById(b.routePointId)!)
+                    return aRoutePointIndex - bRoutePointIndex
+                })
+
+        },
+
+        pcList(state): CuePoint[] {
+            return this.pointList.filter(cpt => cpt.type === 'pc')
+        },
+
         /**
          * キューポイントが設定されているルートポイントのリストを返す
          * ルートポイントにすでにキューポイントが設定されているときにさらに追加設定されるのを防止するのに利用する
@@ -41,6 +65,18 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 }
             })
             return arr
+        },
+
+        getGroupCandidate() {
+            return (cuePoint: CuePoint): GroupCandidate => {
+                const index = this.pcList.findIndex((cpt: CuePoint) => cuePoint.id === cpt.id)
+                const _pre = this.pcList[index - 1]
+                const _post = this.pcList[index + 1]
+                return {
+                    pre: _pre && _pre.terminal === undefined ? _pre : undefined,
+                    post: _post && _post.terminal === undefined ? _post : undefined
+                }
+            }
         }
 
     },
