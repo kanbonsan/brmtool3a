@@ -181,6 +181,18 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 cpt.terminal = 'finish'
             }
 
+            // PCグループの処理
+            const _pcList = this.pcList
+            const _len = _pcList.length
+
+            for (let i = 0; i < _len; i++) {
+
+                const grId = _pcList[i].groupId
+                if (grId !== undefined && grId !== _pcList[i + 1].groupId && grId !== _pcList[i - 1].groupId) {
+                    _pcList[i].groupId = undefined
+                }
+            }
+
             // キューポイントの POI 化
             this.cuePoints.forEach((cpt: CuePoint) => {
                 // 元々 'poi' のときは終了
@@ -233,6 +245,27 @@ export const useCuesheetStore = defineStore('cuesheet', {
             cuePoint!.properties = Object.assign(cuePoint!.properties, properties)
             cuePoint!.type = type
             this.update()
+        },
+
+        setGroup(id: symbol, groupWith: 'pre' | 'post') {
+            const cpt = this.getCuePointById(id)!
+            const gr = this.getGroupCandidate(cpt)
+            const grWith = gr[groupWith]!
+
+            if (grWith.groupId === undefined) {
+                grWith.groupId = cpt.groupId = Symbol('groupPC')
+            } else {
+                cpt.groupId = grWith.groupId
+            }
+
+            this.update()
+        },
+
+        resetGroup(id: symbol) {
+            const cpt = this.getCuePointById(id)
+            cpt!.groupId = undefined
+            this.update()
+
         }
     }
 }

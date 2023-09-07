@@ -26,8 +26,11 @@
                 </el-col>
                 <el-col :span="cuePoint.type === 'pc' ? 3 : 0" :offset="1">
                     <el-tooltip placement="right" content="前後のPCとグループ設定します">
-                        <el-switch style="align-self:flex-end;" v-model="form.pcGroup"
-                            :disabled="!groupAvailable"></el-switch>
+
+                        <el-button v-if="cuePoint.groupId===undefined" style="align-self:flex-end;" :disabled="!groupAvailable"
+                            @click="groupConfirm">{{
+                                form.pcGroup ? '解除' : '設定' }}</el-button>
+                        <el-button v-else @click="groupConfirm">共有</el-button>
                     </el-tooltip>
                 </el-col>
 
@@ -72,7 +75,8 @@
                             @select="synchronize" @change="synchronize"></el-autocomplete>
                     </el-form-item></el-col>
             </el-row>
-            <el-form-item><template #label>
+            <el-form-item>
+                <template #label>
                     <div style="display:inline-flex; flex-flow:column; align-items: flex-end;">
                         <img :src="garmin" style="width:100%;"><span>GPS</span>
                     </div>
@@ -112,15 +116,26 @@
             <el-form-item label="備考">
                 <el-input v-model="form.note" autosize type="textarea" @input="synchronize"></el-input>
             </el-form-item>
-
-
         </el-form>
     </el-card>
+    <el-dialog style="--el-dialog-padding-primary: 10px;" v-model="pcDialogVisible" width="30%" top="30vh"
+        :append-to-body="true" :show-close="false">
+        <el-row v-if="!cuePoint.groupId">PCを前後でグループ化します. 前後どちらのPCとグループ化しますか?</el-row>
+        <el-row v-else>PCのグループ化を解除しますか?</el-row>
+        <el-row v-if="!cuePoint.groupId">
+            <el-button :disabled="!groupCandidate.pre" @click="setGroup('pre')">直前のPC</el-button>
+            <el-button :disabled="!groupCandidate.post" @click="setGroup('post')">直後のPC</el-button>
+            <el-button @click="pcDialogVisible=!pcDialogVisible">キャンセル</el-button>
+        </el-row>
+        <el-row v-else>
+            <el-button @click="resetGroup">共有解除</el-button>
+            <el-button @click="pcDialogVisible=!pcDialogVisible">キャンセル</el-button>
+        </el-row>
+    </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { reactive, onMounted, watch, ref, computed } from 'vue'
-import { ElMessageBox } from 'element-plus'
 import { useCuesheetStore } from '@/stores/CueSheetStore'
 import { useBrmRouteStore } from '@/stores/BrmRouteStore'
 import { useGeocodeStore } from '@/stores/GeocodeStore'
@@ -151,6 +166,7 @@ const directions: [number, number, string, string?][] = [
 const cuePoint = props.menuParams.cuePoint as CuePoint
 const routePoint = routeStore.getPointById(cuePoint.routePointId)
 
+const pcDialogVisible = ref(false)
 const groupCandidate = ref(cuesheetStore.getGroupCandidate(cuePoint))
 const groupAvailable = computed(() => (groupCandidate.value.pre !== undefined || groupCandidate.value.post !== undefined))
 
@@ -190,12 +206,6 @@ watch(() => form.direction, (newDirection) => {
     synchronize()
 })
 
-watch(() => form.pcGroup, (newVal) => {
-    if (newVal === true) {
-        ElMessageBox.confirm('PCをグループ化します')
-    }
-})
-
 // select の選択肢
 const signals = [{ value: false, label: ' ' }, { value: true, label: 'S' },]
 const crossings = ["├", "┤", "┼", "┬", "Ｙ"].map(chr => ({ value: chr, label: chr }))
@@ -213,6 +223,20 @@ const synchronize = () => {
     console.log('sync')
     const cueType = form.type
     cuesheetStore.synchronize(props.menuParams.cuePoint.id, form, cueType)
+}
+
+const groupConfirm = () => {
+    pcDialogVisible.value = true
+}
+
+const setGroup = (dir: 'pre' | 'post') => {
+    cuesheetStore.setGroup(cuePoint.id, dir)
+    pcDialogVisible.value = false
+}
+
+const resetGroup = ()=>{
+    cuesheetStore.resetGroup(cuePoint.id)
+    pcDialogVisible.value = false
 }
 
 const nameSearch = async (queryString: string, cb: any) => {
@@ -339,6 +363,11 @@ const updateIcon = () => {
 </script>
 
 <style scoped>
+.el-dialog__header {
+    background: yellow;
+    margin-right: 0px;
+}
+
 .cue-point {
     width: 400px;
 }
