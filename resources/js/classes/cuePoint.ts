@@ -33,6 +33,9 @@ export class CuePoint {
 
     groupId: symbol | undefined     // 同一 ID は同じグループに（default は undefined）
     pointNo: number | undefined     // POIと初期値は undefined, 都度自動的に振る
+    pcNo: number | undefined        // PC(スタート・ゴール除く)に1から振る. 同一グループは同一No
+    checkNo: number | undefined     // チェックポイントに1から振る
+    controlNo: number | undefined   // PC, CHECK の通し番号. グループを考慮
     pcLabel?: string
 
     distance?: number               // そのポイントの brmDistance

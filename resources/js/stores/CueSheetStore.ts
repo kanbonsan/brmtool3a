@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { CuePoint, cueProperties, cueType } from '@/classes/cuePoint'
 import { RoutePoint } from '@/classes/routePoint'
 import { useBrmRouteStore } from './BrmRouteStore'
+import { PC_SUBGROUP_ENUM } from '@/config'
 
 type State = {
     cuePoints: Map<symbol, CuePoint>
@@ -31,6 +32,9 @@ export const useCuesheetStore = defineStore('cuesheet', {
             return Array.from(state.cuePoints, (cue) => cue[1])
         },
 
+        /**
+         * POI以外のポイントをソートして取得
+         */
         pointList(state): CuePoint[] {
             const brmStore = useBrmRouteStore()
             // POI 以外
@@ -46,8 +50,8 @@ export const useCuesheetStore = defineStore('cuesheet', {
 
         },
 
-        pcList(state): CuePoint[] {
-            return this.pointList.filter(cpt => cpt.type === 'pc')
+        controlList(): CuePoint[] {
+            return this.pointList.filter(cpt => cpt.terminal === undefined && (cpt.type === 'pc' || cpt.type === 'pass'))
         },
 
         /**
@@ -67,14 +71,18 @@ export const useCuesheetStore = defineStore('cuesheet', {
             return arr
         },
 
+        /**
+         * PCの両隣りを取得（スタート・フィニッシュは除く）
+         * @returns { pre: CuePoint|undefined, post: CuePoint|undefined}
+         */
         getGroupCandidate() {
             return (cuePoint: CuePoint): GroupCandidate => {
-                const index = this.pcList.findIndex((cpt: CuePoint) => cuePoint.id === cpt.id)
-                const _pre = this.pcList[index - 1]
-                const _post = this.pcList[index + 1]
+                const index = this.controlList.findIndex((cpt: CuePoint) => cuePoint.id === cpt.id)
+                const _pre = this.controlList[index - 1]
+                const _post = this.controlList[index + 1]
                 return {
-                    pre: _pre && _pre.terminal === undefined ? _pre : undefined,
-                    post: _post && _post.terminal === undefined ? _post : undefined
+                    pre: _pre && _pre.type === cuePoint.type ? _pre : undefined,
+                    post: _post && _post.type === cuePoint.type ? _post : undefined
                 }
             }
         }
@@ -182,14 +190,18 @@ export const useCuesheetStore = defineStore('cuesheet', {
             }
 
             // PCグループの処理
-            const _pcList = this.pcList
-            const _len = _pcList.length
+            const _controlList = this.controlList
+            const _len = _controlList.length
 
             for (let i = 0; i < _len; i++) {
 
-                const grId = _pcList[i].groupId
-                if (grId !== undefined && grId !== _pcList[i + 1].groupId && grId !== _pcList[i - 1].groupId) {
-                    _pcList[i].groupId = undefined
+                const grId = _controlList[i].groupId
+
+                const _pre = _controlList[i - 1] ? _controlList[i - 1].groupId : undefined
+                const _post = _controlList[i + 1] ? _controlList[i + 1].groupId : undefined
+
+                if (grId !== undefined && grId !== _pre && grId !== _post) {
+                    _controlList[i].groupId = undefined
                 }
             }
 
@@ -217,20 +229,50 @@ export const useCuesheetStore = defineStore('cuesheet', {
          * CuePoint のラベル付け（インデックス）
          */
         label() {
-            const brmStore = useBrmRouteStore()
-            // POI 以外
-            this.getArray
-                .filter(cpt => {
-                    return cpt.type !== 'poi'
-                })
-                .sort((a, b) => {
-                    const aRoutePointIndex = brmStore.getPointIndex(brmStore.getPointById(a.routePointId)!)
-                    const bRoutePointIndex = brmStore.getPointIndex(brmStore.getPointById(b.routePointId)!)
-                    return aRoutePointIndex - bRoutePointIndex
-                })
-                .forEach((cpt, index) => {
-                    cpt.pointNo = index + 1
-                })
+            const _pointList = this.pointList
+            const _controlList = this.controlList
+
+            // pointNo （キューシートの一列目の番号）
+            _pointList.forEach((cpt, index) => {
+                cpt.pointNo = index + 1
+            })
+
+            // PC, Check ( PC1A:共有 - CHECK - PC1B:共有 という並びはない. 将来的に CHK の共有ができることも考慮)
+            let _pcNo = 0, _checkNo = 0, _controlNo = 0
+            for (let i = 0, len = _controlList.length; i < len; i++) {
+                const _current = _controlList[i]
+                const _pre = _controlList[i - 1] ?? { type: undefined, groupId: undefined }
+                if (_current.type === 'pc') {
+                    _current.pcNo = _current.groupId && _current.groupId === _pre.groupId ? _pcNo : ++_pcNo
+                    _current.controlNo = _current.groupId && _current.groupId === _pre.groupId ? _controlNo : ++_controlNo
+                }
+                if (_current.type === 'pass') {
+                    _current.checkNo = _current.groupId && _current.groupId === _pre.groupId ? _checkNo : ++_checkNo
+                    _current.controlNo = _current.groupId && _current.groupId === _pre.groupId ? _controlNo : ++_controlNo
+                }
+            }
+
+            type Group = { [num: number]: Array<CuePoint> }
+
+            const _pc: Group = {}
+            const _check: Group = {}
+            const _control: Group = {}
+
+            for (const cpt of _controlList) {
+
+                if( cpt.pcNo ){
+                    if(!_pc.hasOwnProperty(cpt.pcNo)){
+                        _pc[cpt.pcNo] = []
+                    }
+                    _pc[cpt.pcNo].push(cpt)
+                }
+                if( cpt.checkNo ){
+                    if(!_check.hasOwnProperty(cpt.checkNo)){
+                        _check[cpt.checkNo] = []
+                    }
+                    _check[cpt.checkNo].push(cpt)
+                }
+            }
         },
 
         /**
