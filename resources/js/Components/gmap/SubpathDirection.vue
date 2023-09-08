@@ -9,14 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { useBrmRouteStore } from '@/stores/BrmRouteStore'
-import { useToolStore } from '@/stores/ToolStore'
-import { DirectionReference } from "@/config"
 
-const routeStore = useBrmRouteStore()
-const toolStore = useToolStore()
 const props = defineProps(['resetTimeout', 'submitFunc'])
 
 const onSubmit = () => {

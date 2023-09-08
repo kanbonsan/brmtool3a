@@ -36,7 +36,8 @@ export class CuePoint {
     pcNo: number | undefined        // PC(スタート・ゴール除く)に1から振る. 同一グループは同一No
     checkNo: number | undefined     // チェックポイントに1から振る
     controlNo: number | undefined   // PC, CHECK の通し番号. グループを考慮
-    pcLabel?: string
+    pcLabel?: string                // PC, CHECK それぞれ別番号
+    controlLabel?: string           // PC, CHECK 通しのラベル
 
     distance?: number               // そのポイントの brmDistance
     lapDistance?: number            // 直前の cuePoint からの距離

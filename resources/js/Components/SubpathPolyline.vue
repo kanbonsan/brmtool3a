@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Polyline, Marker } from "vue3-google-map"
+import { Polyline } from "vue3-google-map"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
-import { useToolStore } from "@/stores/ToolStore"
-import { computed, inject, ref, watch } from "vue"
-import { googleMapsKey } from "./gmap/keys"
+import { useGmapStore } from "@/stores/GmapStore"
+import { computed, ref, watch } from "vue"
+
 import { DirectionReference } from "@/config"
 
 type Point = {
@@ -12,15 +12,15 @@ type Point = {
 }
 
 const store = useBrmRouteStore()
-const toolStore = useToolStore()
+const gmapStore = useGmapStore()
 
 const props = defineProps(["visible", "map"])
 
 const subpath = computed(() => store.subpathRange)
 
-const subpathEditMode = computed(() => toolStore.subpathEditMode)
-const subpathDirectionMode = computed(() => toolStore.subpathDirectionMode)
-const subpathDirectionConfirmMode = computed(()=>toolStore.subpathDirectionConfirmMode)
+const subpathEditMode = computed(() => gmapStore.subpathEditMode)
+const subpathDirectionMode = computed(() => gmapStore.subpathDirectionMode)
+const subpathDirectionConfirmMode = computed(()=>gmapStore.subpathDirectionConfirmMode)
 
 const defaultOption = {
     strokeColor: "blue",

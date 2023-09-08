@@ -3,31 +3,31 @@
         <template #header>
             <h4>ポイント</h4>
         </template>
-        <el-row v-if="toolStore.editMode || toolStore.subpathMode">
+        <el-row v-if="gmapStore.editMode || gmapStore.subpathMode">
             <el-tooltip placement="right" content="キューポイントを設定します" :auto-close="2000">
                 <el-button class="menu-button" size="small" type="info"
                     @click="onClick('addCuePoint')">キューポイント設定</el-button>
             </el-tooltip>
         </el-row>
-        <el-row v-if="toolStore.editMode">
+        <el-row v-if="gmapStore.editMode">
             <el-tooltip placement="right" content="編集範囲設定スライダーを表示します" :auto-close="2000">
-                <el-button :disabled="!toolStore.editMode" class="menu-button" size="small" type="info"
+                <el-button :disabled="!gmapStore.editMode" class="menu-button" size="small" type="info"
                     @click="onClick('editableRange')">編集範囲設定</el-button>
             </el-tooltip>
         </el-row>
-        <el-row v-if="toolStore.editMode">
+        <el-row v-if="gmapStore.editMode">
             <el-tooltip placement="right" content="サブパス選択を開始します" :auto-close="2000">
                 <el-button class="menu-button" size="small" type="info"
                     @click="onClick('subpathBegin')">サブパス選択開始</el-button>
             </el-tooltip>
         </el-row>
-        <el-row v-if="toolStore.subpathSelectMode">
+        <el-row v-if="gmapStore.subpathSelectMode">
             <el-tooltip placement="right" content="この点をサブパスの終点にします" :auto-close="2000">
                 <el-button class="menu-button" size="small" type="info" @click="onClick('subpathEnd')">サブパス範囲確定</el-button>
             </el-tooltip>
         </el-row>
 
-        <el-row v-if="toolStore.editMode">
+        <el-row v-if="gmapStore.editMode">
             <el-tooltip placement="right" content="このポイントを削除します" :auto-close="2000">
                 <el-button class="menu-button" size="small" type="info">ポイント削除</el-button>
             </el-tooltip>
@@ -42,10 +42,10 @@
 </template>
 
 <script setup lang="ts">
-import { useToolStore } from '@/stores/ToolStore'
+import { useGmapStore } from '@/stores/GmapStore';
 
 const props = defineProps(['submit', 'params'])
-const toolStore = useToolStore()
+const gmapStore = useGmapStore()
 
 const onClick = (result: string) => {
     props.submit({ status: 'success', result })

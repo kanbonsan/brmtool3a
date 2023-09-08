@@ -1,15 +1,15 @@
 <script setup>
 import { Polyline } from "vue3-google-map"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
-import { useToolStore } from "@/stores/ToolStore";
+import { useGmapStore } from "@/stores/GmapStore";
 import { computed, inject } from "vue"
-import { googleMapsKey } from "./gmap/keys";
 
 const props = defineProps(["visible"])
 
 const store = useBrmRouteStore()
-const toolStore = useToolStore()
-const editMode = computed(()=>toolStore.editMode || toolStore.subpathSelectMode)
+const gmapStore = useGmapStore()
+
+const editMode = computed(()=>gmapStore.editMode || gmapStore.subpathSelectMode)
 
 const editableRanges = computed(() => store.editableRanges)
 

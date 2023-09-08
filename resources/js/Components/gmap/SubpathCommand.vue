@@ -14,11 +14,7 @@
 
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useBrmRouteStore } from '@/stores/BrmRouteStore'
-import { useToolStore } from '@/stores/ToolStore'
 
-const routeStore = useBrmRouteStore()
-const toolStore = useToolStore()
 const props = defineProps(['resetTimeout', 'submitFunc'])
 
 const onDelete = () => {

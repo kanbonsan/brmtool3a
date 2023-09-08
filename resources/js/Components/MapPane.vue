@@ -29,7 +29,6 @@ import { GoogleMap, Marker, Polyline } from "vue3-google-map"
 import { googleMapsKey } from "@/Components/gmap/keys"
 import brm from "../../sample/sample200.brm.json"
 
-import { useToolStore } from "@/stores/ToolStore"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useCuesheetStore } from "@/stores/CueSheetStore"
 import { useGmapStore } from "@/stores/GmapStore"
@@ -139,7 +138,7 @@ const drawers: Drawers = {
         title: "編集範囲",
         timeout: 15_000,
         timeoutFunc: () => {
-            toolStore.setMode('edit')
+            gmapStore.setMode('edit')
         }
     },
     Subpath: {
@@ -147,7 +146,7 @@ const drawers: Drawers = {
         title: "サブパス範囲設定",
         timeout: 15_000,
         timeoutFunc: () => {
-            toolStore.setMode('edit')
+            gmapStore.setMode('edit')
             routeStore.resetSubpath()
         }
     },
@@ -156,7 +155,7 @@ const drawers: Drawers = {
         title: "サブパスコマンド",
         timeout: 0,
         timeoutFunc: () => {   // タイムアウトにならない設定だがクローズボタンを押したときに呼んでもらって設定をリセットする
-            toolStore.setMode('edit')
+            gmapStore.setMode('edit')
             routeStore.resetSubpath()
         }
     },
@@ -165,7 +164,7 @@ const drawers: Drawers = {
         title: "サブパス編集",
         timeout: 0,
         timeoutFunc: () => {
-            toolStore.setMode('edit')
+            gmapStore.setMode('edit')
             routeStore.resetSubpath()
         }
     },
@@ -174,7 +173,7 @@ const drawers: Drawers = {
         title: "ルート探索",
         timeout: 0,
         timeoutFunc: () => {
-            toolStore.setMode('edit')
+            gmapStore.setMode('edit')
             routeStore.resetSubpath()
         }
     },
@@ -183,7 +182,7 @@ const drawers: Drawers = {
         title: "ルート検索",
         timeout: 0,
         timeoutFunc: () => {
-            toolStore.setMode('edit')
+            gmapStore.setMode('edit')
             routeStore.resetSubpath()
         }
     }
@@ -198,7 +197,6 @@ const mapObjectVisible = ref<boolean>(true)
 const apiKey = ref(import.meta.env.VITE_GOOGLE_MAPS_KEY)
 const center = ref({ lat: 35.2418, lng: 137.1146 }) // デフォルトの地図の中心（瀬戸しなの）
 
-const toolStore = useToolStore()
 const routeStore = useBrmRouteStore()
 const gmapStore = useGmapStore()
 const messageStore = useMessage()
@@ -292,7 +290,7 @@ const markerOption = (pt: RoutePoint) => {
         position: pt,
         opacity: pt.opacity,
         icon: { url: circle, anchor: new google.maps.Point(8, 8) },
-        visible: mapObjectVisible.value && pt.editable && !pt.excluded && !toolStore.subpathEditMode && !toolStore.subpathDirectionMode
+        visible: mapObjectVisible.value && pt.editable && !pt.excluded && !gmapStore.subpathEditMode && !gmapStore.subpathDirectionMode
     }
 }
 
@@ -316,13 +314,13 @@ const markerClick = async (pt: RoutePoint) => {
                 drawerActive.value += 1
                 break
             case 'subpathBegin':
-                toolStore.setMode('subpathSelect')
+                gmapStore.setMode('subpathSelect')
                 routeStore.resetSubpath(pt) // サブパスインデックスの設定
                 drawerComp.value = 'Subpath'
                 drawerActive.value += 1
                 break
             case 'subpathEnd':
-                toolStore.setMode('subpath')
+                gmapStore.setMode('subpath')
                 drawerComp.value = 'SubpathCommand'
                 drawerActive.value += 1
                 routeStore.subpathSync()
@@ -342,7 +340,7 @@ const markerMouseover = (pt: RoutePoint) => {
 
     if (!pt.editable) return
 
-    if (toolStore.subpathSelectMode) {
+    if (gmapStore.subpathSelectMode) {
         const _begin: number = Math.min(ptIndex, routeStore.subpathTemp.begin!)
         const _end: number = Math.max(ptIndex, routeStore.subpathTemp.end!)
         routeStore.setSubpath([_begin, _end])
@@ -359,7 +357,7 @@ const markerMouseout = (pt: RoutePoint) => {
 
     if (!pt.editable) return
 
-    if (toolStore.subpathSelectMode) {
+    if (gmapStore.subpathSelectMode) {
 
         routeStore.setSubpath([routeStore.subpathTemp.begin!, routeStore.subpathTemp.end!])
     }
@@ -428,47 +426,47 @@ const onLowerDrawerSubmit = async (payload: string) => {
     switch (payload) {
         // サブパスをキャンセル
         case 'ReturnToEdit':
-            toolStore.setMode('edit')
+            gmapStore.setMode('edit')
             routeStore.resetSubpath()
             drawerActive.value = 0
             break
         case 'subpathRange:submit':
-            toolStore.setMode('subpath')
+            gmapStore.setMode('subpath')
             drawerComp.value = 'SubpathCommand'
             drawerActive.value += 1
             break
         case 'subpath:pathEdit':
-            toolStore.setMode('subpathEdit')
+            gmapStore.setMode('subpathEdit')
             drawerComp.value = 'SubpathEditConfirm'
             drawerActive.value += 1
             break
         case 'subpath:editPathConfirm':
             routeStore.subpathReplace()
             routeStore.resetSubpath()
-            toolStore.setMode('edit')
+            gmapStore.setMode('edit')
             drawerActive.value = 0
             break
         case 'subpath:delete':
             routeStore.subpathDelete()
             routeStore.resetSubpath()
-            toolStore.setMode('edit')
+            gmapStore.setMode('edit')
             drawerActive.value = 0
             break
         case 'subpath:exclude':
             routeStore.subpathSetExclude()
             routeStore.resetSubpath()
-            toolStore.setMode('edit')
+            gmapStore.setMode('edit')
             drawerActive.value = 0
             break
         case 'subpath:direction':
-            toolStore.setMode('subpathDirection')
+            gmapStore.setMode('subpathDirection')
             drawerComp.value = 'SubpathDirection'
             drawerActive.value += 1
             break
         case 'subpath:directionQuery':
 
             await routeStore.directionQuery()
-            toolStore.setMode('subpathDirectionConfirm')
+            gmapStore.setMode('subpathDirectionConfirm')
             drawerComp.value = 'SubpathDirectionConfirm'
             drawerActive.value += 1
 

@@ -5,13 +5,10 @@ import { hubeny } from '@/lib/hubeny'
 import { HubenyCorrection, weighedThreshold } from '@/config.js'
 
 import { useGmapStore } from '@/stores/GmapStore.js'
-import { useToolStore } from './ToolStore'
 import { useCuesheetStore } from './CueSheetStore'
 import { RoutePoint } from '@/classes/routePoint'
 
-import { worldCoord } from '@/lib/mapcoord'
 import axios from 'axios'
-import { Route } from 'ziggy-js'
 
 const simplifyParam = [
     { weight: 3, tolerance: 0.000015 },
@@ -267,11 +264,11 @@ export const useBrmRouteStore = defineStore('brmroute', {
          */
         subpathRange(state): Subpath {
 
-            const toolStore = useToolStore()
+            const gmapStore = useGmapStore()
 
             const begin = state.subpath.begin
             const end = state.subpath.end
-            const editable = toolStore.subpathEditMode
+            const editable = gmapStore.subpathEditMode
             let head: boolean = false
             let tail: boolean = false
 

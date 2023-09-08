@@ -238,6 +238,8 @@ export const useCuesheetStore = defineStore('cuesheet', {
             })
 
             // PC, Check ( PC1A:共有 - CHECK - PC1B:共有 という並びはない. 将来的に CHK の共有ができることも考慮)
+
+            // 1st STEP: それぞれの pcNo, controlNo の割付け（グループは同じ番号）
             let _pcNo = 0, _checkNo = 0, _controlNo = 0
             for (let i = 0, len = _controlList.length; i < len; i++) {
                 const _current = _controlList[i]
@@ -252,6 +254,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 }
             }
 
+            // 2nd STEP: ジャンルごと同一 No でまとめる 例）_pc = { 1: [cptA], 2:[cptB, cptC] }
             type Group = { [num: number]: Array<CuePoint> }
 
             const _pc: Group = {}
@@ -260,17 +263,40 @@ export const useCuesheetStore = defineStore('cuesheet', {
 
             for (const cpt of _controlList) {
 
-                if( cpt.pcNo ){
-                    if(!_pc.hasOwnProperty(cpt.pcNo)){
+                if (cpt.pcNo) {
+                    if (!_pc.hasOwnProperty(cpt.pcNo)) {
                         _pc[cpt.pcNo] = []
                     }
                     _pc[cpt.pcNo].push(cpt)
                 }
-                if( cpt.checkNo ){
-                    if(!_check.hasOwnProperty(cpt.checkNo)){
+                if (cpt.checkNo) {
+                    if (!_check.hasOwnProperty(cpt.checkNo)) {
                         _check[cpt.checkNo] = []
                     }
                     _check[cpt.checkNo].push(cpt)
+                }
+                if (cpt.controlNo) {
+                    if (!_control.hasOwnProperty(cpt.controlNo)) {
+                        _control[cpt.controlNo] = []
+                    }
+                    _control[cpt.controlNo].push(cpt)
+                }
+            }
+
+            // 3rd STEP: 実際のラベル付け
+            for (const _obj of [_pc, _check, _control]) {
+                const labelProperty = _obj === _control ? 'controlLabel' : 'pcLabel'
+                for (const _number of Object.keys(_obj)) {
+                    const group = _obj[parseInt(_number)]
+
+                    if (group.length === 1) {
+                        group[0][labelProperty] = `${_number}`
+                    } else {
+
+                        group.forEach((cpt, index) => {
+                            cpt[labelProperty] = `${_number}${PC_SUBGROUP_ENUM[index]}`
+                        })
+                    }
                 }
             }
         },
