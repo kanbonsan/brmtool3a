@@ -33,8 +33,16 @@ Route::get('/vuetify', function () {
     return Inertia::render('Vuetify');
 });
 
-Route::get('/tool', function(){
-    return Inertia::render('Tool');
+Route::get('/tool', function () {
+    return Inertia::render(
+        'Tool',
+        [
+            'canLogin' => Route::has('login'),
+            'canRegister' => Route::has('register'),
+            'laravelVersion' => Application::VERSION,
+            'phpVersion' => PHP_VERSION,
+        ]
+    );
 });
 
 Route::middleware('auth')->group(function () {

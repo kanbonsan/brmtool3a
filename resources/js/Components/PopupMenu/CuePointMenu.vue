@@ -220,7 +220,7 @@ const onCancelClose = () => {
 }
 
 const synchronize = () => {
-    console.log('sync')
+    
     const cueType = form.type
     cuesheetStore.synchronize(props.menuParams.cuePoint.id, form, cueType)
 }

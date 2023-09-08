@@ -1,6 +1,18 @@
 <template>
     <header>
-        HEADER
+        BRMTOOL3
+        <Link v-if="$page.props.auth.user" :href="route('dashboard')"
+            class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">
+        Dashboard</Link>
+        <template v-else>
+            <Link :href="route('login')"
+                class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">
+            Log in</Link>
+
+            <Link v-if="canRegister" :href="route('register')"
+                class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">
+            Register</Link>
+        </template>
     </header>
     <main>
         <slot />
@@ -10,18 +22,22 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue"
-import { Link, router } from "@inertiajs/vue3"
+import { Head, Link, router } from "@inertiajs/vue3"
 import axios from "axios"
-import { ModalsContainer } from 'vue-final-modal'
 import FooterMessage from "@/Components/Footer.vue"
 
 import { useDimension } from '@/Composables/dimension'
 const { dimensionUpdate } = useDimension()
-
-
-const props = defineProps(["auth", "isAuthenticated"])
+const props = defineProps<{
+    anLogin?: boolean
+    canRegister?: boolean
+    laravelVersion: string
+    phpVersion: string
+    auth: any
+    isAuthenticated: boolean
+}>()
 
 const links = ref(["Dashboard", "Messages", "Profile", "Updates", "Help"])
 
@@ -48,10 +64,11 @@ const logout = () => {
 }
 
 onMounted(() => {
+    console.log('props', props)
     // 知らないうちにログアウトしてはいないかをチェックする
     // そもそもログインしていなければチェックに行かない
     setInterval(() => {
-        if (isAuthenticated) {
+        if (props.isAuthenticated) {
             axios
                 .post("/check")
                 .then((res) => {
