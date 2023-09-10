@@ -6,8 +6,8 @@
                 @mouseover="markerMouseover(pt)" @mouseout="markerMouseout(pt)">
             </Marker>
             <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" :visible="mapObjectVisible" />
-            <CustomPopup :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" :params="popupParams" :menuParams="menuParams"
-                v-slot="{ submit, menuParams }">
+            <CustomPopup ref='cusp' :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" :params="popupParams"
+                :menuParams="menuParams" v-slot="{ submit, menuParams }">
                 <component :is="menus[menuComp]?.component" :submit="submit" :menuParams="menuParams"></component>
             </CustomPopup>
             <CuePointMarker :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready"
@@ -58,8 +58,7 @@ import CuePointReattachMenu from "./PopupMenu/CuePointReattachMenu.vue"
 import CuePointMarker from "./CuePointMarker.vue"
 import axios from "axios"
 
-import { useGeocodeStore} from "@/stores/GeocodeStore"
-
+import { useGeocodeStore } from "@/stores/GeocodeStore"
 
 export type menuComponentOptions = {
     /**
@@ -255,8 +254,8 @@ watch(
             })
 
         map.addListener("click", async (ev: google.maps.MapMouseEvent) => {
-            const res = await axios.get("/api/getAlt", { params: { lat: ev.latLng?.lat(), lng: ev.latLng?.lng() } })
-            console.log(res.data)
+            console.log( routeStore.routeSerialize())
+            
         })
 
         // 地図上右クリックで画面上の polyline などを一時消去

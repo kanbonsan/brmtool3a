@@ -1,6 +1,6 @@
 'use strict'
 
-type Coordinate = {
+export type Coordinate = {
     lat: number,
     lng: number,
     alt: number | null
@@ -125,7 +125,7 @@ const _decode = function (str: string, includeAltitude = true, altitudeFactor = 
  * @param {Array.<Array.<Number>>} coordinates
  * @returns {String}
  */
-type CoordTuple = [number, number, number]
+export type CoordTuple = [number, number, number]
 
 const _encode = function (coordinates: Array<CoordTuple>, altitudeFactor = 1000): string {
     if (!coordinates.length) {

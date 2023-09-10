@@ -54,7 +54,7 @@ export class Popup extends google.maps.OverlayView {
     this.containerDiv.classList.add("popup-container")
     this.containerDiv.appendChild(bubbleAnchor)
 
-    // ionally stop clicks, etc., from bubbling up to the map.
+    // Optionally stop clicks, etc., from bubbling up to the map.
     Popup.preventMapHitsAndGesturesFrom(this.containerDiv)
 
     // 表示に関する初期設定

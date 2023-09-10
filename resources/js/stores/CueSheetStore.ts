@@ -192,17 +192,24 @@ export const useCuesheetStore = defineStore('cuesheet', {
             // PCグループの処理
             const _controlList = this.controlList
             const _len = _controlList.length
+            const groupIdSet = new Set<symbol>()
 
             for (let i = 0; i < _len; i++) {
 
                 const grId = _controlList[i].groupId
-
+                // グループIdの一覧を取得
+                if (grId) { groupIdSet.add(grId) }
                 const _pre = _controlList[i - 1] ? _controlList[i - 1].groupId : undefined
                 const _post = _controlList[i + 1] ? _controlList[i + 1].groupId : undefined
 
                 if (grId !== undefined && grId !== _pre && grId !== _post) {
                     _controlList[i].groupId = undefined
                 }
+            }
+            // グループIdの一覧を配列に[0]をグループなしに
+            const groupIdArr = [undefined, ...Array.from(groupIdSet)]
+            for (const cpt of _controlList) {
+                cpt.groupNo = groupIdArr.findIndex(id => cpt.groupId === id)
             }
 
             // キューポイントの POI 化
@@ -222,6 +229,17 @@ export const useCuesheetStore = defineStore('cuesheet', {
                     }
                 }
             })
+
+            // cuePoint.routePointIndex の振り直し
+            this.cuePoints.forEach((cpt: CuePoint) => {
+                if (cpt.type !== 'poi') {
+                    const rpt = brmStore.getPointById(cpt.routePointId)
+                    cpt.routePointIndex = brmStore.getPointIndex(rpt!)
+                } else {
+                    cpt.routePointIndex = undefined
+                }
+            })
+
             this.label()
         },
 
@@ -315,6 +333,11 @@ export const useCuesheetStore = defineStore('cuesheet', {
             this.update()
         },
 
+        /**
+         * 前後のPC・CHKとグループ設定する（CHKに関してはグループ化はできないようにしている）
+         * @param id
+         * @param groupWith 
+         */
         setGroup(id: symbol, groupWith: 'pre' | 'post') {
             const cpt = this.getCuePointById(id)!
             const gr = this.getGroupCandidate(cpt)
@@ -328,10 +351,58 @@ export const useCuesheetStore = defineStore('cuesheet', {
 
             this.update()
         },
-
+        /**
+         * グループの解除
+         * @param id    CuePointId
+         */
         resetGroup(id: symbol) {
             const cpt = this.getCuePointById(id)
             cpt!.groupId = undefined
+            this.update()
+
+        },
+        /**
+         * 保存・キャッシュ用にテキストに serialize する
+         * @returns json
+         */
+        serialize() {
+            return JSON.stringify(Array.from(this.cuePoints.values()))
+        },
+        /**
+         * 
+         * @param json シリアライズデータからの復元
+         */
+        unserialize(json: string) {
+            const brmStore = useBrmRouteStore()
+            const group = new Map<number, symbol | undefined>()
+            group.set(0, undefined)
+
+            const arr: Array<{
+                type: cueType,
+                lat: number,
+                lng: number,
+                routePointIndex: number,
+                terminal: 'start' | 'finish' | undefined,
+                properties: cueProperties,
+                groupNo: number,
+                timestamp: number
+            }> = JSON.parse(json)
+
+            // データをクリア
+            this.cuePoints.clear()
+
+            for (const _cpt of arr) {
+                const rptId = _cpt.type === 'poi' ? null : brmStore.points[_cpt.routePointIndex].id
+                const cpt = new CuePoint(_cpt.lat, _cpt.lng, _cpt.type, rptId)
+                cpt.terminal = _cpt.terminal
+                cpt.properties = { ..._cpt.properties }
+                if (!group.has(_cpt.groupNo)) { group.set(_cpt.groupNo, Symbol()) }
+                cpt.groupId = group.get(_cpt.groupNo)
+                cpt.timestamp = _cpt.timestamp
+
+                this.cuePoints.set(cpt.id, cpt)
+            }
+
             this.update()
 
         }

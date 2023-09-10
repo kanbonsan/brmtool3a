@@ -32,7 +32,8 @@ export class CuePoint {
     }
 
     groupId: symbol | undefined     // 同一 ID は同じグループに（default は undefined）
-    pointNo: number | undefined     // POIと初期値は undefined, 都度自動的に振る
+    groupNo: number                 // serialize / unserialize 用に番号も振っておく（cuesheetStore.update()で更新）
+    pointNo: number | undefined     // POIと初期値は undefined, 都度自動的に振る 0:groupId=undefined, 1から順にグループ
     pcNo: number | undefined        // PC(スタート・ゴール除く)に1から振る. 同一グループは同一No
     checkNo: number | undefined     // チェックポイントに1から振る
     controlNo: number | undefined   // PC, CHECK の通し番号. グループを考慮
@@ -48,14 +49,23 @@ export class CuePoint {
 
     // 対応するルートポイントのid. null のときは'poi'
     routePointId: symbol | null
+    routePointIndex: number | undefined // serialize / unserialize 用に対応するルートポイントIndexを記憶しておく（cuesheetStore.update()で更新）
     // 作成時間. poi の表示順のソートに利用
     timestamp: number
 
     constructor(lat: number, lng: number, type: cueType = 'poi', routePointId: symbol | null = null) {
         this.id = Symbol()
-        this.groupId = undefined
         this.type = type
         this.terminal = undefined
+        this.groupId = undefined
+        this.groupNo = 0
+        this.pointNo = undefined
+        this.checkNo = undefined
+        this.controlNo = undefined
+        this.pcLabel = ''
+        this.controlLabel = ''
+        this.distance = undefined
+        this.lapDistance = undefined        
         this.lat = lat
         this.lng = lng
         this.routePointId = routePointId

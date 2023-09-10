@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { polyline } from '@/lib/polyline'
+import { polyline, type CoordTuple } from '@/lib/polyline'
 import { simplifyPath } from '@/lib/douglasPeucker'
 import { hubeny } from '@/lib/hubeny'
 import { HubenyCorrection, weighedThreshold } from '@/config.js'
@@ -29,7 +29,6 @@ type State = {
     }
     subpathTempPath: Array<{ lat: number, lng: number }>
     subpathDirectionControlPoints: Array<{ lat: number, lng: number }>
-
 }
 
 type BrmRange = { begin: number, end: number }
@@ -99,8 +98,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /** ルート距離（除外を含む） */
         routeDistance: (state): number => state.points.length > 0 ? state.points.slice(-1)[0].routeDistance : 0,
 
-        /** simplify 用の配列（x,y) を用意 */
-        pointsArray: (state) => state.points.map((pt, index) => ({ x: pt.lng ?? 0, y: pt.lat ?? 0, index })),
+        /** simplify 用の配列（x,y,z) を用意・拡張して path encode にも使えるようにした */
+        pointsArray: (state) => state.points.map((pt, index) => ({ x: pt.lng ?? 0, y: pt.lat ?? 0, z: pt.alt ?? -1000, index })),
 
         /** ある程度以上のポイント */
         weighedPoints: (state): RoutePoint[] => state.points.filter(pt => pt.weight >= weighedThreshold),
@@ -110,6 +109,23 @@ export const useBrmRouteStore = defineStore('brmroute', {
         availablePoints(state): RoutePoint[] {
             const gmapStore = useGmapStore()
             return this.weighedPoints.filter(pt => gmapStore.latLngBounds?.contains(pt))
+        },
+
+        /** serialize / unserialize 用の配列 */
+        serializablePoints(state) {
+            const arr: Array<{ excluded: boolean, voluntary: boolean, weight: number }> = []
+            state.points.forEach((pt) => {
+                const { excluded, voluntary, weight } = pt
+                arr.push({ excluded, voluntary, weight })
+            })
+            return arr
+        },
+
+        pointProperties(state) {
+            const excluded = state.points.map((pt: RoutePoint) => pt.excluded ? 1 : 0)
+            const voluntary = state.points.map((pt: RoutePoint) => pt.voluntary ? 1 : 0)
+            const weight = state.points.map((pt: RoutePoint) => pt.weight)
+            return { excluded, voluntary, weight }
         },
 
         /**
@@ -402,8 +418,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
             return (pt: RoutePoint | number | null) => {
                 if (pt === null) return null
 
-                const routePoint = ( typeof pt === 'number') ? state.points[pt] : pt
-                
+                const routePoint = (typeof pt === 'number') ? state.points[pt] : pt
+
                 const cpt = cuesheetStore.getArray.find((cpt) => {
                     return cpt.routePointId === routePoint.id
                 })
@@ -710,6 +726,40 @@ export const useBrmRouteStore = defineStore('brmroute', {
                     this.points[i].editable = false
                 }
             }
+        },
+
+        routeSerialize() {
+            const latLngAlt: CoordTuple[] = this.pointsArray.map((pt) => ([pt.y, pt.x, pt.z]))
+            const encodedPathAlt = polyline.encode(latLngAlt)
+
+            const pointProperties = JSON.stringify(this.pointProperties)
+
+            return ({ encodedPathAlt, pointProperties })
+        },
+
+        routeUnserialize(json: string) {
+            const { encodedPathAlt, pointProperties }: { encodedPathAlt: string, pointProperties: { [item: string]: Array<number> } } = JSON.parse(json)
+
+            this.points.length = 0
+            const _points = polyline.decode(encodedPathAlt)
+
+            this.points = [...(_points.map((pt) => {
+                return new RoutePoint(pt.lat, pt.lng, pt.alt ?? undefined)
+            }))]
+
+            pointProperties.excluded.forEach((val, index) => {
+                this.points[index].excluded = val === 1 ? true : false
+            })
+            pointProperties.voluntary.forEach((val, index) => {
+                this.points[index].voluntary = val === 1 ? true : false
+            })
+            pointProperties.weight.forEach((weight, index) => {
+                this.points[index].weight= weight
+            })
+            
+            this.update()
         }
+
+
     }
 })

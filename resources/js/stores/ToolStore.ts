@@ -2,12 +2,14 @@
 
 import { defineStore } from 'pinia'
 
+type timestamp = number
+
 type BrmInfo = {
     id: number | undefined
     organization: string,
     clubCode: string,
-    brmDate: Date | undefined,
-    startTime: Date[],
+    brmDate: timestamp | undefined,
+    startTime: timestamp[],
     brmDistance: number | undefined,
     title?: string,
     description?: string
@@ -15,7 +17,7 @@ type BrmInfo = {
 
 type State = {
     brmInfo: BrmInfo,
-    currentBrmStart: Date | undefined
+    currentBrmStart: timestamp | undefined
 }
 
 export const useToolStore = defineStore('tool', {
@@ -31,7 +33,7 @@ export const useToolStore = defineStore('tool', {
             title: '',
             description: ''
         },
-        currentBrmStart: undefined
+        currentBrmStart: undefined,
     }),
 
     getters: {
@@ -39,6 +41,14 @@ export const useToolStore = defineStore('tool', {
     },
 
     actions: {
-        
+        serialize(){
+            return JSON.stringify({ brmInfo: this.brmInfo, currentBrmStart: this.currentBrmStart})
+        },
+
+        unserialize(json: string){
+            const { brmInfo, currentBrmStart} = JSON.parse(json)
+            this.brmInfo = {...brmInfo}
+            this.currentBrmStart = currentBrmStart
+        }
     }
 })
