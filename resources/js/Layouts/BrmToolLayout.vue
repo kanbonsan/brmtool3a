@@ -1,25 +1,28 @@
 <template>
-    <el-menu class="menu-bar">
-        BRMTOOL
-        <el-menu-item index="1">ファイル</el-menu-item>
-        <el-menu-item index="2">ブルベ</el-menu-item>
-        <el-menu-item index="">アカウント</el-menu-item>
-    </el-menu>
-    <!-- <header>
-        BRMTOOL3
-        <Link v-if="$page.props.auth.user" :href="route('dashboard')"
-            class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">
-        Dashboard</Link>
-        <template v-else>
-            <Link :href="route('login')"
-                class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">
-            Log in</Link>
+    <el-menu class="menu-bar" mode="vertical" style="--el-menu-item-height: 24px;">
+        <div style="width:100%">
+            <el-row justify="center" style="font-size: 14px;font-weight:bold;"> BRMTOOL ver xx</el-row>
+            <el-row><el-menu-item index="1">ファイル</el-menu-item>
+                <el-menu-item index="2">ブルベ</el-menu-item>
 
-            <Link v-if="canRegister" :href="route('register')"
-                class="ml-4 font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">
-            Register</Link>
-        </template>
-    </header> -->
+                <div style="flex-grow:1;" />
+                <el-menu-item index="3">
+                    <Link v-if="$page.props.auth.user" :href="route('dashboard')">
+                    アカウント</Link>
+                </el-menu-item>
+                <el-menu-item index="4" v-if="!$page.props.auth.user">
+                    <Link :href="route('login')">
+                    ログイン
+                    </Link>
+                </el-menu-item>
+                <el-menu-item index="5" v-if="!$page.props.auth.user">
+                    <Link v-if="canRegister" :href="route('register')">
+                    登録
+                    </Link>
+                </el-menu-item>
+            </el-row>
+        </div>
+    </el-menu>
     <main>
         <slot />
     </main>
@@ -38,6 +41,7 @@ import axios from "axios"
 import FooterMessage from "@/Components/Footer.vue"
 
 import { useToolStore } from "@/stores/ToolStore"
+import { Link } from "@inertiajs/vue3"
 
 const props = defineProps<{
     canLogin?: boolean
@@ -91,6 +95,10 @@ body::-webkit-scrollbar {
 </style>
 
 <style scoped>
+.menu-bar {
+    background: lightgreen;
+}
+
 header,
 footer,
 aside,

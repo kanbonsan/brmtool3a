@@ -22,6 +22,13 @@ type State = {
     currentBrmStart: timestamp | undefined
 }
 
+/*
+アプリ設定項目
+　PC
+　　グループPCのオープン・クローズの設定
+
+*/
+
 export const useToolStore = defineStore('tool', {
 
     state: (): State => ({

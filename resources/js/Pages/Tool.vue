@@ -10,14 +10,14 @@ export default {
 </script>
 
 <template>
-    <Splitpanes class="default-theme" @resized="dimensionUpdate">
+    <Splitpanes class="default-theme" >
         <Pane class="map-pane">
             <MapPane />
         </Pane>
         <Pane class="side-pane">
             <div>
 
-                <TestDiv @testdiv="onTestDiv"></TestDiv>
+                <TestDiv ></TestDiv>
 
             </div>
         </Pane>
@@ -30,13 +30,9 @@ export default {
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
-
 import MapPane from "@/Components/MapPane.vue"
 
 import TestDiv from "@/Components/TestDiv1.vue"
-const props = defineProps(["canLogin", "canRegister"])
-
-const onTestDiv = () => { console.log('click on testdiv') }
 
 </script>
 
