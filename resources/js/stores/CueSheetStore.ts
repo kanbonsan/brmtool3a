@@ -163,6 +163,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
          * ルートポイントの変更を伴う処理時には必ず呼び出すようにする
          */
         update() {
+
             const brmStore = useBrmRouteStore()
             const brmRange = brmStore.brmRange
 
@@ -362,31 +363,29 @@ export const useCuesheetStore = defineStore('cuesheet', {
 
         },
         /**
-         * 保存・キャッシュ用にテキストに serialize する
+         * Serialize 用のオブジェクトを作成
          * @returns json
          */
-        serialize() {
-            return JSON.stringify(Array.from(this.cuePoints.values()))
+        pack() {
+            return Array.from(this.cuePoints.values())
         },
         /**
          * 
          * @param json シリアライズデータからの復元
          */
-        unserialize(json: string) {
+        unpack(arr: Array<{
+            type: cueType,
+            lat: number,
+            lng: number,
+            routePointIndex: number,
+            terminal: 'start' | 'finish' | undefined,
+            properties: cueProperties,
+            groupNo: number,
+            timestamp: number
+        }>) {
             const brmStore = useBrmRouteStore()
             const group = new Map<number, symbol | undefined>()
             group.set(0, undefined)
-
-            const arr: Array<{
-                type: cueType,
-                lat: number,
-                lng: number,
-                routePointIndex: number,
-                terminal: 'start' | 'finish' | undefined,
-                properties: cueProperties,
-                groupNo: number,
-                timestamp: number
-            }> = JSON.parse(json)
 
             // データをクリア
             this.cuePoints.clear()

@@ -728,17 +728,14 @@ export const useBrmRouteStore = defineStore('brmroute', {
             }
         },
 
-        routeSerialize() {
+        pack() {
             const latLngAlt: CoordTuple[] = this.pointsArray.map((pt) => ([pt.y, pt.x, pt.z]))
             const encodedPathAlt = polyline.encode(latLngAlt)
 
-            const pointProperties = JSON.stringify(this.pointProperties)
-
-            return ({ encodedPathAlt, pointProperties })
+            return ({ encodedPathAlt, pointProperties: this.pointProperties })
         },
 
-        routeUnserialize(json: string) {
-            const { encodedPathAlt, pointProperties }: { encodedPathAlt: string, pointProperties: { [item: string]: Array<number> } } = JSON.parse(json)
+        unpack({ encodedPathAlt, pointProperties }: { encodedPathAlt: string, pointProperties: { [item: string]: Array<number> } }) {
 
             this.points.length = 0
             const _points = polyline.decode(encodedPathAlt)
@@ -754,9 +751,9 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 this.points[index].voluntary = val === 1 ? true : false
             })
             pointProperties.weight.forEach((weight, index) => {
-                this.points[index].weight= weight
+                this.points[index].weight = weight
             })
-            
+
             this.update()
         }
 

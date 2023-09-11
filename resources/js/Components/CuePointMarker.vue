@@ -1,3 +1,10 @@
+<template>
+    <Marker ref="marker" v-for="(cpt, index) in cuePoints" :key="cpt.id" :options="getOption(cpt)"
+        @click="onClick(cpt, $event)" @drag="onDrag(cpt, $event)" @dragend="onDragEnd(cpt, index, $event)"
+        @dblclick="onDblClick(cpt, index, $event)" @contextmenu="onContextmenu(cpt)">
+    </Marker>
+</template>
+
 <script setup lang="ts">
 
 import { ref, watch } from "vue"
@@ -29,9 +36,9 @@ const getOption = (cpt: CuePoint) => {
 
     let cueType: string
 
-    if( cpt.type !== 'pc'){ cueType=cpt.type}
+    if (cpt.type !== 'pc') { cueType = cpt.type }
     else {
-        cueType = cpt.terminal!==undefined ? cpt.terminal : 'pc'
+        cueType = cpt.terminal !== undefined ? cpt.terminal : 'pc'
     }
 
     const iconOption = {
@@ -90,6 +97,16 @@ const onDblClick = (cpt: CuePoint, index: number, $event: google.maps.MapMouseEv
 
 }
 
+const onContextmenu = async( cpt: CuePoint ) => {
+    popups!.menuParams.value = { cpt }
+    const res: any = await cueMarkerPopup(cpt, 'CuePointDeleteConfirmMenu')
+    
+    if( res.result === 'delete' ){
+        cuesheetStore.removeCuePoint(cpt.id)
+        ElMessage({type: 'info', message: 'ポイントを削除しました'})
+    }
+}
+
 const onDrag = (cpt: CuePoint, $event: google.maps.MapMouseEvent) => {
     refRoutePoint.value = routeStore.getClosePoint($event.latLng!)
 }
@@ -144,9 +161,3 @@ const cueMarkerPopup = async (cpt: CuePoint, menu: string) => {
 
 </script>
 
-<template>
-    <Marker ref="marker" v-for="(cpt, index) in cuePoints" :key="cpt.id" :options="getOption(cpt)"
-        @click="onClick(cpt, $event)" @drag="onDrag(cpt, $event)" @dragend="onDragEnd(cpt, index, $event)"
-        @dblclick="onDblClick(cpt, index, $event)">
-    </Marker>
-</template>

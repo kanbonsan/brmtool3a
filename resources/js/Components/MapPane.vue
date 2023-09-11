@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed, provide, type Ref } from "vue"
+import { ref, watch, onUnmounted, onMounted, computed, provide, type Ref } from "vue"
 import type { Component } from 'vue'
 
 import { GoogleMap, Marker, Polyline } from "vue3-google-map"
@@ -32,6 +32,7 @@ import brm from "../../sample/sample200.brm.json"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useCuesheetStore } from "@/stores/CueSheetStore"
 import { useGmapStore } from "@/stores/GmapStore"
+import { useToolStore } from "@/stores/ToolStore"
 import { useMessage } from "@/stores/MessageStore"
 import circle from '../../images/pointCircle.png'
 
@@ -54,11 +55,9 @@ import ExcludePolyMenu from "@/Components/PopupMenu/ExcludedPolylineMenu.vue"
 import PointMenu from "@/Components/PopupMenu/PointMenu.vue"
 import CuePointMenu from "./PopupMenu/CuePointMenu.vue"
 import CuePointReattachMenu from "./PopupMenu/CuePointReattachMenu.vue"
+import CuePointDeleteConfirmMenu from "./PopupMenu/CuePointDeleteConfirmMenu.vue"
 
 import CuePointMarker from "./CuePointMarker.vue"
-import axios from "axios"
-
-import { useGeocodeStore } from "@/stores/GeocodeStore"
 
 export type menuComponentOptions = {
     /**
@@ -123,6 +122,10 @@ const menus: Menus = {
     CuePointReattachMenu: {
         component: CuePointReattachMenu,
         options: { timeout: 10_000, offsetY: -30 }
+    },
+    CuePointDeleteConfirmMenu: {
+        component: CuePointDeleteConfirmMenu,
+        options: { timeout: 5_000, offsetY: 0 }
     }
 }
 
@@ -187,8 +190,6 @@ const drawers: Drawers = {
     }
 }
 
-
-
 //マップ上の表示を一時消去するタイマー（重複処理用）
 let mapObjectVisibleTimer: number | null = null
 const mapObjectVisible = ref<boolean>(true)
@@ -200,6 +201,7 @@ const routeStore = useBrmRouteStore()
 const gmapStore = useGmapStore()
 const messageStore = useMessage()
 const cuesheetStore = useCuesheetStore()
+const toolStore = useToolStore()
 
 const availablePoints = computed(() => routeStore.availablePoints)
 
@@ -215,6 +217,20 @@ const popupParams = ref<{
 
 const gmap = ref<InstanceType<typeof GoogleMap>>()
 
+onMounted(()=>{
+
+    toolStore.reset()
+
+    if( gmap.value && gmap.value.ready ){
+        toolStore.restore()
+    }
+    
+})
+
+onUnmounted(() => {
+    toolStore.save()
+})
+
 watch(
     (): boolean | undefined => gmap.value?.ready,
     (ready) => {
@@ -229,7 +245,9 @@ watch(
         gmapStore.map = map
 
         /** ルートの設定 */
-        routeStore.setPoints(brm.encodedPathAlt)
+        if (!toolStore.restore()) {
+            routeStore.setPoints(brm.encodedPathAlt)
+        }
 
         map.addListener(
             "bounds_changed",
@@ -254,8 +272,8 @@ watch(
             })
 
         map.addListener("click", async (ev: google.maps.MapMouseEvent) => {
-            console.log( routeStore.routeSerialize())
-            
+            console.log('map clicked')
+
         })
 
         // 地図上右クリックで画面上の polyline などを一時消去
