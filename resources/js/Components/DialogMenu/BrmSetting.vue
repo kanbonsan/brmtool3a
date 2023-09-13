@@ -16,7 +16,7 @@
             <el-form-item label="スタート時間">
                 <el-checkbox v-model="startNextDay" label="翌日" size="small"></el-checkbox>
                 <el-time-picker style="width:100px;margin-right:5px;" v-model="startTime" format="HH:mm"></el-time-picker>
-                <el-button>追加</el-button>
+                <el-button @click="onAddStartTime">追加</el-button>
                 <el-button v-for="dt in form.brmStart">{{ dt }}</el-button>
 
             </el-form-item>
@@ -64,7 +64,10 @@ const form = reactive<
 })
 
 // スタート時間（前日・翌日になることも考慮）
-const startDate = computed(() => form.brmDate ? form.brmDate : new Date())
+const startDate = computed(() => {
+    const _date: Date = form.brmDate ? form.brmDate : new Date()
+    return new Date(_date.setHours(0, 0, 0, 0))
+})
 const startTime = ref<Date>()
 const startNextDay = ref(false)
 
@@ -72,6 +75,16 @@ const deleteClubCode = () => { form.clubCode = undefined }
 
 const onCancelClose = () => { props.onClose() }
 
+const onAddStartTime = () => {
+    if (!startTime.value) return    // 入力なし
+    const _hh = startTime.value.getHours() + (startNextDay.value ? 24 : 0)
+    const _mm = startTime.value.getMinutes()
+    const _start = startDate.value.setHours(_hh, _mm, 0)
+    const found = form.brmStart.find((st) => (st.getTime() === _start)) // すでに登録があるか
+    if (!found) {
+        form.brmStart.push(new Date(_start))
+    }
+}
 
 onMounted(() => console.log(AJCLUB))
 
