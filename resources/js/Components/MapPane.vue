@@ -389,8 +389,7 @@ const markerPopup = async (pt: RoutePoint) => {
         return Promise.reject('n/a')
     }
     menuComp.value = 'PointMenu'
-
-    menuParams.value = { ts: Date.now(), cuePoint: cuesheetStore.routePoints.includes(pt), pt }
+    menuParams.value = { pt }
 
     const position = new google.maps.LatLng(pt)
 
@@ -430,9 +429,6 @@ const popup: PopUp = async (position, activator?) => {
     })
 
 }
-
-
-
 
 /**
  * 画面下のドロワー内 slot からの submit をキャッチ

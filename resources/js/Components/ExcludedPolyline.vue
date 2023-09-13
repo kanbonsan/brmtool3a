@@ -38,7 +38,5 @@ const onClick = async (id, ev) => {
 </script>
 
 <template>
-    <Polyline v-for="ex in excludes" :key="ex.id" :options="getOption(ex)" @click="onClick(ex.id, $event)">
-
-    </Polyline>
+    <Polyline v-for="ex in excludes" :key="ex.id" :options="getOption(ex)" @click="onClick(ex.id, $event)"/>
 </template>

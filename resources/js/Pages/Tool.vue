@@ -10,16 +10,24 @@ export default {
 </script>
 
 <template>
-    <Splitpanes class="default-theme" >
+    <Splitpanes class="default-theme">
         <Pane class="map-pane">
             <MapPane />
         </Pane>
         <Pane class="side-pane">
-            <div>
+            <Splitpanes horizontal>
+                <pane>
+                    <div>
 
-                <TestDiv ></TestDiv>
+                        <TestDiv></TestDiv>
 
-            </div>
+                    </div>
+                </pane>
+                <pane>
+
+                </pane>
+            </Splitpanes>
+
         </Pane>
     </Splitpanes>
 </template>

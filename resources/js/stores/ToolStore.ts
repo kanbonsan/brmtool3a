@@ -14,16 +14,28 @@ type BrmInfo = {
     startTime: timestamp[],
     brmDistance: number | undefined,
     title?: string,
-    description?: string
+    description?: string,
+    pcGroupOpen?: 'head'|'individual'|'tail',    // グループPCのオープンをどこに合わせるか
+    pcGroupClose?: 'head'|'individual'|'tail',
+}
+
+type Properties = {
+    clubCode: number,
+    pcGroupOpen: 'head'|'individual'|'tail',    // グループPCのオープンをどこに合わせるか
+    pcGroupClose: 'head'|'individual'|'tail',
+    
 }
 
 type State = {
     brmInfo: BrmInfo,
-    currentBrmStart: timestamp | undefined
+    currentBrmStart: timestamp | undefined,
+    properties: Properties
 }
 
 /*
 アプリ設定項目
+    ブルベ設定
+        主催クラブコード
 　PC
 　　グループPCのオープン・クローズの設定
 
@@ -39,10 +51,16 @@ export const useToolStore = defineStore('tool', {
             brmDate: undefined,
             startTime: [],
             brmDistance: undefined,
-            title: '',
-            description: ''
+            description: '',
+            pcGroupOpen: undefined,
+            pcGroupClose: undefined
         },
         currentBrmStart: undefined,
+        properties:{
+            clubCode: 600008,
+            pcGroupOpen: 'individual',
+            pcGroupClose: 'individual'
+        }
     }),
 
     getters: {
@@ -52,12 +70,13 @@ export const useToolStore = defineStore('tool', {
     actions: {
 
         pack() {
-            return { brmInfo: this.brmInfo, currentBrmStart: this.currentBrmStart }
+            return { brmInfo: this.brmInfo, currentBrmStart: this.currentBrmStart, properties: this.properties }
         },
 
-        unpack({ brmInfo, currentBrmStart }: { brmInfo: any, currentBrmStart: any }) {
+        unpack({ brmInfo, currentBrmStart, properties }: { brmInfo: any, currentBrmStart: any, properties:any }) {
             this.brmInfo = { ...this.brmInfo, ...brmInfo }
             this.currentBrmStart = currentBrmStart
+            this.properties = { ...this.properties, ...properties}
         },
 
         save() {

@@ -363,11 +363,18 @@ const updateIcon = () => {
 </script>
 
 <style scoped>
-.el-dialog__header {
-    background: yellow;
-    margin-right: 0px;
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
+:deep(.el-card__header) {
+    --el-card-padding: 5px;
+    background: var(--el-color-primary-light-7);
+    color: var(--el-color-primary-dark-2);
+    font-weight: bold;
+}
 .cue-point {
     width: 400px;
 }
@@ -381,12 +388,6 @@ const updateIcon = () => {
     margin-right: 2px;
 }
 
-:deep(.el-card__header) {
-    --el-card-padding: 5px;
-    background: var(--el-color-primary-light-7);
-    color: var(--el-color-primary-dark-2);
-    font-weight: bold;
-}
 
 :deep(.el-card__body) {
     padding: 5px;
@@ -398,11 +399,7 @@ const updateIcon = () => {
     font-weight: bold;
 }
 
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+
 
 .desc {
     font-size: x-small;

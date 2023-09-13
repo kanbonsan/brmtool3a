@@ -1,65 +1,93 @@
 <template>
-    <el-card class="ex-poly" style="padding:0;">
+    <el-card class="route-point">
         <template #header>
-            <h4>ポイント</h4>
+            <div class="card-header">
+                <span>ポイント</span>
+
+                <el-icon :size="24">
+                    <circle-close @click="onCancelClose"></circle-close>
+                </el-icon>
+
+            </div>
         </template>
+
         <el-row v-if="gmapStore.editMode || gmapStore.subpathMode">
             <el-tooltip placement="right" content="キューポイントを設定します" :auto-close="2000">
-                <el-button class="menu-button" size="small" type="info"
+                <el-button class="menu-button" size="small" type="success"
                     @click="onClick('addCuePoint')">キューポイント設定</el-button>
             </el-tooltip>
         </el-row>
         <el-row v-if="gmapStore.editMode">
             <el-tooltip placement="right" content="編集範囲設定スライダーを表示します" :auto-close="2000">
-                <el-button :disabled="!gmapStore.editMode" class="menu-button" size="small" type="info"
+                <el-button :disabled="!gmapStore.editMode" class="menu-button" size="small" type="primary"
                     @click="onClick('editableRange')">編集範囲設定</el-button>
             </el-tooltip>
         </el-row>
         <el-row v-if="gmapStore.editMode">
             <el-tooltip placement="right" content="サブパス選択を開始します" :auto-close="2000">
-                <el-button class="menu-button" size="small" type="info"
+                <el-button class="menu-button" size="small" type="primary"
                     @click="onClick('subpathBegin')">サブパス選択開始</el-button>
             </el-tooltip>
         </el-row>
         <el-row v-if="gmapStore.subpathSelectMode">
             <el-tooltip placement="right" content="この点をサブパスの終点にします" :auto-close="2000">
-                <el-button class="menu-button" size="small" type="info" @click="onClick('subpathEnd')">サブパス範囲確定</el-button>
+                <el-button class="menu-button" size="small" type="primary" @click="onClick('subpathEnd')">サブパス範囲確定</el-button>
             </el-tooltip>
         </el-row>
-
+<!-- 
         <el-row v-if="gmapStore.editMode">
             <el-tooltip placement="right" content="このポイントを削除します" :auto-close="2000">
-                <el-button class="menu-button" size="small" type="info">ポイント削除</el-button>
+                <el-button class="menu-button" size="small" type="danger">ポイント削除</el-button>
             </el-tooltip>
-        </el-row>
-        <el-row>
-
-            <el-button class="menu-button" size="small" type="info" @click="onClick('cancel')">キャンセル</el-button>
-
-        </el-row>
+        </el-row> -->
 
     </el-card>
 </template>
 
 <script setup lang="ts">
 import { useGmapStore } from '@/stores/GmapStore';
+import { onMounted} from 'vue'
 
-const props = defineProps(['submit', 'params'])
+const props = defineProps(['submit', 'menuParams'])
 const gmapStore = useGmapStore()
 
 const onClick = (result: string) => {
     props.submit({ status: 'success', result })
 }
 
+const onCancelClose = () => {
+    props.submit({ status: 'success', result: 'cancel' })
+}
+
+onMounted(()=>{
+    console.log(props)
+})
 </script>
 
 <style scoped>
+.route-point{
+    width: 150px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+:deep(.el-card__header) {
+    --el-card-padding: 5px;
+    background: var(--el-color-primary-light-7);
+    color: var(--el-color-primary-dark-2);
+    font-weight: bold;
+}
+
 :deep(.el-card__body) {
-    --el-card-padding: 2px;
+    padding: 5px;
 }
 
 .menu-button {
-    width: 150px;
-    margin-bottom: 2px;
+    width: 100%;
+    margin-bottom: 4px;
 }
 </style>

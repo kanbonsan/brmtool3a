@@ -3,3 +3,5 @@ declare module 'wave-ui'{
 }
 
 declare module 'axios-jsonp';
+
+declare module 'element-plus/dist/locale/ja.min.mjs';

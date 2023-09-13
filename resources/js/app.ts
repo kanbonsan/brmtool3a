@@ -14,6 +14,7 @@ pinia.use(piniaPluginPersistedState)
 // element plus
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import ja from 'element-plus/dist/locale/ja.min.mjs'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 const appName = window.document.getElementsByTagName('title')[0]?.innerText || 'BRMTOOL3'
@@ -28,7 +29,7 @@ createInertiaApp({
         }
         app.use(plugin)
             .use(ZiggyVue, Ziggy)
-            .use(ElementPlus)
+            .use(ElementPlus, {locale:ja})
             .use(pinia)
             .mount(el)
 

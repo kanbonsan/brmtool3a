@@ -1,31 +1,42 @@
 <template>
-    <el-menu class="menu-bar" mode="vertical" style="--el-menu-item-height: 24px;">
-        <div style="width:100%">
-            <el-row justify="center" style="font-size: 14px;font-weight:bold;"> BRMTOOL ver xx</el-row>
-            <el-row><el-menu-item index="1">ファイル</el-menu-item>
-                <el-menu-item index="2">ブルベ</el-menu-item>
+    <el-menu class="menu-bar" mode="horizontal">
 
-                <div style="flex-grow:1;" />
-                <el-menu-item index="3">
-                    <Link v-if="$page.props.auth.user" :href="route('dashboard')">
-                    アカウント</Link>
-                </el-menu-item>
-                <el-menu-item index="4" v-if="!$page.props.auth.user">
-                    <Link :href="route('login')">
-                    ログイン
-                    </Link>
-                </el-menu-item>
-                <el-menu-item index="5" v-if="!$page.props.auth.user">
-                    <Link v-if="canRegister" :href="route('register')">
-                    登録
-                    </Link>
-                </el-menu-item>
-            </el-row>
-        </div>
+        <el-sub-menu index="1">
+            <template #title>ファイル</template>
+            <el-menu-item index="1-1" @click="console.log('new brm')">新規</el-menu-item>
+            <el-menu-item index="1-2">読み込み</el-menu-item>
+            <el-menu-item index="1-3">保存</el-menu-item>
+            <el-menu-item index="1-4">エクスポート</el-menu-item>
+            <el-menu-item index="1-5">設定</el-menu-item>
+        </el-sub-menu>
+
+        <el-menu-item index="2">ブルベ</el-menu-item>
+        <div style="flex-grow:1" />
+        <template v-if="$page.props.auth.user">
+            <el-menu-item index="3">
+                <Link :href="route('dashboard')">アカウント</Link>
+            </el-menu-item>
+        </template>
+        <template v-else>
+            <el-menu-item index="4" v-if="!$page.props.auth.user">
+                <Link :href="route('login')">
+                ログイン
+                </Link>
+            </el-menu-item>
+            <el-menu-item index="5" v-if="!$page.props.auth.user">
+                <Link v-if="canRegister" :href="route('register')">
+                登録
+                </Link>
+            </el-menu-item>
+        </template>
     </el-menu>
     <main>
         <slot />
     </main>
+
+    <el-dialog class="main-dialog" v-model="menuVisible" :title="menuTitle">
+        <component :is="menuComponent" :onClose="handleClose" />
+    </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -35,19 +46,16 @@
  * MapPane.vue の 中で行う。
  */
 
-import { ref, onMounted, onUnmounted } from "vue"
-import { router } from "@inertiajs/vue3"
+import { ref, onMounted, onUnmounted, type Component } from "vue"
+import { Link, router } from "@inertiajs/vue3"
 import axios from "axios"
-import FooterMessage from "@/Components/Footer.vue"
 
 import { useToolStore } from "@/stores/ToolStore"
-import { Link } from "@inertiajs/vue3"
+import BrmSetting from "@/Components/DialogMenu/BrmSetting.vue"
 
 const props = defineProps<{
     canLogin?: boolean
     canRegister?: boolean
-    laravelVersion: string
-    phpVersion: string
 }>()
 
 const credentials = ref({
@@ -56,7 +64,6 @@ const credentials = ref({
 })
 
 const loginSubmit = () => {
-    console.log("submit")
     axios.get("/sanctum/csrf-cookie").then((response) => {
         console.log(credentials)
         axios
@@ -80,6 +87,17 @@ onMounted(() => {
 onUnmounted(() => {
     window.removeEventListener('beforeunload', saveData)
 })
+
+// DIALOG
+const menuVisible = ref<boolean>(false)
+const menuComponent = ref<Component>()
+const menuTitle = ref<string>()
+
+menuVisible.value = true
+menuTitle.value = 'ブルベ設定'
+menuComponent.value = BrmSetting
+const handleClose = () => console.log('handle close')
+
 </script>
 
 <style>
@@ -92,12 +110,24 @@ body {
 body::-webkit-scrollbar {
     display: none;
 }
+
+.main-dialog .el-dialog__header {
+    background: var(--el-color-primary-light-7);
+    color: var(--el-color-primary-dark-2);
+    margin-right: 0px;
+}
+
+.main-dialog .el-dialog__body {
+    padding: 0px;
+}
+
 </style>
 
 <style scoped>
 .menu-bar {
     background: lightgreen;
 }
+
 
 header,
 footer,
