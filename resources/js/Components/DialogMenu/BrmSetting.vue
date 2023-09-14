@@ -11,13 +11,13 @@
                 <el-button @click="deleteClubCode" size="small" round>なし</el-button>
             </el-form-item>
             <el-form-item label="開催日">
-                <el-date-picker v-model="form.brmDate"></el-date-picker>
+                <el-date-picker v-model="form.brmDate" @change="onBrmDateChange"></el-date-picker>
             </el-form-item>
             <el-form-item label="スタート時間">
                 <el-checkbox v-model="startNextDay" label="翌日" size="small"></el-checkbox>
                 <el-time-picker style="width:100px;margin-right:5px;" v-model="startTime" format="HH:mm"></el-time-picker>
                 <el-button @click="onAddStartTime">追加</el-button>
-                <el-button v-for="dt in form.brmStart">{{ dt }}</el-button>
+                <el-button v-for="dt in startList">{{ dt.label }}</el-button>
 
             </el-form-item>
             <el-form-item label="ブルベ距離">
@@ -40,6 +40,7 @@
 import { onMounted, reactive, ref, computed } from 'vue'
 import { useToolStore } from '@/stores/ToolStore'
 import { AJCLUB } from '@/lib/aj_club'
+import { useDateFormat } from '@vueuse/core'
 
 type timestamp = number
 
@@ -50,26 +51,58 @@ const toolStore = useToolStore()
 const form = reactive<
     {
         clubCode?: number,
-        brmDate?: Date,
+        brmDate?: Date | null,
         brmStart: Date[],
         brmDistance?: number,
         description?: string,
     }
 >({
-    clubCode: toolStore.properties.clubCode,
-    brmDate: undefined,
-    brmStart: [],
-    brmDistance: undefined,
-    description: ''
+    clubCode: parseInt(toolStore.brmInfo.clubCode),
+    brmDate: toolStore.brmInfo.brmDate ? new Date(toolStore.brmInfo.brmDate) : undefined,
+    brmStart: toolStore.brmInfo.startTime.map(ts => new Date(ts)),
+    brmDistance: toolStore.brmInfo.brmDistance,
+    description: toolStore.brmInfo.description
 })
 
 // スタート時間（前日・翌日になることも考慮）
 const startDate = computed(() => {
-    const _date: Date = form.brmDate ? form.brmDate : new Date()
-    return new Date(_date.setHours(0, 0, 0, 0))
+    const _date: Date = form.brmDate ? form.brmDate : new Date(0)
+    return new Date(_date.getTime())
 })
 const startTime = ref<Date>()
 const startNextDay = ref(false)
+
+const startList = computed(() => {
+    const _sorted = form.brmStart
+    _sorted.sort((a: Date, b: Date) => {
+        return a.getTime() - b.getTime()
+    })
+    const _startDay = startDate.value.getDate()
+    return _sorted.map((d) => {
+        const _dayLabel = (_startDay === d.getDate()) ? '' : (!form.brmDate ? '翌/' : `${d.getDate()}日/`)
+        const _minutes = `00${d.getMinutes()}`.slice(-2)
+        const label = `${_dayLabel}${d.getHours()}:${_minutes}`
+        return ({ date: d, ts: d.getTime(), label })
+    })
+})
+
+const onBrmDateChange = () => {
+
+    if (form.brmStart.length === 0) return
+    const _prevStart = new Date(form.brmStart[0].getTime()).setHours(0, 0, 0)
+
+    if (!form.brmDate) {
+        const _currentStart = new Date(0).setHours(0, 0, 0)
+        form.brmStart = form.brmStart.map((d) => {
+            return new Date(d.getTime() - _prevStart + _currentStart)
+        })
+    } else {
+        const _currentStart = form.brmDate.getTime()
+        form.brmStart = form.brmStart.map((d) => {
+            return new Date(d.getTime() - _prevStart + _currentStart)
+        })
+    }
+}
 
 const deleteClubCode = () => { form.clubCode = undefined }
 
@@ -79,11 +112,14 @@ const onAddStartTime = () => {
     if (!startTime.value) return    // 入力なし
     const _hh = startTime.value.getHours() + (startNextDay.value ? 24 : 0)
     const _mm = startTime.value.getMinutes()
-    const _start = startDate.value.setHours(_hh, _mm, 0)
-    const found = form.brmStart.find((st) => (st.getTime() === _start)) // すでに登録があるか
+    const _start = new Date(startDate.value)
+    _start.setHours(_hh, _mm, 0)
+    const found = form.brmStart.find((st) => (st.getTime() === _start.getTime())) // すでに登録があるか
     if (!found) {
-        form.brmStart.push(new Date(_start))
+        form.brmStart.push(_start)
     }
+    startTime.value = undefined
+    startNextDay.value = false
 }
 
 onMounted(() => console.log(AJCLUB))
