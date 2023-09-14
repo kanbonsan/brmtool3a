@@ -9,7 +9,7 @@ type timestamp = number
 type BrmInfo = {
     id: number | undefined
     organization: string,
-    clubCode: string,
+    clubCode: string|undefined,
     brmDate: timestamp | undefined,
     startTime: timestamp[],
     brmDistance: number | undefined,
@@ -20,7 +20,7 @@ type BrmInfo = {
 }
 
 type Properties = {
-    clubCode: number,
+    clubCode: string,
     pcGroupOpen: 'head'|'individual'|'tail',    // グループPCのオープンをどこに合わせるか
     pcGroupClose: 'head'|'individual'|'tail',
     
@@ -47,7 +47,7 @@ export const useToolStore = defineStore('tool', {
         brmInfo: {
             id: undefined,
             organization: '',
-            clubCode: '',
+            clubCode: undefined,
             brmDate: undefined,
             startTime: [],
             brmDistance: undefined,
@@ -57,7 +57,7 @@ export const useToolStore = defineStore('tool', {
         },
         currentBrmStart: undefined,
         properties:{
-            clubCode: 600008,
+            clubCode: "600008",
             pcGroupOpen: 'individual',
             pcGroupClose: 'individual'
         }

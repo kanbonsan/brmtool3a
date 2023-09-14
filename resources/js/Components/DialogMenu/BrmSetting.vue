@@ -2,13 +2,13 @@
     <el-card class="brm-setting">
         <el-form label-width="100px" :model="form">
             <el-form-item label="主催クラブ">
-                <el-select v-model="form.clubCode" style="margin-right:5px;">
+                <el-select v-model="form.clubCode" clearable style="margin-right:5px;">
                     <el-option v-for="club in AJCLUB" :key="club.code" :label="club.clubShort" :value="club.code">
                         <span style="float:left;">{{ club.code }}</span><span style="float:right;">{{ club.clubJa }}</span>
                     </el-option>
 
                 </el-select>
-                <el-button @click="deleteClubCode" size="small" round>なし</el-button>
+                {{ organization }}
             </el-form-item>
             <el-form-item label="開催日">
                 <el-date-picker v-model="form.brmDate" @change="onBrmDateChange"></el-date-picker>
@@ -17,7 +17,7 @@
                 <el-checkbox v-model="startNextDay" label="翌日" size="small"></el-checkbox>
                 <el-time-picker style="width:100px;margin-right:5px;" v-model="startTime" format="HH:mm"></el-time-picker>
                 <el-button @click="onAddStartTime">追加</el-button>
-                <el-button v-for="dt in startList">{{ dt.label }}</el-button>
+                <el-button v-for="dt in startList" @click="onDeleteStartTime(dt.date)">{{ dt.label }}</el-button>
 
             </el-form-item>
             <el-form-item label="ブルベ距離">
@@ -30,7 +30,7 @@
                 </el-select>
             </el-form-item>
             <el-form-item label="説明">
-                <el-input v-model="form.description"></el-input>
+                <el-input v-model="form.description" type="textarea" autosize></el-input>
             </el-form-item>
         </el-form>
     </el-card>
@@ -40,9 +40,6 @@
 import { onMounted, reactive, ref, computed } from 'vue'
 import { useToolStore } from '@/stores/ToolStore'
 import { AJCLUB } from '@/lib/aj_club'
-import { useDateFormat } from '@vueuse/core'
-
-type timestamp = number
 
 const props = defineProps(["onClose"])
 const toolStore = useToolStore()
@@ -50,18 +47,24 @@ const toolStore = useToolStore()
 
 const form = reactive<
     {
-        clubCode?: number,
+        clubCode?: string,
         brmDate?: Date | null,
         brmStart: Date[],
         brmDistance?: number,
         description?: string,
     }
 >({
-    clubCode: parseInt(toolStore.brmInfo.clubCode),
+    clubCode: toolStore.brmInfo.clubCode,
     brmDate: toolStore.brmInfo.brmDate ? new Date(toolStore.brmInfo.brmDate) : undefined,
     brmStart: toolStore.brmInfo.startTime.map(ts => new Date(ts)),
     brmDistance: toolStore.brmInfo.brmDistance,
     description: toolStore.brmInfo.description
+})
+
+// 団体名
+const organization = computed(()=>{
+    const club=AJCLUB.find(club=>club.code===form.clubCode)
+    return club ? club.clubJa : 'なし'
 })
 
 // スタート時間（前日・翌日になることも考慮）
@@ -104,8 +107,6 @@ const onBrmDateChange = () => {
     }
 }
 
-const deleteClubCode = () => { form.clubCode = undefined }
-
 const onCancelClose = () => { props.onClose() }
 
 const onAddStartTime = () => {
@@ -120,6 +121,12 @@ const onAddStartTime = () => {
     }
     startTime.value = undefined
     startNextDay.value = false
+}
+
+const onDeleteStartTime = (date: Date) => {
+    const index = form.brmStart.findIndex(st => st === date)
+    form.brmStart.splice(index,1)
+
 }
 
 onMounted(() => console.log(AJCLUB))
