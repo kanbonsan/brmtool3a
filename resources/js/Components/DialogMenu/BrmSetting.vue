@@ -2,7 +2,7 @@
     <el-card class="brm-setting">
         <el-form label-width="100px" :model="form">
             <el-form-item label="主催クラブ">
-                <el-select v-model="form.clubCode" clearable style="margin-right:5px;">
+                <el-select v-model="form.clubCode" clearable style="margin-right:5px;" @change="synchronize">
                     <el-option v-for="club in AJCLUB" :key="club.code" :label="club.clubShort" :value="club.code">
                         <span style="float:left;">{{ club.code }}</span><span style="float:right;">{{ club.clubJa }}</span>
                     </el-option>
@@ -21,7 +21,7 @@
 
             </el-form-item>
             <el-form-item label="ブルベ距離">
-                <el-select v-model="form.brmDistance">
+                <el-select v-model="form.brmDistance" @change="synchronize">
                     <el-option value="200" label="200km">200km</el-option>
                     <el-option value="300" label="300km">300km</el-option>
                     <el-option value="400" label="400km">400km</el-option>
@@ -30,7 +30,7 @@
                 </el-select>
             </el-form-item>
             <el-form-item label="説明">
-                <el-input v-model="form.description" type="textarea" autosize></el-input>
+                <el-input v-model="form.description" type="textarea" autosize @change="synchronize"></el-input>
             </el-form-item>
         </el-form>
     </el-card>
@@ -47,23 +47,23 @@ const toolStore = useToolStore()
 
 const form = reactive<
     {
-        clubCode?: string,
+        clubCode: string | undefined,
         brmDate?: Date | null,
         brmStart: Date[],
-        brmDistance?: number,
-        description?: string,
+        brmDistance: number | undefined,
+        description: string | undefined,
     }
 >({
-    clubCode: toolStore.brmInfo.clubCode,
-    brmDate: toolStore.brmInfo.brmDate ? new Date(toolStore.brmInfo.brmDate) : undefined,
-    brmStart: toolStore.brmInfo.startTime.map(ts => new Date(ts)),
-    brmDistance: toolStore.brmInfo.brmDistance,
-    description: toolStore.brmInfo.description
+    clubCode: undefined,
+    brmDate: undefined,
+    brmStart: [],
+    brmDistance: undefined,
+    description: undefined
 })
 
 // 団体名
-const organization = computed(()=>{
-    const club=AJCLUB.find(club=>club.code===form.clubCode)
+const organization = computed(() => {
+    const club = AJCLUB.find(club => club.code === form.clubCode)
     return club ? club.clubJa : 'なし'
 })
 
@@ -76,6 +76,7 @@ const startTime = ref<Date>()
 const startNextDay = ref(false)
 
 const startList = computed(() => {
+    
     const _sorted = form.brmStart
     _sorted.sort((a: Date, b: Date) => {
         return a.getTime() - b.getTime()
@@ -105,6 +106,8 @@ const onBrmDateChange = () => {
             return new Date(d.getTime() - _prevStart + _currentStart)
         })
     }
+
+    synchronize()
 }
 
 const onCancelClose = () => { props.onClose() }
@@ -115,21 +118,39 @@ const onAddStartTime = () => {
     const _mm = startTime.value.getMinutes()
     const _start = new Date(startDate.value)
     _start.setHours(_hh, _mm, 0)
-    const found = form.brmStart.find((st) => (st.getTime() === _start.getTime())) // すでに登録があるか
+    const found = form.brmStart!.find((st) => (st.getTime() === _start.getTime())) // すでに登録があるか
     if (!found) {
-        form.brmStart.push(_start)
+        form.brmStart!.push(_start)
     }
     startTime.value = undefined
     startNextDay.value = false
+    synchronize()
 }
 
 const onDeleteStartTime = (date: Date) => {
-    const index = form.brmStart.findIndex(st => st === date)
-    form.brmStart.splice(index,1)
-
+    const index = form.brmStart!.findIndex(st => st === date)
+    form.brmStart!.splice(index, 1)
+    synchronize()
 }
 
-onMounted(() => console.log(AJCLUB))
+const synchronize = () => {
+    const info = toolStore.brmInfo
+
+    info.organization = organization.value
+    info.clubCode = form.clubCode
+    info.brmDate = form.brmDate?.getTime()
+    info.startTime = form.brmStart.map(st => st.getTime())
+    info.brmDistance = form.brmDistance
+    info.description = form.description
+}
+
+onMounted(() => {
+    form.clubCode = toolStore.brmInfo.clubCode
+    form.brmDate = toolStore.brmInfo.brmDate ? new Date(toolStore.brmInfo.brmDate) : undefined
+    form.brmStart = toolStore.brmInfo.startTime.map(ts => new Date(ts))
+    form.brmDistance = toolStore.brmInfo.brmDistance
+    form.description = toolStore.brmInfo.description
+})
 
 </script>
 

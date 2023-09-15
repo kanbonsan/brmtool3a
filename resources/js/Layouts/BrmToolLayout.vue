@@ -82,10 +82,12 @@ const saveData = () => { toolStore.save() }
 
 onMounted(() => {
     window.addEventListener('beforeunload', saveData)
+    setTimeout(()=>menuVisible.value = true, 1000)
 })
 
 onUnmounted(() => {
     window.removeEventListener('beforeunload', saveData)
+    
 })
 
 // DIALOG
@@ -93,7 +95,7 @@ const menuVisible = ref<boolean>(false)
 const menuComponent = ref<Component>()
 const menuTitle = ref<string>()
 
-menuVisible.value = true
+menuVisible.value = false
 menuTitle.value = 'ブルベ設定'
 menuComponent.value = BrmSetting
 const handleClose = () => console.log('handle close')
