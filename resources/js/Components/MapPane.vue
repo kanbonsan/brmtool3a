@@ -287,6 +287,14 @@ watch(
     }
 )
 
+watch( ()=>gmapStore.center, async (newCenter)=>{
+    gmapStore.map?.setCenter(newCenter)
+    gmapStore.map?.setZoom(14)
+})
+
+watch(()=>gmapStore.zoomBounds, async(newBB)=>{
+    gmapStore.map?.fitBounds(newBB!)
+})
 // Lower Drawer Menu
 /**
  * Drawer 開閉のためのスイッチ

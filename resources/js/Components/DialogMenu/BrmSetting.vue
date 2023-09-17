@@ -15,18 +15,19 @@
             </el-form-item>
             <el-form-item label="スタート時間">
                 <el-checkbox v-model="startNextDay" label="翌日" size="small"></el-checkbox>
-                <el-time-picker style="width:100px;margin-right:5px;" v-model="startTime" format="HH:mm"></el-time-picker>
+                <el-time-picker style="width:100px;margin-right:5px;" v-model="startTime" format="HH:mm"
+                    :default-value="defaultStartTime"></el-time-picker>
                 <el-button @click="onAddStartTime">追加</el-button>
                 <el-button v-for="dt in startList" @click="onDeleteStartTime(dt.date)">{{ dt.label }}</el-button>
 
             </el-form-item>
             <el-form-item label="ブルベ距離">
                 <el-select v-model="form.brmDistance" @change="synchronize">
-                    <el-option value="200" label="200km">200km</el-option>
-                    <el-option value="300" label="300km">300km</el-option>
-                    <el-option value="400" label="400km">400km</el-option>
-                    <el-option value="600" label="600km">600km</el-option>
-                    <el-option value="1000" label="1000km">1000km</el-option>
+                    <el-option :value="200" label="200km">200km</el-option>
+                    <el-option :value="300" label="300km">300km</el-option>
+                    <el-option :value="400" label="400km">400km</el-option>
+                    <el-option :value="600" label="600km">600km</el-option>
+                    <el-option :value="1000" label="1000km">1000km</el-option>
                 </el-select>
             </el-form-item>
             <el-form-item label="説明">
@@ -39,10 +40,12 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, computed } from 'vue'
 import { useToolStore } from '@/stores/ToolStore'
+import { useCuesheetStore} from '@/stores/CueSheetStore'
 import { AJCLUB } from '@/lib/aj_club'
 
 const props = defineProps(["onClose"])
 const toolStore = useToolStore()
+const cuesheetStore = useCuesheetStore()
 
 
 const form = reactive<
@@ -72,11 +75,13 @@ const startDate = computed(() => {
     const _date: Date = form.brmDate ? form.brmDate : new Date(0)
     return new Date(_date.getTime())
 })
+const defaultStartTime = ref( new Date(new Date().setHours(7,0,0)))
+
 const startTime = ref<Date>()
 const startNextDay = ref(false)
 
 const startList = computed(() => {
-    
+
     const _sorted = form.brmStart
     _sorted.sort((a: Date, b: Date) => {
         return a.getTime() - b.getTime()
@@ -110,8 +115,6 @@ const onBrmDateChange = () => {
     synchronize()
 }
 
-const onCancelClose = () => { props.onClose() }
-
 const onAddStartTime = () => {
     if (!startTime.value) return    // 入力なし
     const _hh = startTime.value.getHours() + (startNextDay.value ? 24 : 0)
@@ -122,8 +125,10 @@ const onAddStartTime = () => {
     if (!found) {
         form.brmStart!.push(_start)
     }
+    defaultStartTime.value = new Date( startTime.value.getTime() )
     startTime.value = undefined
     startNextDay.value = false
+    
     synchronize()
 }
 
@@ -142,6 +147,8 @@ const synchronize = () => {
     info.startTime = form.brmStart.map(st => st.getTime())
     info.brmDistance = form.brmDistance
     info.description = form.description
+
+    cuesheetStore.update()
 }
 
 onMounted(() => {

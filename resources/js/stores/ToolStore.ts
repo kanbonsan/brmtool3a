@@ -9,35 +9,36 @@ type timestamp = number
 type BrmInfo = {
     id: number | undefined
     organization: string,
-    clubCode: string|undefined,
+    clubCode: string | undefined,
     brmDate: timestamp | undefined,
     startTime: timestamp[],
     brmDistance: number | undefined,
     title?: string,
     description?: string,
-    pcGroupOpen?: 'head'|'individual'|'tail',    // グループPCのオープンをどこに合わせるか
-    pcGroupClose?: 'head'|'individual'|'tail',
+    pcGroupOpen?: 'head' | 'individual' | 'tail',    // グループPCのオープンをどこに合わせるか
+    pcGroupClose?: 'head' | 'individual' | 'tail',
 }
 
 type Properties = {
     clubCode: string,
-    pcGroupOpen: 'head'|'individual'|'tail',    // グループPCのオープンをどこに合わせるか
-    pcGroupClose: 'head'|'individual'|'tail',
-    
+    pcGroupOpen: 'head' | 'individual' | 'tail',    // グループPCのオープンをどこに合わせるか
+    pcGroupClose: 'head' | 'individual' | 'tail',
+    startPcClose: number                        // スタートの閉鎖タイム（日本では 30分）
+
 }
 
 type State = {
     brmInfo: BrmInfo,
+    properties: Properties,
     currentBrmStart: timestamp | undefined,
-    properties: Properties
 }
 
 /*
 アプリ設定項目
     ブルベ設定
         主催クラブコード
-　PC
-　　グループPCのオープン・クローズの設定
+ PC
+  グループPCのオープン・クローズの設定
 
 */
 
@@ -55,16 +56,31 @@ export const useToolStore = defineStore('tool', {
             pcGroupOpen: undefined,
             pcGroupClose: undefined
         },
-        currentBrmStart: undefined,
-        properties:{
+        properties: {
             clubCode: "600008",
             pcGroupOpen: 'individual',
-            pcGroupClose: 'individual'
-        }
+            pcGroupClose: 'individual',
+            startPcClose: 30,
+        },
+        currentBrmStart: undefined
     }),
 
     getters: {
+        startList(state) {
+            const list = [...state.brmInfo.startTime]
+            const startDateTs = state.brmInfo.brmDate || new Date(0).setHours(0, 0, 0)
+            if (list.length === 0) return []
 
+            list.sort((a, b) => a - b)
+
+            return list.map(ts => {
+                const d = new Date(ts)
+                const mm = d.getMinutes()
+                const hh = ts - startDateTs >= 24 * 3600_000 ? d.getHours()+24 : d.getHours()
+                
+                return { ts, label: `${hh}:` + `${mm}00`.slice(-2)}
+            })
+        }
     },
 
     actions: {
@@ -73,10 +89,10 @@ export const useToolStore = defineStore('tool', {
             return { brmInfo: this.brmInfo, currentBrmStart: this.currentBrmStart, properties: this.properties }
         },
 
-        unpack({ brmInfo, currentBrmStart, properties }: { brmInfo: any, currentBrmStart: any, properties:any }) {
+        unpack({ brmInfo, currentBrmStart, properties }: { brmInfo: any, currentBrmStart: any, properties: any }) {
             this.brmInfo = { ...this.brmInfo, ...brmInfo }
             this.currentBrmStart = currentBrmStart
-            this.properties = { ...this.properties, ...properties}
+            this.properties = { ...this.properties, ...properties }
         },
 
         save() {

@@ -24,7 +24,7 @@ export default {
                     </div>
                 </pane>
                 <pane>
-
+                    <CuesheetPane />
                 </pane>
             </Splitpanes>
 
@@ -39,6 +39,7 @@ import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
 import MapPane from "@/Components/MapPane.vue"
+import CuesheetPane from '@/Components/CuesheetPane.vue'
 
 import TestDiv from "@/Components/TestDiv1.vue"
 

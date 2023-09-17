@@ -68,7 +68,9 @@
                         </el-col>
                         <el-col :span="16">
                             <el-autocomplete v-model="form.name" style="width:100%;"></el-autocomplete>
+                            <span v-html="fname"></span>
                         </el-col>
+
                     </el-row>
                 </div>
             </el-form-item>
@@ -87,7 +89,8 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { Markup } from '@/lib/markup'
+import { reactive,computed } from 'vue'
 const props = defineProps(['submit'])
 
 const form = reactive({
@@ -105,6 +108,11 @@ const onClick = () => {
 
     props.submit('Test Div 1')
 }
+
+const fname=computed(()=>{
+    const n = new Markup(form.name)
+    return n.html()
+})
 
 </script>
 
@@ -140,5 +148,13 @@ const onClick = () => {
 
 .desc {
     font-size: x-small
+}
+
+span :deep(.font-weight-bold) {
+    font-weight: bold;
+}
+
+span :deep(.text-danger){
+    color: red;
 }
 </style>

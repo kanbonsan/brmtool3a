@@ -10,7 +10,7 @@
             <el-menu-item index="1-5">設定</el-menu-item>
         </el-sub-menu>
 
-        <el-menu-item index="2">ブルベ</el-menu-item>
+        <el-menu-item index="2" @click="openDialog(BrmSetting, 'ブルベ設定')">ブルベ設定</el-menu-item>
         <div style="flex-grow:1" />
         <template v-if="$page.props.auth.user">
             <el-menu-item index="3">
@@ -82,7 +82,6 @@ const saveData = () => { toolStore.save() }
 
 onMounted(() => {
     window.addEventListener('beforeunload', saveData)
-    setTimeout(()=>menuVisible.value = true, 1000)
 })
 
 onUnmounted(() => {
@@ -95,10 +94,16 @@ const menuVisible = ref<boolean>(false)
 const menuComponent = ref<Component>()
 const menuTitle = ref<string>()
 
-menuVisible.value = false
-menuTitle.value = 'ブルベ設定'
-menuComponent.value = BrmSetting
-const handleClose = () => console.log('handle close')
+const openDialog = (component: Component, title: string)=>{
+    if( menuVisible.value===true) return
+    menuComponent.value = component
+    menuTitle.value = title
+    menuVisible.value = true
+}
+
+const handleClose = ()=>{
+    menuVisible.value = false
+}
 
 </script>
 

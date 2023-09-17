@@ -9,6 +9,7 @@ import { useCuesheetStore } from './CueSheetStore'
 import { RoutePoint } from '@/classes/routePoint'
 
 import axios from 'axios'
+import { endianness } from 'os'
 
 const simplifyParam = [
     { weight: 3, tolerance: 0.000015 },
@@ -443,7 +444,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 return { in: inAngle, out: outAngle, heading: (outAngle - inAngle + 360) % 360 }
 
             }
-        }
+        },
 
     },
 

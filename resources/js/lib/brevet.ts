@@ -3,9 +3,14 @@
 export const limitHours = new Map([[200, 13.5], [300, 20], [360, 24], [400, 27], [600, 40], [1000, 75], [1200, 90]])   // expirations : 制限時間(hr)
 
 // ACPブルべのPCでのオープン・クローズ時間の計算
-export const calcOpenClose = function (distanceInMeter) {
+/**
+ * PCの開閉時間を（分）で返す
+ * @param distanceInMeter 
+ * @returns
+ */
+export const calcOpenClose = function (distanceInMeter?: number) {
 
-    if (distanceInMeter === null) {
+    if (distanceInMeter === undefined) {
         return null
     }
 

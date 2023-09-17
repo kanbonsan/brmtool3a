@@ -41,7 +41,13 @@ export class CuePoint {
     controlLabel?: string           // PC, CHECK 通しのラベル
 
     distance?: number               // そのポイントの brmDistance
-    lapDistance?: number            // 直前の cuePoint からの距離
+    roundedDistance?: number         // キューシート表示用の丸めた距離（km）
+    lapDistance?: number            // 直前の cuePoint からの距離・roundedDistanceから計算
+    roundDistanceString?: string    // 表示用に小数1桁を0に
+    lapDistanceString?: string
+
+    openMin?: number                // PCオープン（分）
+    closeMin?: number               // PCクローズ（分）
 
     // マーカーの位置（GPXファイルにも反映）・マーカードラッグ終了時に再設定
     lat: number
@@ -65,15 +71,24 @@ export class CuePoint {
         this.pcLabel = ''
         this.controlLabel = ''
         this.distance = undefined
-        this.lapDistance = undefined        
+        this.lapDistance = undefined
         this.lat = lat
         this.lng = lng
         this.routePointId = routePointId
         this.timestamp = Date.now()
+        this.openMin = undefined
+        this.closeMin = undefined
     }
 
     setPosition(position: google.maps.LatLng) {
         this.lat = position.lat()
         this.lng = position.lng()
+    }
+    
+    // 信号・交差点 を結合
+    get cuesheetName(): string {
+        const signal: string = this.properties.signal ? 'S ' : ''
+        const crossing: string = this.properties.crossing !== '' ? `${this.properties.crossing} ` : ''
+        return `${signal}${crossing}${this.properties.name}`
     }
 }

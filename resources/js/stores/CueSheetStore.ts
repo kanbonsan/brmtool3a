@@ -2,7 +2,10 @@ import { defineStore } from 'pinia'
 import { CuePoint, cueProperties, cueType } from '@/classes/cuePoint'
 import { RoutePoint } from '@/classes/routePoint'
 import { useBrmRouteStore } from './BrmRouteStore'
+import { useToolStore } from './ToolStore'
 import { PC_SUBGROUP_ENUM } from '@/config'
+import { calcOpenClose, limitHours } from '@/lib/brevet'
+import { TcpSocketConnectOpts } from 'net'
 
 type State = {
     cuePoints: Map<symbol, CuePoint>
@@ -47,7 +50,6 @@ export const useCuesheetStore = defineStore('cuesheet', {
                     const bRoutePointIndex = brmStore.getPointIndex(brmStore.getPointById(b.routePointId)!)
                     return aRoutePointIndex - bRoutePointIndex
                 })
-
         },
 
         controlList(): CuePoint[] {
@@ -84,6 +86,68 @@ export const useCuesheetStore = defineStore('cuesheet', {
                     pre: _pre && _pre.type === cuePoint.type ? _pre : undefined,
                     post: _post && _post.type === cuePoint.type ? _post : undefined
                 }
+            }
+        },
+
+        cuesheetData(state) {
+            const brmStore = useBrmRouteStore()
+            const toolStore = useToolStore()
+            const points = this.pointList
+
+            const getDaysLater = (from: number, to: number) => {
+                const fromMidnight = new Date(from).setHours(0, 0, 0)
+                const fromElapsed = from - fromMidnight
+                const toMidnight = new Date(to).setHours(0, 0, 0)
+                const toElapsed = to - toMidnight
+                return Math.floor((to - from) / (24 * 60_000)) + (toElapsed - fromElapsed > 0 ? 1 : 0)
+            }
+
+            return (startTs?: number) => {
+
+                return points.map(cpt => {
+
+                    // 名称
+                    let prefix: string = ``
+                    switch (cpt.type) {
+                        case 'pc':
+                            prefix = cpt.terminal === undefined ? `PC${cpt.controlLabel} ` : ''
+                            break
+                        case 'pass':
+                            prefix = `CHK${cpt.controlLabel} `
+                            break
+                    }
+                    const name = prefix + cpt.cuesheetName
+
+                    // オープン・クローズ
+                    const isFixedDate = toolStore.brmInfo.brmDate !== undefined
+                    const currentBrmStart = toolStore.currentBrmStart
+
+                    let openLabel: string = ''
+                    let closeLabel: string = ''
+                    const _openTs = (currentBrmStart !== undefined && cpt.openMin !== undefined) ? currentBrmStart + cpt.openMin * 60_000 : undefined
+                    const _openDayDiff = 
+                    const _closeTs = (currentBrmStart !== undefined && cpt.closeMin !== undefined) ? currentBrmStart + cpt.closeMin * 60_000 : undefined
+
+                    switch (cpt.type) {
+                        case 'pc':
+
+                    }
+
+
+
+                    return {
+                        routePoint: brmStore.getPointById(cpt.routePointId),
+                        pointNo: cpt.pointNo,
+                        name,
+                        direction: cpt.properties.direction,
+                        route: cpt.properties.route,
+                        distance: cpt.roundDistanceString,
+                        lapDistance: cpt.lapDistanceString,
+                        note: cpt.properties.note,
+                        openMin: cpt.openMin,
+                        closeMin: cpt.closeMin
+                    }
+                })
             }
         }
 
@@ -242,6 +306,8 @@ export const useCuesheetStore = defineStore('cuesheet', {
             })
 
             this.label()
+            this.distance()
+            this.setTime()
         },
 
         /**
@@ -316,6 +382,59 @@ export const useCuesheetStore = defineStore('cuesheet', {
                             cpt[labelProperty] = `${_number}${PC_SUBGROUP_ENUM[index]}`
                         })
                     }
+                }
+            }
+        },
+
+        // 距離の設定
+        distance() {
+            const _pointList = this.pointList
+            const brmStore = useBrmRouteStore()
+
+            const addZero = (val: number) => {
+                return `${val * 10}`.replace(/(\d)$/, ".\$1").replace(/^\./, "0.")
+            }
+
+            let prevRoundedDistance = 0 // 10倍した値、引き算を整数で行わないと誤差がでることがあるため
+            _pointList.forEach((pt: CuePoint) => {
+                const routePoint = brmStore.getPointById(pt.routePointId)
+                pt.distance = routePoint?.brmDistance
+                pt.roundedDistance = Math.ceil((pt.distance! / 1000) * 10) / 10
+                pt.lapDistance = (pt.roundedDistance * 10 - prevRoundedDistance) / 10
+                prevRoundedDistance = pt.roundedDistance * 10
+
+                pt.roundDistanceString = addZero(pt.roundedDistance)
+                pt.lapDistanceString = addZero(pt.lapDistance)
+            })
+        },
+
+        // PC オープン・クローズ計算
+        setTime() {
+            const _pointList = this.pointList
+            const toolStore = useToolStore()
+
+            const brmDistance = toolStore.brmInfo.brmDistance
+            const brmLimitHr = brmDistance ? limitHours.get(brmDistance) : undefined
+
+            for (const cpt of _pointList) {
+
+                const openClose = calcOpenClose(cpt.distance)
+
+                if (!brmDistance || !brmLimitHr || !openClose) {
+                    cpt.openMin = cpt.closeMin = undefined  // 途中で undefined に変えられることがあるのでいちいち undefined に設定する
+                    continue
+                }
+                if (cpt.terminal === 'start') {
+                    cpt.openMin = 0
+                    cpt.closeMin = toolStore.properties.startPcClose
+                } else if (cpt.terminal === 'finish') {
+                    cpt.openMin = openClose.open
+                    cpt.closeMin = brmLimitHr * 60
+                } else if (cpt.type === 'pc' || cpt.type === 'pass') {
+                    cpt.openMin = openClose.open
+                    cpt.closeMin = openClose.close
+                } else {
+                    cpt.openMin = cpt.closeMin = undefined
                 }
             }
         },

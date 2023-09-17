@@ -2,7 +2,7 @@
     <el-card class="cue-point">
         <template #header>
             <div class="card-header">
-                <span>キューポイント #{{ cuePoint.pointNo }} {{ cuePoint.pcLabel ?? 'なし' }} {{ cuePoint.controlLabel ?? 'なし' }}</span>
+                <span>キューポイント #{{ cuePoint.pointNo }} {{ cuePoint.lapDistance }} {{ cuePoint.distance }}</span>
 
                 <el-icon :size="24">
                     <circle-close @click="onCancelClose"></circle-close>
@@ -116,6 +116,7 @@
             <el-form-item label="備考">
                 <el-input v-model="form.note" autosize type="textarea" @input="synchronize"></el-input>
             </el-form-item>
+            <span v-html="note"></span>
         </el-form>
     </el-card>
     <el-dialog style="--el-dialog-padding-primary: 10px;" v-model="pcDialogVisible" width="30%" top="30vh"
@@ -141,6 +142,7 @@ import { useBrmRouteStore } from '@/stores/BrmRouteStore'
 import { useGeocodeStore } from '@/stores/GeocodeStore'
 import { CuePoint } from '@/classes/cuePoint'
 import { garminIcons } from '@/lib/garminIcons'
+import { Markup } from '@/lib/markup'
 
 import garmin from '@/../../resources/images/Garmin_logo_2006.svg'
 
@@ -171,6 +173,13 @@ const groupCandidate = ref(cuesheetStore.getGroupCandidate(cuePoint))
 const groupAvailable = computed(() => (groupCandidate.value.pre !== undefined || groupCandidate.value.post !== undefined))
 
 const form = reactive({ type: cuePoint.type, pcGroup: false, ...props.menuParams.cuePoint.properties })
+
+const note = computed(()=>{
+    console.log(form.note)
+    const n = new Markup(form.note)
+    console.log(n.parse())
+    return n.html()
+})
 
 onMounted(() => {
 
