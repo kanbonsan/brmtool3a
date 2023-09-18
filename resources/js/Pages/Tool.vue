@@ -17,11 +17,7 @@ export default {
         <Pane class="side-pane">
             <Splitpanes horizontal>
                 <pane>
-                    <div>
-
-                        <TestDiv></TestDiv>
-
-                    </div>
+                    <StreetViewPane />
                 </pane>
                 <pane>
                     <CuesheetPane />
@@ -40,6 +36,7 @@ import 'splitpanes/dist/splitpanes.css'
 
 import MapPane from "@/Components/MapPane.vue"
 import CuesheetPane from '@/Components/CuesheetPane.vue'
+import StreetViewPane from '@/Components/StreetViewPane.vue'
 
 import TestDiv from "@/Components/TestDiv1.vue"
 

@@ -1,6 +1,6 @@
 <template>
     <div class="cuesheet">
-        <el-radio-group v-if="startList.length" v-model="toolStore.currentBrmStart" size="small">
+        <el-radio-group v-if="startList.length" v-model="currentBrmStart" size="small">
             <el-radio-button v-for="start of startList" :label="start.ts">{{ start.label }}</el-radio-button>
         </el-radio-group>
         <el-table :data="data" border style="height:100%" size="small" @row-click="onRowClick"
@@ -12,7 +12,7 @@
             <el-table-column prop="lapDistance" label="区間" width="50" align="right" />
             <el-table-column prop="distance" label="距離" width="50" align="right" />
             <el-table-column prop="openLabel" label="オープン"/>
-            <el-table-column prop="closeMin" label="クローズ"/>
+            <el-table-column prop="closeLabel" label="クローズ"/>
             <el-table-column prop="note" label="備考" width="150"/>
         </el-table>
     </div>
@@ -30,13 +30,9 @@ const cuesheetStore = useCuesheetStore()
 const toolStore = useToolStore()
 const gmapStore = useGmapStore()
 
+const currentBrmStart = ref<number|undefined>(undefined)
 const startList = computed(() => toolStore.startList)
-
-const data = computed(()=>{
-    const d = cuesheetStore.cuesheetData()
-    console.log(d)
-    return d
-})
+const data = computed(()=>cuesheetStore.cuesheetData(currentBrmStart.value))
 
 const onRowClick = (row: any) => {
     gmapStore.setCenter(row.routePoint)
@@ -47,6 +43,10 @@ const headerCellStyle = ({ columnIndex }: { columnIndex: number }) => {
         return { textAlign: 'center' }
     }
 }
+
+onMounted(()=>{
+    currentBrmStart.value = startList.value.length > 0 ? startList.value[0].ts : undefined
+})
 </script>
 
 <style scoped>

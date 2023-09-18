@@ -6,6 +6,7 @@ type MapLock = null | 'cuePoint' | 'subpath'
 
 type State = {
     map: google.maps.Map | null
+    ready: boolean
     center: {
         lat: number,
         lng: number
@@ -28,7 +29,8 @@ export const useGmapStore = defineStore('gmap', {
 
     state: (): State => ({
         map: null,
-        center: { lat: 35.2517, lng: 137.1146 },
+        ready: false,
+        center: { lat:35.24385944989924, lng: 137.09019885128768},
         zoom: 10,
         bounds: { north: undefined, south: undefined, east: undefined, west: undefined },
         latLngBounds: undefined,

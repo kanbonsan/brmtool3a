@@ -217,14 +217,14 @@ const popupParams = ref<{
 
 const gmap = ref<InstanceType<typeof GoogleMap>>()
 
-onMounted(()=>{
+onMounted(() => {
 
     toolStore.reset()
 
-    if( gmap.value && gmap.value.ready ){
+    if (gmap.value && gmap.value.ready) {
         toolStore.restore()
     }
-    
+
 })
 
 onUnmounted(() => {
@@ -243,6 +243,7 @@ watch(
         const map = gmap.value.map
 
         gmapStore.map = map
+        gmapStore.ready = ready
 
         /** ルートの設定 */
         if (!toolStore.restore()) {
@@ -272,7 +273,8 @@ watch(
             })
 
         map.addListener("click", async (ev: google.maps.MapMouseEvent) => {
-            console.log('map clicked')
+            console.log(ev.latLng?.lat(), ev.latLng?.lng())
+
 
         })
 
@@ -287,12 +289,12 @@ watch(
     }
 )
 
-watch( ()=>gmapStore.center, async (newCenter)=>{
+watch(() => gmapStore.center, async (newCenter) => {
     gmapStore.map?.setCenter(newCenter)
     gmapStore.map?.setZoom(14)
 })
 
-watch(()=>gmapStore.zoomBounds, async(newBB)=>{
+watch(() => gmapStore.zoomBounds, async (newBB) => {
     gmapStore.map?.fitBounds(newBB!)
 })
 // Lower Drawer Menu

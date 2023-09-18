@@ -30,7 +30,6 @@ type Properties = {
 type State = {
     brmInfo: BrmInfo,
     properties: Properties,
-    currentBrmStart: timestamp | undefined,
 }
 
 /*
@@ -61,8 +60,7 @@ export const useToolStore = defineStore('tool', {
             pcGroupOpen: 'individual',
             pcGroupClose: 'individual',
             startPcClose: 30,
-        },
-        currentBrmStart: undefined
+        }
     }),
 
     getters: {
@@ -86,12 +84,11 @@ export const useToolStore = defineStore('tool', {
     actions: {
 
         pack() {
-            return { brmInfo: this.brmInfo, currentBrmStart: this.currentBrmStart, properties: this.properties }
+            return { brmInfo: this.brmInfo, properties: this.properties }
         },
 
         unpack({ brmInfo, currentBrmStart, properties }: { brmInfo: any, currentBrmStart: any, properties: any }) {
             this.brmInfo = { ...this.brmInfo, ...brmInfo }
-            this.currentBrmStart = currentBrmStart
             this.properties = { ...this.properties, ...properties }
         },
 

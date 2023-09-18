@@ -94,12 +94,14 @@ export const useCuesheetStore = defineStore('cuesheet', {
             const points = this.pointList
 
             const getDaysLater = (from?: number, to?: number) => {
-                if( !from || !to ) return undefined
-                const fromMidnight = new Date(from).setHours(0, 0, 0)
-                const fromElapsed = from - fromMidnight
-                const toMidnight = new Date(to).setHours(0, 0, 0)
-                const toElapsed = to - toMidnight
-                return Math.floor((to - from) / (24 * 60_000)) + (toElapsed - fromElapsed > 0 ? 1 : 0)
+                if (!from || !to) return undefined
+                const zero = new Date(from).setHours(0, 0, 0)
+                const toDay = (to - zero) / 24 * 3600_000
+                return Math.floor((to - zero) / (24 * 3600_000))
+            }
+
+            const format = (dt?: Date) => {
+                return dt ? `${dt.getHours()}:` + `00${dt.getMinutes()}`.slice(-2) : ''
             }
 
             return (startTs?: number) => {
@@ -122,37 +124,49 @@ export const useCuesheetStore = defineStore('cuesheet', {
 
                     // ブルベ日が決まっているか
                     const isFixedDate = toolStore.brmInfo.brmDate !== undefined
-                    // ブルベ日（未定の場合は Epoch time）
-                    const currentBrmStart = toolStore.currentBrmStart
+
                     // 表示するテキスト
                     let openLabel: string = ''
                     let closeLabel: string = ''
                     let dayPrefix = ''
                     // オープンのタイムスタンプと何日ずれているか（開催日未定の場合の計算が結構やっかいだったので ↑getDaysLater関数に分けた）
-                    const _openTs = (currentBrmStart !== undefined && cpt.openMin !== undefined) ? currentBrmStart + cpt.openMin * 60_000 : undefined
+                    const _openTs = (startTs !== undefined && cpt.openMin !== undefined) ? startTs + cpt.openMin * 60_000 : undefined
                     const _open = _openTs ? new Date(_openTs) : undefined
-                    const _openDayDiff = getDaysLater( currentBrmStart, _openTs )
+                    const _openDayDiff = getDaysLater(startTs, _openTs)
                     // 同様クローズのタイムスタンプ
-                    const _closeTs = (currentBrmStart !== undefined && cpt.closeMin !== undefined) ? currentBrmStart + cpt.closeMin * 60_000 : undefined
+                    const _closeTs = (startTs !== undefined && cpt.closeMin !== undefined) ? startTs + cpt.closeMin * 60_000 : undefined
                     const _close = _closeTs ? new Date(_closeTs) : undefined
-                    const _closeDayDiff = getDaysLater( currentBrmStart, _closeTs)
+                    const _closeDayDiff = getDaysLater(startTs, _closeTs)
 
                     // open
                     switch (cpt.type) {
                         case 'pc':
-                           if( cpt.terminal!=='start'){
-                                dayPrefix = _openDayDiff === 0 ? '' : ( isFixedDate ? `${_open?.getDay}日/` : `${_openDayDiff}日後/`)
-                                openLabel = `${dayPrefix}${_open?.getHours()}:${_open?.getMinutes()}`
-                           } 
-                           break
+                            dayPrefix = _openDayDiff === 0 ? '' : (isFixedDate ? `${_open?.getDay}日/` : `+${_openDayDiff}d/`)
+                            openLabel = `${dayPrefix}${format(_open!)}`
+                            break
+                        case 'pass':
+                            dayPrefix = _openDayDiff === 0 ? '' : (isFixedDate ? `${_open?.getDay}日/` : `+${_openDayDiff}d/`)
+                            openLabel = `(参考 ${dayPrefix}${format(_open)})`
+                            break
+                    }
+                    // close
+                    switch (cpt.type) {
+                        case 'pc':
+                                dayPrefix = _closeDayDiff === 0 ? '' : (isFixedDate ? `${_close?.getDay}日/` : `+${_closeDayDiff}d/`)
+                                closeLabel = `${dayPrefix}${format(_close!)}`
+                            break
+                        case 'pass':
+                            dayPrefix = _closeDayDiff === 0 ? '' : (isFixedDate ? `${_close?.getDay}日/` : `+${_closeDayDiff}d/`)
+                            closeLabel = `(参考 ${dayPrefix}${format(_close)})`
+                            break
                     }
 
                     return {
+                        _openDayDiff,
                         isFixedDate,
                         routePoint: brmStore.getPointById(cpt.routePointId),
                         pointNo: cpt.pointNo,
                         name,
-                        currentBrmStart,
                         direction: cpt.properties.direction,
                         route: cpt.properties.route,
                         distance: cpt.roundDistanceString,
