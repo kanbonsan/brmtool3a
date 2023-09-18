@@ -2,7 +2,7 @@
     <el-card class="cue-point">
         <template #header>
             <div class="card-header">
-                <span>キューポイント #{{ cuePoint.pointNo }} {{ cuePoint.lapDistance }} {{ cuePoint.distance }}</span>
+                <span>キューポイント {{ cuePoint.lapDistance }} {{ cuePoint.distance }}</span>
 
                 <el-icon :size="24">
                     <circle-close @click="onCancelClose"></circle-close>

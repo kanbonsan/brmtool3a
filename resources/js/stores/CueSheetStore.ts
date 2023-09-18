@@ -5,7 +5,6 @@ import { useBrmRouteStore } from './BrmRouteStore'
 import { useToolStore } from './ToolStore'
 import { PC_SUBGROUP_ENUM } from '@/config'
 import { calcOpenClose, limitHours } from '@/lib/brevet'
-import { TcpSocketConnectOpts } from 'net'
 
 type State = {
     cuePoints: Map<symbol, CuePoint>
@@ -94,7 +93,8 @@ export const useCuesheetStore = defineStore('cuesheet', {
             const toolStore = useToolStore()
             const points = this.pointList
 
-            const getDaysLater = (from: number, to: number) => {
+            const getDaysLater = (from?: number, to?: number) => {
+                if( !from || !to ) return undefined
                 const fromMidnight = new Date(from).setHours(0, 0, 0)
                 const fromElapsed = from - fromMidnight
                 const toMidnight = new Date(to).setHours(0, 0, 0)
@@ -107,45 +107,63 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 return points.map(cpt => {
 
                     // 名称
-                    let prefix: string = ``
+                    let namePrefix: string = ``
                     switch (cpt.type) {
                         case 'pc':
-                            prefix = cpt.terminal === undefined ? `PC${cpt.controlLabel} ` : ''
+                            namePrefix = cpt.terminal === undefined ? `PC${cpt.controlLabel} ` : ''
                             break
                         case 'pass':
-                            prefix = `CHK${cpt.controlLabel} `
+                            namePrefix = `CHK${cpt.controlLabel} `
                             break
                     }
-                    const name = prefix + cpt.cuesheetName
+                    const name = namePrefix + cpt.cuesheetName
 
                     // オープン・クローズ
-                    const isFixedDate = toolStore.brmInfo.brmDate !== undefined
-                    const currentBrmStart = toolStore.currentBrmStart
 
+                    // ブルベ日が決まっているか
+                    const isFixedDate = toolStore.brmInfo.brmDate !== undefined
+                    // ブルベ日（未定の場合は Epoch time）
+                    const currentBrmStart = toolStore.currentBrmStart
+                    // 表示するテキスト
                     let openLabel: string = ''
                     let closeLabel: string = ''
+                    let dayPrefix = ''
+                    // オープンのタイムスタンプと何日ずれているか（開催日未定の場合の計算が結構やっかいだったので ↑getDaysLater関数に分けた）
                     const _openTs = (currentBrmStart !== undefined && cpt.openMin !== undefined) ? currentBrmStart + cpt.openMin * 60_000 : undefined
-                    const _openDayDiff = 
+                    const _open = _openTs ? new Date(_openTs) : undefined
+                    const _openDayDiff = getDaysLater( currentBrmStart, _openTs )
+                    // 同様クローズのタイムスタンプ
                     const _closeTs = (currentBrmStart !== undefined && cpt.closeMin !== undefined) ? currentBrmStart + cpt.closeMin * 60_000 : undefined
+                    const _close = _closeTs ? new Date(_closeTs) : undefined
+                    const _closeDayDiff = getDaysLater( currentBrmStart, _closeTs)
 
+                    // open
                     switch (cpt.type) {
                         case 'pc':
-
+                           if( cpt.terminal!=='start'){
+                                dayPrefix = _openDayDiff === 0 ? '' : ( isFixedDate ? `${_open?.getDay}日/` : `${_openDayDiff}日後/`)
+                                openLabel = `${dayPrefix}${_open?.getHours()}:${_open?.getMinutes()}`
+                           } 
+                           break
                     }
 
-
-
                     return {
+                        isFixedDate,
                         routePoint: brmStore.getPointById(cpt.routePointId),
                         pointNo: cpt.pointNo,
                         name,
+                        currentBrmStart,
                         direction: cpt.properties.direction,
                         route: cpt.properties.route,
                         distance: cpt.roundDistanceString,
                         lapDistance: cpt.lapDistanceString,
                         note: cpt.properties.note,
                         openMin: cpt.openMin,
-                        closeMin: cpt.closeMin
+                        openTs: _openTs,
+                        openLabel,
+                        closeMin: cpt.closeMin,
+                        closeTs: _closeTs,
+                        closeLabel
                     }
                 })
             }

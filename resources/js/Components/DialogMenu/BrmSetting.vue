@@ -77,7 +77,9 @@ const startDate = computed(() => {
 })
 const defaultStartTime = ref( new Date(new Date().setHours(7,0,0)))
 
+// フォーム time picker 用
 const startTime = ref<Date>()
+// フォーム翌日 チェックボックス用
 const startNextDay = ref(false)
 
 const startList = computed(() => {
