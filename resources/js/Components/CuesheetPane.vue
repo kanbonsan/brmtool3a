@@ -25,17 +25,22 @@ import { useCuesheetStore } from '@/stores/CueSheetStore'
 import { useToolStore } from '@/stores/ToolStore'
 import { useGmapStore } from '@/stores/GmapStore'
 
-const brmStore = useBrmRouteStore()
 const cuesheetStore = useCuesheetStore()
 const toolStore = useToolStore()
 const gmapStore = useGmapStore()
 
 const currentBrmStart = ref<number|undefined>(undefined)
 const startList = computed(() => toolStore.startList)
-const data = computed(()=>cuesheetStore.cuesheetData(currentBrmStart.value))
+const data = computed(()=>{
+    
+    const d = cuesheetStore.cuesheetData(currentBrmStart.value)
+    console.log(d)
+    return d
+})
 
 const onRowClick = (row: any) => {
     gmapStore.setCenter(row.routePoint)
+    gmapStore.moveStreetViewByPoint(row.routePoint)
 }
 
 const headerCellStyle = ({ columnIndex }: { columnIndex: number }) => {

@@ -1,4 +1,6 @@
 import { defineStore } from 'pinia'
+import { RoutePoint } from '@/classes/routePoint'
+import { useBrmRouteStore } from './BrmRouteStore'
 
 type MapMode = 'edit' | 'subpath' | 'subpathSelect' | 'subpathEdit' | 'subpathDirection' | 'subpathDirectionConfirm'
 type MapLock = null | 'cuePoint' | 'subpath'
@@ -19,10 +21,17 @@ type State = {
         west: number | undefined
     },
     latLngBounds: google.maps.LatLngBounds | undefined, // 現状の BoundingBox
-    zoomBounds: google.maps.LatLngBounds| undefined,    // ここに BB をセットすると、MapPane で watch していて範囲が変わる
+    zoomBounds: google.maps.LatLngBounds | undefined,    // ここに BB をセットすると、MapPane で watch していて範囲が変わる
 
     mapMode: MapMode,
     mapLock: MapLock,
+
+    streetView: {
+        panorama: google.maps.StreetViewPanorama | undefined
+        position: google.maps.LatLng | google.maps.LatLngLiteral
+        pov: google.maps.StreetViewPov
+        zoom: number
+    }
 }
 
 export const useGmapStore = defineStore('gmap', {
@@ -30,7 +39,7 @@ export const useGmapStore = defineStore('gmap', {
     state: (): State => ({
         map: null,
         ready: false,
-        center: { lat:35.24385944989924, lng: 137.09019885128768},
+        center: { lat: 35.24385944989924, lng: 137.09019885128768 },
         zoom: 10,
         bounds: { north: undefined, south: undefined, east: undefined, west: undefined },
         latLngBounds: undefined,
@@ -38,7 +47,17 @@ export const useGmapStore = defineStore('gmap', {
 
         mapMode: 'edit',
         mapLock: null,
-        
+
+        streetView: {
+            panorama: undefined,
+            position: { lat: 35.24385944989924, lng: 137.09019885128768 },
+            pov: {
+                heading: 34,
+                pitch: 10,
+            },
+            zoom: 0,
+        }
+
     }),
 
     getters: {
@@ -67,8 +86,23 @@ export const useGmapStore = defineStore('gmap', {
             }
         },
 
-        setZoomBoundingBox( bb: google.maps.LatLngBounds){
+        setZoomBoundingBox(bb: google.maps.LatLngBounds) {
             this.zoomBounds = bb
+        },
+
+        moveStreetView( position: google.maps.LatLng | google.maps.LatLngLiteral, pov?: google.maps.StreetViewPov){
+            this.streetView.panorama?.setPosition( position )
+            if( pov ){
+                this.streetView.panorama?.setPov(pov)
+            }
+        },
+
+        moveStreetViewByPoint( rpt: RoutePoint, distance: number = 50){
+            const brmStore = useBrmRouteStore()
+            const viewPoint = brmStore.getLocationByDistance( rpt.routeDistance - distance)
+            const heading = google.maps.geometry.spherical.computeHeading(viewPoint, rpt)
+
+            this.moveStreetView( viewPoint, { heading, pitch: 0 })
         }
 
     }

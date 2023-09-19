@@ -357,7 +357,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * （route direction で参照点を求めるのに使用）
          * distance が範囲内に収まっていない場合は、折り返した点を終端を支点に反転させた点を返す
          * 道路検索や、進路検索で端の方での計算に用いるため
-         * 
+         * @params distance: number routeDistance
          * @returns { lat: number, lng: number}
          */
         getLocationByDistance(state) {

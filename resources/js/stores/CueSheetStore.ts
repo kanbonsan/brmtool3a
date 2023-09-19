@@ -124,10 +124,11 @@ export const useCuesheetStore = defineStore('cuesheet', {
 
                     // ブルベ日が決まっているか
                     const isFixedDate = toolStore.brmInfo.brmDate !== undefined
+                    const isFixedBrmDistance = toolStore.brmInfo.brmDistance !== undefined
 
                     // 表示するテキスト
-                    let openLabel: string = ''
-                    let closeLabel: string = ''
+                    let openLabel: string | undefined = ''
+                    let closeLabel: string | undefined = ''
                     let dayPrefix = ''
                     // オープンのタイムスタンプと何日ずれているか（開催日未定の場合の計算が結構やっかいだったので ↑getDaysLater関数に分けた）
                     const _openTs = (startTs !== undefined && cpt.openMin !== undefined) ? startTs + cpt.openMin * 60_000 : undefined
@@ -141,28 +142,27 @@ export const useCuesheetStore = defineStore('cuesheet', {
                     // open
                     switch (cpt.type) {
                         case 'pc':
-                            dayPrefix = _openDayDiff === 0 ? '' : (isFixedDate ? `${_open?.getDay}日/` : `+${_openDayDiff}d/`)
+                            dayPrefix = _openDayDiff === 0 ? '' : (isFixedDate ? `${_open?.getDay()}日/` : `+${_openDayDiff}d/`)
                             openLabel = `${dayPrefix}${format(_open!)}`
                             break
                         case 'pass':
-                            dayPrefix = _openDayDiff === 0 ? '' : (isFixedDate ? `${_open?.getDay}日/` : `+${_openDayDiff}d/`)
+                            dayPrefix = _openDayDiff === 0 ? '' : (isFixedDate ? `${_open?.getDay()}日/` : `+${_openDayDiff}d/`)
                             openLabel = `(参考 ${dayPrefix}${format(_open)})`
                             break
                     }
                     // close
                     switch (cpt.type) {
                         case 'pc':
-                                dayPrefix = _closeDayDiff === 0 ? '' : (isFixedDate ? `${_close?.getDay}日/` : `+${_closeDayDiff}d/`)
-                                closeLabel = `${dayPrefix}${format(_close!)}`
+                            dayPrefix = _closeDayDiff === 0 ? '' : (isFixedDate ? `${_close?.getDay()}日/` : `+${_closeDayDiff}d/`)
+                            closeLabel = `${dayPrefix}${format(_close!)}`
                             break
                         case 'pass':
-                            dayPrefix = _closeDayDiff === 0 ? '' : (isFixedDate ? `${_close?.getDay}日/` : `+${_closeDayDiff}d/`)
+                            dayPrefix = _closeDayDiff === 0 ? '' : (isFixedDate ? `${_close?.getDay()}日/` : `+${_closeDayDiff}d/`)
                             closeLabel = `(参考 ${dayPrefix}${format(_close)})`
                             break
                     }
 
                     return {
-                        _openDayDiff,
                         isFixedDate,
                         routePoint: brmStore.getPointById(cpt.routePointId),
                         pointNo: cpt.pointNo,
@@ -174,10 +174,10 @@ export const useCuesheetStore = defineStore('cuesheet', {
                         note: cpt.properties.note,
                         openMin: cpt.openMin,
                         openTs: _openTs,
-                        openLabel,
+                        openLabel: _open ? openLabel : undefined,
                         closeMin: cpt.closeMin,
                         closeTs: _closeTs,
-                        closeLabel
+                        closeLabel: _close ? closeLabel : undefined
                     }
                 })
             }

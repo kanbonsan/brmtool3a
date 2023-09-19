@@ -12,6 +12,9 @@
             </CustomPopup>
             <CuePointMarker :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready"
                 :visible="mapObjectVisible" />
+            <CustomControl position="TOP_CENTER">
+                <el-button>button</el-button>
+            </CustomControl>
         </GoogleMap>
 
         <lower-drawer v-model="drawerActive" :title="drawers[drawerComp]?.title" :timeout="drawers[drawerComp]?.timeout"
@@ -22,10 +25,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onUnmounted, onMounted, computed, provide, type Ref } from "vue"
+import { ref, watch, onUnmounted, onMounted, computed, provide, type Ref , createApp} from "vue"
 import type { Component } from 'vue'
 
-import { GoogleMap, Marker, Polyline } from "vue3-google-map"
+import { GoogleMap, Marker, CustomControl } from "vue3-google-map"
 import { googleMapsKey } from "@/Components/gmap/keys"
 import brm from "../../sample/sample200.brm.json"
 
@@ -58,6 +61,8 @@ import CuePointReattachMenu from "./PopupMenu/CuePointReattachMenu.vue"
 import CuePointDeleteConfirmMenu from "./PopupMenu/CuePointDeleteConfirmMenu.vue"
 
 import CuePointMarker from "./CuePointMarker.vue"
+
+import TestDiv1 from "./TestDiv1.vue"
 
 export type menuComponentOptions = {
     /**
@@ -245,6 +250,16 @@ watch(
         gmapStore.map = map
         gmapStore.ready = ready
 
+        // map.setOptions({
+        //     disableDefaultUI: true,
+        //     fullscreenControl: false,
+        //     mapTypeControl: true,
+        //     mapTypeControlOptions: { style: google.maps.MapTypeControlStyle.DROPDOWN_MENU },
+        //     scaleControl: true,
+        //     zoomControl: true,
+
+        // })
+
         /** ルートの設定 */
         if (!toolStore.restore()) {
             routeStore.setPoints(brm.encodedPathAlt)
@@ -333,8 +348,10 @@ const markerClick = async (pt: RoutePoint) => {
 
         switch (response.result) {
             case 'addCuePoint':
-                console.log('add cue point')
                 cuesheetStore.addCuePoint(pt)
+                break
+            case 'moveStreetview':
+                gmapStore.moveStreetViewByPoint(pt)
                 break
             case 'editableRange':
                 drawerComp.value = 'Editable'

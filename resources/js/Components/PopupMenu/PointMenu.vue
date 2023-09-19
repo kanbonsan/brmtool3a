@@ -34,12 +34,11 @@
                 <el-button class="menu-button" size="small" type="primary" @click="onClick('subpathEnd')">サブパス範囲確定</el-button>
             </el-tooltip>
         </el-row>
-<!-- 
-        <el-row v-if="gmapStore.editMode">
-            <el-tooltip placement="right" content="このポイントを削除します" :auto-close="2000">
-                <el-button class="menu-button" size="small" type="danger">ポイント削除</el-button>
+        <el-row v-if="gmapStore.editMode||gmapStore.subpathMode">
+            <el-tooltip placement="right" content="ストリートビューを移動します" :auto-close="2000">
+                <el-button class="menu-button" size="small" type="danger" @click="onClick('moveStreetview')">ストリートビュー</el-button>
             </el-tooltip>
-        </el-row> -->
+        </el-row>
 
     </el-card>
 </template>

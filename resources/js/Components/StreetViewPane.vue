@@ -10,19 +10,25 @@ import { useGmapStore } from '@/stores/GmapStore'
 
 const gmapStore = useGmapStore()
 const panorama = ref()
-const pano = ref<google.maps.StreetViewPanorama>()
 
 watch(() => gmapStore.ready, (ready) => {
 
-    pano.value = new google.maps.StreetViewPanorama(panorama.value, {
-        position: gmapStore.center,
-        pov: {
-            heading: 34,
-            pitch: 10,
-        },
-        zoom: 0,
+    if(!ready) return
+
+    const panoramaObj = new google.maps.StreetViewPanorama(panorama.value, {
+
+        position: gmapStore.streetView.position,
+        pov: gmapStore.streetView.pov,
+        zoom: gmapStore.streetView.zoom,
+
+        //disableDefaultUI: true,
+        // fullscreenControl: true,
+        // linksControl:true,
+        // panControl: true,
+        // showRoadLabels: true,
     })
-    gmapStore.map?.setStreetView(pano.value)
+    gmapStore.map?.setStreetView(panoramaObj)
+    gmapStore.streetView.panorama = panoramaObj
 })
 
 </script>
