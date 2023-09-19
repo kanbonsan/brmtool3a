@@ -13,7 +13,7 @@ type State = {
         lat: number,
         lng: number
     },
-    zoom: number,
+    zoom: number|undefined,
     bounds: {
         north: number | undefined,
         south: number | undefined,
@@ -88,6 +88,10 @@ export const useGmapStore = defineStore('gmap', {
 
         setZoomBoundingBox(bb: google.maps.LatLngBounds) {
             this.zoomBounds = bb
+        },
+
+        setZoom(zoom:number){
+            this.map?.setZoom(zoom)
         },
 
         moveStreetView( position: google.maps.LatLng | google.maps.LatLngLiteral, pov?: google.maps.StreetViewPov){

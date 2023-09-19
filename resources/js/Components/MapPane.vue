@@ -250,15 +250,15 @@ watch(
         gmapStore.map = map
         gmapStore.ready = ready
 
-        // map.setOptions({
-        //     disableDefaultUI: true,
-        //     fullscreenControl: false,
-        //     mapTypeControl: true,
-        //     mapTypeControlOptions: { style: google.maps.MapTypeControlStyle.DROPDOWN_MENU },
-        //     scaleControl: true,
-        //     zoomControl: true,
+        map.setOptions({
+            fullscreenControl: false,
+            mapTypeControl: false,
+            mapTypeControlOptions: { style: google.maps.MapTypeControlStyle.DROPDOWN_MENU },
+            scaleControl: true,
+            zoomControl: true,
+        streetViewControl: true,
 
-        // })
+        })
 
         /** ルートの設定 */
         if (!toolStore.restore()) {
@@ -283,14 +283,11 @@ watch(
 
         map.addListener("zoom_changed",
             () => {
-                gmapStore.zoom = map.getZoom()!
-                messageStore.setFooterMessage(`zoom: ${map.getZoom()}`)
+                gmapStore.zoom = map.getZoom()
             })
 
         map.addListener("click", async (ev: google.maps.MapMouseEvent) => {
             console.log(ev.latLng?.lat(), ev.latLng?.lng())
-
-
         })
 
         // 地図上右クリックで画面上の polyline などを一時消去
@@ -352,6 +349,7 @@ const markerClick = async (pt: RoutePoint) => {
                 break
             case 'moveStreetview':
                 gmapStore.moveStreetViewByPoint(pt)
+                gmapStore.setZoom(14)
                 break
             case 'editableRange':
                 drawerComp.value = 'Editable'
