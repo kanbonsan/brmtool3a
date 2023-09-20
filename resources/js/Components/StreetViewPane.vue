@@ -2,12 +2,14 @@
     <div ref="panorama" class="panorama">
     </div>
     <SvMarker v-for="marker in guideMarkers" :key=marker.key :position="marker.position"/>
+    <SvInfowindow />
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from 'vue'
 import { useGmapStore } from '@/stores/GmapStore'
 import SvMarker from '@/Components/SvMarker.vue'
+import SvInfowindow from '@/Components/SvInfowindow.vue'
 
 const gmapStore = useGmapStore()
 const panorama = ref()

@@ -38,7 +38,8 @@ type State = {
         zoom: number
     },
 
-    guideMarkers: Array<GuideMarker>
+    guideMarkers: Array<GuideMarker>,
+    pointMarker?: { marker: GuideMarker, routePoint: RoutePoint }
 
 }
 
@@ -67,7 +68,9 @@ export const useGmapStore = defineStore('gmap', {
             zoom: 0,
         },
 
-        guideMarkers: []
+        guideMarkers: [],
+        pointMarker: undefined,
+
 
     }),
 
@@ -121,18 +124,21 @@ export const useGmapStore = defineStore('gmap', {
         },
 
         // ルートポイントを中心に前後にポイントを配置
-        setGuideMarkers(rpt: RoutePoint){
+        setGuideMarkers(rpt: RoutePoint) {
             const brmStore = useBrmRouteStore()
             const zeroDistance = rpt.routeDistance
             this.guideMarkers.length = 0
-            for( let i=-50; i<=50; i++){
-                const distance = zeroDistance + 2*i
+            for (let i = -20; i <= 20; i++) {
+                const distance = zeroDistance + 0.1 * i * i * i
                 const pt = brmStore.getLocationByDistance(distance)
-                if(!pt.isMirror){
-                    this.guideMarkers.push({
+                if (!pt.isMirror) {
+                    const _marker = {
                         position: pt,
                         key: Symbol(),
-                    })
+                    }
+                    this.guideMarkers.push(_marker)
+                    // ガイドマーカーの中心を設定（Infowindow を置く）
+                    if (i === 0) this.pointMarker = { marker: _marker, routePoint: rpt }
                 }
             }
         },

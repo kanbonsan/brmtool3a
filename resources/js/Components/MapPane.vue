@@ -348,7 +348,7 @@ const markerClick = async (pt: RoutePoint) => {
                 cuesheetStore.addCuePoint(pt)
                 break
             case 'moveStreetview':
-                gmapStore.moveStreetViewByPoint(pt)
+                gmapStore.moveStreetViewByPoint(pt, 50)
                 gmapStore.setGuideMarkers(pt)
                 gmapStore.setZoom(14)
                 break
