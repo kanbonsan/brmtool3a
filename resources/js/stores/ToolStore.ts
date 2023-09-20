@@ -3,6 +3,7 @@
 import { defineStore } from 'pinia'
 import { useBrmRouteStore } from './BrmRouteStore'
 import { useCuesheetStore } from './CueSheetStore'
+import { useGmapStore } from './GmapStore'
 
 type timestamp = number
 
@@ -74,9 +75,9 @@ export const useToolStore = defineStore('tool', {
             return list.map(ts => {
                 const d = new Date(ts)
                 const mm = d.getMinutes()
-                const hh = ts - startDateTs >= 24 * 3600_000 ? d.getHours()+24 : d.getHours()
-                
-                return { ts, label: `${hh}:` + `${mm}00`.slice(-2)}
+                const hh = ts - startDateTs >= 24 * 3600_000 ? d.getHours() + 24 : d.getHours()
+
+                return { ts, label: `${hh}:` + `${mm}00`.slice(-2) }
             })
         }
     },
@@ -95,11 +96,13 @@ export const useToolStore = defineStore('tool', {
         save() {
             const routeStore = useBrmRouteStore()
             const cuesheetStore = useCuesheetStore()
+            const gmapStore = useGmapStore()
 
             const data = {
                 tool: this.pack(),
                 route: routeStore.pack(),
-                cuesheet: cuesheetStore.pack()
+                cuesheet: cuesheetStore.pack(),
+                gmap: gmapStore.pack()
             }
 
             window.localStorage.setItem('brmtool3', JSON.stringify(data))
@@ -109,17 +112,19 @@ export const useToolStore = defineStore('tool', {
 
             const routeStore = useBrmRouteStore()
             const cuesheetStore = useCuesheetStore()
+            const gmapStore = useGmapStore()
 
             const data = window.localStorage.getItem('brmtool3')
             if (!data) {
                 console.log('no backup')
                 return false
             }
-            const { tool, route, cuesheet } = JSON.parse(data)
+            const { tool, route, cuesheet, gmap } = JSON.parse(data)
             try {
                 this.unpack(tool)
                 routeStore.unpack(route)
                 cuesheetStore.unpack(cuesheet)
+                gmapStore.unpack(gmap)
                 return true
             } catch (e) {
                 console.log('ToolStore.restore() error', e)

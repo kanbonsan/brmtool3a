@@ -1,16 +1,18 @@
 <template>
     <div ref="panorama" class="panorama">
-        STREETVIEW
     </div>
+    <SvMarker v-for="marker in guideMarkers" :key=marker.key :position="marker.position"/>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import { useGmapStore } from '@/stores/GmapStore'
-import { map } from 'lodash'
+import SvMarker from '@/Components/SvMarker.vue'
 
 const gmapStore = useGmapStore()
 const panorama = ref()
+
+const guideMarkers = computed(() => gmapStore.guideMarkers)
 
 watch(() => gmapStore.ready, (ready) => {
 
@@ -36,14 +38,15 @@ const init = () => {
     gmapStore.map?.setStreetView(panoramaObj)
     gmapStore.streetView.panorama = panoramaObj
 
-    const Marker = new google.maps.Marker({
-        position: gmapStore.streetView.position,
-        map: gmapStore.streetView.panorama,
-        opacity: 0.5
+    panoramaObj.addListener('position_changed', () => {
+        gmapStore.streetView.position = panoramaObj.getPosition()
     })
-
-    console.log()
-
+    panoramaObj.addListener('pov_changed', () => {
+        gmapStore.streetView.pov = panoramaObj.getPov()
+    })
+    panoramaObj.addListener('zoom_changed', () => {
+        gmapStore.streetView.zoom = panoramaObj.getZoom()
+    })
 }
 
 </script>

@@ -515,7 +515,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
         },
         /**
          * Serialize 用のオブジェクトを作成
-         * @returns json
+         * @returns Array
          */
         pack() {
             return Array.from(this.cuePoints.values())

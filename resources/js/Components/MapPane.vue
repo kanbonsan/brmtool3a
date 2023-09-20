@@ -349,6 +349,7 @@ const markerClick = async (pt: RoutePoint) => {
                 break
             case 'moveStreetview':
                 gmapStore.moveStreetViewByPoint(pt)
+                gmapStore.setGuideMarkers(pt)
                 gmapStore.setZoom(14)
                 break
             case 'editableRange':

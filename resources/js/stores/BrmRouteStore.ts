@@ -363,16 +363,20 @@ export const useBrmRouteStore = defineStore('brmroute', {
         getLocationByDistance(state) {
 
             // fulcrum を支点とする対称点を返す
-            const getMirror = (pt: { lat: number, lng: number }, fulcrum: { lat: number, lng: number }) => {
-                return { lat: 2 * fulcrum.lat - pt.lat, lng: 2 * fulcrum.lng - pt.lng }
+            const getMirror = (pt: { lat: number, lng: number, isMirror?:boolean }, fulcrum: { lat: number, lng: number }, isMirror: boolean) => {
+                return { lat: 2 * fulcrum.lat - pt.lat, lng: 2 * fulcrum.lng - pt.lng, isMirror }
             }
 
+            // getMirror() を使ったかのフラグ
+            let isMirror: boolean = false
+
             return (
-                (distance: number): { lat: number, lng: number } => {
+                (distance: number): { lat: number, lng: number, isMirror: boolean } => {
 
                     if (distance < 0) {
                         if (-distance < this.routeDistance) {
-                            return getMirror(this.getLocationByDistance(-distance), this.points[0])
+                            isMirror = true
+                            return getMirror(this.getLocationByDistance(-distance), this.points[0], isMirror)
                         } else {
                             throw new Error('invalid distance: 手前すぎ')
                         }
@@ -380,7 +384,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
                     if (distance > this.routeDistance) {
                         if (distance < 2 * this.routeDistance) {
-                            return getMirror(this.getLocationByDistance(2 * this.routeDistance - distance), this.points.slice(-1)[0])
+                            isMirror = true
+                            return getMirror(this.getLocationByDistance(2 * this.routeDistance - distance), this.points.slice(-1)[0], isMirror)
                         } else {
                             throw new Error('invalid distance: 行き過ぎ')
                         }
@@ -397,7 +402,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
                     const diffLng = state.points[i + 1].lng - state.points[i].lng
                     const prop = (distance - state.points[i].routeDistance) / (state.points[i + 1].routeDistance - state.points[i].routeDistance)
 
-                    return ({ lat: state.points[i].lat + diffLat * prop, lng: state.points[i].lng + diffLng * prop })
+                    return ({ lat: state.points[i].lat + diffLat * prop, lng: state.points[i].lng + diffLng * prop, isMirror })
                 })
         },
 

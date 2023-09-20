@@ -5,6 +5,11 @@ import { useBrmRouteStore } from './BrmRouteStore'
 type MapMode = 'edit' | 'subpath' | 'subpathSelect' | 'subpathEdit' | 'subpathDirection' | 'subpathDirectionConfirm'
 type MapLock = null | 'cuePoint' | 'subpath'
 
+type GuideMarker = {
+    key: symbol
+    position: google.maps.LatLng | google.maps.LatLngLiteral
+    icon?: google.maps.Icon
+}
 
 type State = {
     map: google.maps.Map | null
@@ -13,7 +18,7 @@ type State = {
         lat: number,
         lng: number
     },
-    zoom: number|undefined,
+    zoom: number | undefined,
     bounds: {
         north: number | undefined,
         south: number | undefined,
@@ -28,11 +33,15 @@ type State = {
 
     streetView: {
         panorama: google.maps.StreetViewPanorama | undefined
-        position: google.maps.LatLng | google.maps.LatLngLiteral
+        position: google.maps.LatLng | google.maps.LatLngLiteral | null
         pov: google.maps.StreetViewPov
         zoom: number
-    }
+    },
+
+    guideMarkers: Array<GuideMarker>
+
 }
+
 
 export const useGmapStore = defineStore('gmap', {
 
@@ -56,7 +65,9 @@ export const useGmapStore = defineStore('gmap', {
                 pitch: 10,
             },
             zoom: 0,
-        }
+        },
+
+        guideMarkers: []
 
     }),
 
@@ -90,23 +101,59 @@ export const useGmapStore = defineStore('gmap', {
             this.zoomBounds = bb
         },
 
-        setZoom(zoom:number){
+        setZoom(zoom: number) {
             this.map?.setZoom(zoom)
         },
 
-        moveStreetView( position: google.maps.LatLng | google.maps.LatLngLiteral, pov?: google.maps.StreetViewPov){
-            this.streetView.panorama?.setPosition( position )
-            if( pov ){
+        moveStreetView(position: google.maps.LatLng | google.maps.LatLngLiteral, pov?: google.maps.StreetViewPov) {
+            this.streetView.panorama?.setPosition(position)
+            if (pov) {
                 this.streetView.panorama?.setPov(pov)
             }
         },
 
-        moveStreetViewByPoint( rpt: RoutePoint, distance: number = 50){
+        moveStreetViewByPoint(rpt: RoutePoint, distance: number = 50) {
             const brmStore = useBrmRouteStore()
-            const viewPoint = brmStore.getLocationByDistance( rpt.routeDistance - distance)
+            const viewPoint = brmStore.getLocationByDistance(rpt.routeDistance - distance)
             const heading = google.maps.geometry.spherical.computeHeading(viewPoint, rpt)
 
-            this.moveStreetView( viewPoint, { heading, pitch: 0 })
+            this.moveStreetView(viewPoint, { heading, pitch: 0 })
+        },
+
+        // ルートポイントを中心に前後にポイントを配置
+        setGuideMarkers(rpt: RoutePoint){
+            const brmStore = useBrmRouteStore()
+            const zeroDistance = rpt.routeDistance
+            this.guideMarkers.length = 0
+            for( let i=-50; i<=50; i++){
+                const distance = zeroDistance + 2*i
+                const pt = brmStore.getLocationByDistance(distance)
+                if(!pt.isMirror){
+                    this.guideMarkers.push({
+                        position: pt,
+                        key: Symbol(),
+                    })
+                }
+            }
+        },
+
+        pack() {
+            return {
+                mapCenter: this.center,
+                mapZoom: this.zoom,
+                streetView: {
+                    position: this.streetView.position,
+                    zoom: this.streetView.zoom,
+                    pov: this.streetView.pov
+                }
+            }
+        },
+
+        unpack(obj: any) {
+            console.log('unpack', obj)
+            this.center = obj.mapCenter
+            this.zoom = obj.mapZoom
+            this.streetView = { ...this.streetView, ...obj.streetView }
         }
 
     }
