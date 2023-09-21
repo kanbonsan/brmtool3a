@@ -1,20 +1,31 @@
 <template>
     <div ref="panorama" class="panorama">
     </div>
-    <SvMarker v-for="marker in guideMarkers" :key=marker.key :position="marker.position"/>
-    <SvInfowindow />
+    <SvMarker v-for="marker in guideMarkers" :key=marker.key :position="marker.position" />
+    <SvInfowindow v-if="pointMarker.cuePoint" :key="pointMarker.key" :cuePoint="pointMarker.cuePoint" :marker="pointMarker.marker"/>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from 'vue'
 import { useGmapStore } from '@/stores/GmapStore'
+import { useBrmRouteStore } from '@/stores/BrmRouteStore'
 import SvMarker from '@/Components/SvMarker.vue'
 import SvInfowindow from '@/Components/SvInfowindow.vue'
 
 const gmapStore = useGmapStore()
+const brmStore = useBrmRouteStore()
 const panorama = ref()
 
 const guideMarkers = computed(() => gmapStore.guideMarkers)
+const pointMarker = computed(() => {
+
+    const marker = gmapStore.pointMarker
+    const rpt = marker?.routePoint
+    const cpt = brmStore.hasCuePoint(rpt)
+
+    return { marker, routePoint: rpt, cuePoint: cpt, key: cpt ? cpt.id : undefined }
+
+})
 
 watch(() => gmapStore.ready, (ready) => {
 

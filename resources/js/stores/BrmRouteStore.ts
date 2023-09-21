@@ -363,7 +363,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
         getLocationByDistance(state) {
 
             // fulcrum を支点とする対称点を返す
-            const getMirror = (pt: { lat: number, lng: number, isMirror?:boolean }, fulcrum: { lat: number, lng: number }, isMirror: boolean) => {
+            const getMirror = (pt: { lat: number, lng: number, isMirror?: boolean }, fulcrum: { lat: number, lng: number }, isMirror: boolean) => {
                 return { lat: 2 * fulcrum.lat - pt.lat, lng: 2 * fulcrum.lng - pt.lng, isMirror }
             }
 
@@ -417,19 +417,19 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /**
          * RoutePoint に CuePoint が設定されているか
          * 一つのRoutePointにはCuePointは一つしか設定できない
-         * @returns cuePointId: symbol | null
+         * @returns { point: CuePoint, id: symbol } | null
          */
         hasCuePoint(state) {
             const cuesheetStore = useCuesheetStore()
-            return (pt: RoutePoint | number | null) => {
-                if (pt === null) return null
+            return (pt?: RoutePoint | number | null) => {
+                if (pt === null || pt === undefined) return null
 
                 const routePoint = (typeof pt === 'number') ? state.points[pt] : pt
 
                 const cpt = cuesheetStore.getArray.find((cpt) => {
                     return cpt.routePointId === routePoint.id
                 })
-                return cpt ? cpt.id : null
+                return cpt ? { point: cpt, id: cpt.id } : null
             }
         },
 

@@ -5,7 +5,7 @@ import { useBrmRouteStore } from './BrmRouteStore'
 type MapMode = 'edit' | 'subpath' | 'subpathSelect' | 'subpathEdit' | 'subpathDirection' | 'subpathDirectionConfirm'
 type MapLock = null | 'cuePoint' | 'subpath'
 
-type GuideMarker = {
+export type GuideMarker = {
     key: symbol
     position: google.maps.LatLng | google.maps.LatLngLiteral
     icon?: google.maps.Icon
