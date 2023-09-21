@@ -39,7 +39,7 @@ type State = {
     },
 
     guideMarkers: Array<GuideMarker>,
-    pointMarker?: { marker: GuideMarker, routePoint: RoutePoint }
+    infoMarker?: { marker: GuideMarker, routePoint: RoutePoint }
 
 }
 
@@ -69,7 +69,7 @@ export const useGmapStore = defineStore('gmap', {
         },
 
         guideMarkers: [],
-        pointMarker: undefined,
+        infoMarker: undefined,
 
 
     }),
@@ -138,7 +138,7 @@ export const useGmapStore = defineStore('gmap', {
                     }
                     this.guideMarkers.push(_marker)
                     // ガイドマーカーの中心を設定（Infowindow を置く）
-                    if (i === 0) this.pointMarker = { marker: _marker, routePoint: rpt }
+                    if (i === 0) this.infoMarker = { marker: _marker, routePoint: rpt }
                 }
             }
         },

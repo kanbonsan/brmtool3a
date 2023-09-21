@@ -3,23 +3,27 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref,computed } from 'vue'
 import { CuePoint } from '@/classes/cuePoint'
 import { type GuideMarker } from '@/stores/GmapStore'
+import { useGmapStore } from '@/stores/GmapStore';
+
 const props = defineProps<{
-    cuePoint: { point: CuePoint, id: symbol },
-    marker: GuideMarker
+    cuePoint: CuePoint | undefined,
+    marker: GuideMarker | undefined
 }>()
 const iw = ref<google.maps.InfoWindow>()
+const gmapStore = useGmapStore()
+const panorama = computed(()=>gmapStore.streetView.panorama)
 
 onMounted(() => {
     iw.value = new google.maps.InfoWindow()
-    iw.value.setPosition()
-
-    console.log('info mounted')
+    iw.value.setPosition( props.marker!.position)
+    iw.value.setContent('Hello, BRMTOOL3')
+    iw.value.open(panorama.value)
 })
 
 onUnmounted(() => {
     iw.value?.close()
-}
+})
 </script>
