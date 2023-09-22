@@ -2,7 +2,7 @@
     <div ref="panorama" class="panorama">
     </div>
     <SvMarker v-for="marker in guideMarkers" :key=marker.key :position="marker.position" />
-    <SvInfowindow v-if="info" :key="info.cuePointId" :cuePoint="info.cuePoint" :marker="info.marker"/>
+    <SvInfowindow v-if="info?.cuePoint" :key="info.cuePointId" :cuePoint="info.cuePoint" :marker="info.marker"/>
 </template>
 
 <script setup lang="ts">
@@ -31,7 +31,6 @@ const info = computed(() => {
 })
 
 watch(() => gmapStore.ready, (ready) => {
-
     if (!ready) return
     init()
 })

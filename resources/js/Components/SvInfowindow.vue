@@ -19,7 +19,7 @@ const panorama = computed(()=>gmapStore.streetView.panorama)
 onMounted(() => {
     iw.value = new google.maps.InfoWindow()
     iw.value.setPosition( props.marker!.position)
-    iw.value.setContent('Hello, BRMTOOL3')
+    iw.value.setContent(props.cuePoint?.properties.name)
     iw.value.open(panorama.value)
 })
 

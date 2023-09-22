@@ -29,7 +29,6 @@ onMounted(()=>{
 })
 
 onUnmounted(()=>{
-    console.log('unmounted')
     marker.value?.setMap(null)
 })
 
