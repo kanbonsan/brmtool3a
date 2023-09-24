@@ -2,7 +2,11 @@
     <div ref="panorama" class="panorama">
     </div>
     <SvMarker v-for="marker in guideMarkers" :key=marker.key :position="marker.position" />
-    <SvInfowindow v-if="info?.cuePoint" :key="info.cuePointId" :cuePoint="info.cuePoint" :marker="info.marker"/>
+    <!-- <SvInfowindow v-if="info?.cuePoint" :key="info.cuePointId" :cuePoint="info.cuePoint" :marker="info.marker"/> -->
+    <SvInfoWindow v-if="info?.cuePoint" :key="info.cuePointId" :cuePoint="info.cuePoint" :marker="info.marker">
+        <span style="color:red;">Hello</span>
+        <el-button>Good Button</el-button>
+    </SvInfoWindow>
 </template>
 
 <script setup lang="ts">
@@ -10,7 +14,7 @@ import { ref, watch, onMounted, computed } from 'vue'
 import { useGmapStore } from '@/stores/GmapStore'
 import { useBrmRouteStore } from '@/stores/BrmRouteStore'
 import SvMarker from '@/Components/SvMarker.vue'
-import SvInfowindow from '@/Components/SvInfowindow.vue'
+import SvInfoWindow from '@/Components/SviewInfoWindow.vue'
 
 const gmapStore = useGmapStore()
 const brmStore = useBrmRouteStore()
@@ -70,5 +74,6 @@ const init = () => {
 .panorama {
     width: 100%;
     height: 100%;
+
 }
 </style>

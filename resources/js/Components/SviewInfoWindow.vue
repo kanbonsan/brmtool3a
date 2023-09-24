@@ -10,21 +10,36 @@
 
 import {
     useSlots,
-    watch,
     ref,
     computed,
     onBeforeUnmount,
     Comment,
     onMounted,
 } from "vue"
+import { useGmapStore } from "@/stores/GmapStore";
+import { CuePoint } from '@/classes/cuePoint'
+import { type GuideMarker } from '@/stores/GmapStore'
 
 const slots = useSlots()
+const props = defineProps<{
+    cuePoint: CuePoint | undefined,
+    marker: GuideMarker | undefined
+}>()
+const gmapStore = useGmapStore()
+const panorama = computed(()=>gmapStore.streetView.panorama)
+
 const hasSlotContent = computed(() => slots.default?.().some((vnode) => vnode.type !== Comment))    // ?. オプショナルチェーン
 const infoWindow = ref<google.maps.InfoWindow>()
 const iw = ref<HTMLElement>()
 
-const open = (opts?:google.maps.InfoWindowOpenOptions)=>infoWindow.value?.open({...opts})
 const close = ()=>infoWindow.value?.close()
+
+onMounted(()=>{
+    infoWindow.value = new google.maps.InfoWindow()
+    infoWindow.value.setPosition( props.marker!.position)
+    infoWindow.value.setContent(hasSlotContent.value ? iw.value : '')
+    infoWindow.value.open(panorama.value)
+})
 
 onBeforeUnmount(()=>{
     if(infoWindow.value){
@@ -36,9 +51,6 @@ onBeforeUnmount(()=>{
 <style scoped>
 .iw-wrapper {
     display: none;
-}
-
-.mapdiv .iw-wrapper {
-    display: inline-block;
+    text-transform: none;
 }
 </style>
