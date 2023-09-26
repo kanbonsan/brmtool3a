@@ -6,8 +6,11 @@
                 @mouseover="markerMouseover(pt)" @mouseout="markerMouseout(pt)">
             </Marker>
             <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" :visible="mapObjectVisible" />
-            <CustomPopup ref='cusp' :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" :params="popupParams"
-                :menuParams="menuParams" v-slot="{ submit, menuParams }">
+            <CustomPopup ref='cusp'
+            :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready"
+            :params="popupParams"
+                :menuParams="menuParams"
+                v-slot="{ submit, menuParams }">
                 <component :is="menus[menuComp]?.component" :submit="submit" :menuParams="menuParams"></component>
             </CustomPopup>
             <CuePointMarker :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready"

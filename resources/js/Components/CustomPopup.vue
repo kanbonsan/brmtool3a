@@ -1,5 +1,5 @@
 <template>
-    <div ref="content" style="display:block;">
+    <div ref="content" style="display:inline-block;">
         <slot :submit="submit" :menuParams="menuParams"></slot>
     </div>
 </template>

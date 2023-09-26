@@ -1,7 +1,7 @@
 <template>
     <div v-if="hasSlotContent" class="iw-wrapper">
         <div ref="iw" v-bind="$attrs">
-            <slot />
+            <slot></slot>
         </div>
     </div>
 </template>
@@ -17,12 +17,10 @@ import {
     onMounted,
 } from "vue"
 import { useGmapStore } from "@/stores/GmapStore";
-import { CuePoint } from '@/classes/cuePoint'
 import { type GuideMarker } from '@/stores/GmapStore'
 
 const slots = useSlots()
 const props = defineProps<{
-    cuePoint: CuePoint | undefined,
     marker: GuideMarker | undefined
 }>()
 const gmapStore = useGmapStore()
