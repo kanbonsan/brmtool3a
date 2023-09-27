@@ -1,20 +1,16 @@
 <template>
     <div style="position:relative;width:100%;height:100%;">
         <GoogleMap ref="gmap" :api-key="apiKey" style="width: 100%; height: 100%" :center="center" :zoom="15"
-            v-slot="slotProps">
+            v-slot="{ api, map, ready }">
             <Marker :options="markerOption(pt)" v-for="(pt) in availablePoints" :key="pt.id" @click="markerClick(pt)"
                 @mouseover="markerMouseover(pt)" @mouseout="markerMouseout(pt)">
             </Marker>
-            <BrmPolyline :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready" :visible="mapObjectVisible" />
-            <CustomPopup ref='cusp'
-            :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready"
-            :params="popupParams"
-                :menuParams="menuParams"
+            <BrmPolyline :api="api" :map="map" :ready="ready" :visible="mapObjectVisible" />
+            <CustomPopup ref='cusp' :api="api" :map="map" :ready="ready" :params="popupParams" :menuParams="menuParams"
                 v-slot="{ submit, menuParams }">
                 <component :is="menus[menuComp]?.component" :submit="submit" :menuParams="menuParams"></component>
             </CustomPopup>
-            <CuePointMarker :api="slotProps.api" :map="slotProps.map" :ready="slotProps.ready"
-                :visible="mapObjectVisible" />
+            <CuePointMarker :api="api" :map="map" :ready="ready" :visible="mapObjectVisible" />
             <CustomControl position="TOP_CENTER">
                 <el-button>button</el-button>
             </CustomControl>
@@ -28,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onUnmounted, onMounted, computed, provide, type Ref , createApp} from "vue"
+import { ref, watch, onUnmounted, onMounted, computed, provide, type Ref, createApp } from "vue"
 import type { Component } from 'vue'
 
 import { GoogleMap, Marker, CustomControl } from "vue3-google-map"
@@ -64,8 +60,6 @@ import CuePointReattachMenu from "./PopupMenu/CuePointReattachMenu.vue"
 import CuePointDeleteConfirmMenu from "./PopupMenu/CuePointDeleteConfirmMenu.vue"
 
 import CuePointMarker from "./CuePointMarker.vue"
-
-import TestDiv1 from "./TestDiv1.vue"
 
 export type menuComponentOptions = {
     /**
@@ -105,6 +99,8 @@ export type drawerComponent = {
 export type Drawers = {
     [key: string]: drawerComponent
 }
+
+const gmap = ref<InstanceType<typeof GoogleMap>>()
 
 const defaultOptions: menuComponentOptions = {
     offsetX: 0,
@@ -223,7 +219,7 @@ const popupParams = ref<{
     reject?: (payload: any) => void
 }>({ activated: false })
 
-const gmap = ref<InstanceType<typeof GoogleMap>>()
+
 
 onMounted(() => {
 
@@ -259,7 +255,7 @@ watch(
             mapTypeControlOptions: { style: google.maps.MapTypeControlStyle.DROPDOWN_MENU },
             scaleControl: true,
             zoomControl: true,
-        streetViewControl: true,
+            streetViewControl: true,
 
         })
 
