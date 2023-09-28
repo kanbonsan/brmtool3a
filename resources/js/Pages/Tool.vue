@@ -12,7 +12,15 @@ export default {
 <template>
     <Splitpanes class="default-theme">
         <Pane class="map-pane">
-            <MapPane />
+            <Splitpanes horizontal>
+                <pane>
+                    <MapPane />
+                </pane>
+                <pane>
+                    <ProfileMapPane />
+                </pane>
+            </Splitpanes>
+            
         </Pane>
         <Pane class="side-pane">
             <Splitpanes horizontal>
@@ -35,6 +43,7 @@ import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
 import MapPane from "@/Components/MapPane.vue"
+import ProfileMapPane from '@/Components/ProfileMapPane.vue'
 import CuesheetPane from '@/Components/CuesheetPane.vue'
 import StreetViewPane from '@/Components/StreetViewPane.vue'
 
