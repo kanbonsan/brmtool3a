@@ -156,9 +156,9 @@ export const useGmapStore = defineStore('gmap', {
         },
 
         unpack(obj: any) {
-            console.log('unpack', obj)
             this.center = obj.mapCenter
             this.zoom = obj.mapZoom
+            this.zoomBounds = undefined
             this.streetView = { ...this.streetView, ...obj.streetView }
         }
 

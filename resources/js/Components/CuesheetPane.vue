@@ -1,9 +1,11 @@
 <template>
-    <div class="cuesheet">
-        <el-radio-group v-if="startList.length" v-model="currentBrmStart" size="small">
-            <el-radio-button v-for="start of startList" :label="start.ts">{{ start.label }}</el-radio-button>
-        </el-radio-group>
-        <el-table :data="data" border style="height:100%" size="small" @row-click="onRowClick"
+    <div ref="cuesheet" class="cuesheet">
+        <div class="header">
+            <el-radio-group v-if="startList.length" v-model="currentBrmStart" size="small">
+                <el-radio-button v-for="start of startList" :label="start.ts">{{ start.label }}</el-radio-button>
+            </el-radio-group>
+        </div>
+        <el-table :data="data" border style="height:100%" size="small" @row-click="onRowClick" :height="`calc( ${height}px - var(--header-height))`"
             :header-cell-style="headerCellStyle">
             <el-table-column prop="pointNo" label="No" fixed width="50" align="center" />
             <el-table-column prop="name" label="名称" />
@@ -11,9 +13,9 @@
             <el-table-column prop="route" label="経路" />
             <el-table-column prop="lapDistance" label="区間" width="50" align="right" />
             <el-table-column prop="distance" label="距離" width="50" align="right" />
-            <el-table-column prop="openLabel" label="オープン"/>
-            <el-table-column prop="closeLabel" label="クローズ"/>
-            <el-table-column prop="note" label="備考" width="150"/>
+            <el-table-column prop="openLabel" label="オープン" />
+            <el-table-column prop="closeLabel" label="クローズ" />
+            <el-table-column prop="note" label="備考" width="150" />
         </el-table>
     </div>
 </template>
@@ -24,15 +26,19 @@ import { useBrmRouteStore } from '@/stores/BrmRouteStore'
 import { useCuesheetStore } from '@/stores/CueSheetStore'
 import { useToolStore } from '@/stores/ToolStore'
 import { useGmapStore } from '@/stores/GmapStore'
+import { useElementBounding } from '@vueuse/core'
 
 const cuesheetStore = useCuesheetStore()
 const toolStore = useToolStore()
 const gmapStore = useGmapStore()
 
-const currentBrmStart = ref<number|undefined>(undefined)
+const cuesheet = ref()
+const { width, height } = useElementBounding(cuesheet)
+
+const currentBrmStart = ref<number | undefined>(undefined)
 const startList = computed(() => toolStore.startList)
-const data = computed(()=>{
-    
+const data = computed(() => {
+
     const d = cuesheetStore.cuesheetData(currentBrmStart.value)
     console.log(d)
     return d
@@ -49,14 +55,20 @@ const headerCellStyle = ({ columnIndex }: { columnIndex: number }) => {
     }
 }
 
-onMounted(()=>{
+onMounted(() => {
     currentBrmStart.value = startList.value.length > 0 ? startList.value[0].ts : undefined
 })
 </script>
 
+
 <style scoped>
 .cuesheet {
+    --header-height: 40px;
     width: 100%;
     height: 100%;
+}
+
+.header {
+    height: var(--header-height);
 }
 </style>

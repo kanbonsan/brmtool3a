@@ -203,7 +203,6 @@ const center = ref({ lat: 35.2418, lng: 137.1146 }) // デフォルトの地図�
 
 const routeStore = useBrmRouteStore()
 const gmapStore = useGmapStore()
-const messageStore = useMessage()
 const cuesheetStore = useCuesheetStore()
 const toolStore = useToolStore()
 
@@ -226,7 +225,10 @@ onMounted(() => {
     toolStore.reset()
 
     if (gmap.value && gmap.value.ready) {
-        toolStore.restore()
+        if(toolStore.restore()){
+            gmap.value.map?.setCenter(gmapStore.center)
+            gmap.value.map?.setZoom(gmapStore.zoom!)
+        }
     }
 
 })

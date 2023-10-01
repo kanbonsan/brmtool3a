@@ -25,12 +25,16 @@ type Properties = {
     pcGroupOpen: 'head' | 'individual' | 'tail',    // グループPCのオープンをどこに合わせるか
     pcGroupClose: 'head' | 'individual' | 'tail',
     startPcClose: number                        // スタートの閉鎖タイム（日本では 30分）
+}
 
+type Panes = {
+    [pane: string]: number
 }
 
 type State = {
     brmInfo: BrmInfo,
     properties: Properties,
+    panes: Panes
 }
 
 /*
@@ -61,6 +65,11 @@ export const useToolStore = defineStore('tool', {
             pcGroupOpen: 'individual',
             pcGroupClose: 'individual',
             startPcClose: 30,
+        },
+        panes: {
+            vertical: 50,
+            left: 50,
+            right: 50
         }
     }),
 
@@ -85,12 +94,13 @@ export const useToolStore = defineStore('tool', {
     actions: {
 
         pack() {
-            return { brmInfo: this.brmInfo, properties: this.properties }
+            return { brmInfo: this.brmInfo, properties: this.properties, panes: this.panes }
         },
 
-        unpack({ brmInfo, currentBrmStart, properties }: { brmInfo: any, currentBrmStart: any, properties: any }) {
+        unpack({ brmInfo, properties, panes }: { brmInfo: any, properties: any, panes: any }) {
             this.brmInfo = { ...this.brmInfo, ...brmInfo }
             this.properties = { ...this.properties, ...properties }
+            this.panes = { ...this.panes, ...panes }
         },
 
         save() {
