@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useProfileStore } from '@/stores/ProfileStore'
 import { useBrmRouteStore } from '@/stores/BrmRouteStore'
 import { useElementBounding } from '@vueuse/core'
@@ -24,11 +24,15 @@ watch([width, height], ([width, height]) => {
     profileStore.height = height
 }, { immediate: true })
 
-const init = ()=>{
-    if( !profileStore.distance.end) {
-        profileStore.distance.end = 
-    }
-}
+onMounted(()=>{
+    watch( ()=>brmStore.brmDistance,  (brmDistance)=>{
+        profileStore.distance.end = brmDistance
+    })
+
+    watch( ()=>brmStore.brmHighestAltitude,  (altitude)=>{
+        profileStore.altitude.high = altitude
+    })
+})
 
 </script>
 

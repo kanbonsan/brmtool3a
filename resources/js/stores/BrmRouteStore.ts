@@ -98,7 +98,20 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /** ルート距離（除外を含む） */
         routeDistance: (state): number => state.points.length > 0 ? state.points.slice(-1)[0].routeDistance : 0,
 
-        //brmDistance: (state):number => state.
+        /** ブルベ距離 */
+        brmDistance(state): number | undefined {
+            if (state.points.length === 0) return undefined
+            const range = this.brmRange
+            return state.points[range.end].brmDistance
+        },
+
+        /** 最大標高 */
+        brmHighestAltitude(state): number | undefined {
+            if (state.points.length === 0) return undefined
+            return state.points.reduce((prevAlt: number, pt: RoutePoint) => {
+                return pt.excluded ? prevAlt : Math.max(prevAlt, pt.alt!)
+            }, -Infinity)
+        },
 
         /** simplify 用の配列（x,y,z) を用意・拡張して path encode にも使えるようにした */
         pointsArray: (state) => state.points.map((pt, index) => ({ x: pt.lng ?? 0, y: pt.lat ?? 0, z: pt.alt ?? -1000, index })),

@@ -309,7 +309,6 @@ watch(() => gmapStore.center, async (newCenter) => {
 
 watch(() => gmapStore.zoomBounds, async (newBB) => {
     if (!newBB) return
-    console.log('new bb')
     gmapStore.map?.fitBounds(newBB!)
 })
 
