@@ -9,7 +9,6 @@ import { useCuesheetStore } from './CueSheetStore'
 import { RoutePoint } from '@/classes/routePoint'
 
 import axios from 'axios'
-import { endianness } from 'os'
 
 const simplifyParam = [
     { weight: 3, tolerance: 0.000015 },
@@ -98,6 +97,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
         /** ルート距離（除外を含む） */
         routeDistance: (state): number => state.points.length > 0 ? state.points.slice(-1)[0].routeDistance : 0,
+
+        //brmDistance: (state):number => state.
 
         /** simplify 用の配列（x,y,z) を用意・拡張して path encode にも使えるようにした */
         pointsArray: (state) => state.points.map((pt, index) => ({ x: pt.lng ?? 0, y: pt.lat ?? 0, z: pt.alt ?? -1000, index })),

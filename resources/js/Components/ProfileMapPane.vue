@@ -1,22 +1,34 @@
 <template>
-    <div ref="profile" class="profile" @wheel="onMousemove">
-        <canvas :width="width" :height="height">
-        </canvas>
+    <div ref="profile" class="profile">
+        <Axis />
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useProfileStore } from '@/stores/ProfileStore'
-import { useElementBounding } from '@vueuse/core';
+import { useBrmRouteStore } from '@/stores/BrmRouteStore'
+import { useElementBounding } from '@vueuse/core'
+
+import Axis from '@/Components/profile/Axis.vue'
 
 const profileStore = useProfileStore()
+const brmStore = useBrmRouteStore()
 
 const profile = ref()
-const { width,height } = useElementBounding(profile)
 
-const onMousemove = (ev: MouseEvent) => console.log('moving', ev)
+const { width, height } = useElementBounding(profile)
 
+watch([width, height], ([width, height]) => {
+    profileStore.width = width
+    profileStore.height = height
+}, { immediate: true })
+
+const init = ()=>{
+    if( !profileStore.distance.end) {
+        profileStore.distance.end = 
+    }
+}
 
 </script>
 

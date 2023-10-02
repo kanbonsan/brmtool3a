@@ -225,7 +225,7 @@ onMounted(() => {
     toolStore.reset()
 
     if (gmap.value && gmap.value.ready) {
-        if(toolStore.restore()){
+        if (toolStore.restore()) {
             gmap.value.map?.setCenter(gmapStore.center)
             gmap.value.map?.setZoom(gmapStore.zoom!)
         }
@@ -308,8 +308,11 @@ watch(() => gmapStore.center, async (newCenter) => {
 })
 
 watch(() => gmapStore.zoomBounds, async (newBB) => {
+    if (!newBB) return
+    console.log('new bb')
     gmapStore.map?.fitBounds(newBB!)
 })
+
 // Lower Drawer Menu
 /**
  * Drawer 開閉のためのスイッチ
