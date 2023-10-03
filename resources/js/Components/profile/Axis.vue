@@ -16,25 +16,46 @@ const axis = ref<HTMLCanvasElement>()
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
-    const { x, y } = profileStore.graphOrigin
+    const { xOrig, yOrig } = profileStore.graphOrigin
     const { width, height } = profileStore.graphSize
     const { begin, end } = profileStore.distance
-    const { xAxis, yAxis}=profileStore.graphScale
+    const { low, high } = profileStore.altitude
+    const { xAxis, yAxis } = profileStore.graphScale
 
-    if (!x || !y || !width || !height || !end) return
-    
-    
+
+    if (!xOrig || !yOrig || !width || !height || !end) return
+
     ctx.save()
 
     ctx.beginPath()
-    ctx.moveTo(x, y - height)
-    ctx.lineTo(x,y)
-    ctx.lineTo(x+width,y)
+    ctx.moveTo(xOrig, yOrig - height)
+    ctx.lineTo(xOrig, yOrig)
+    ctx.lineTo(xOrig + width, yOrig)
     ctx.stroke()
     ctx.restore()
 
     // X軸目盛り
-    
+    const xScaleIndex = Math.ceil(begin / xAxis!)
+    for (let i = xScaleIndex; ; i++) {
+        const dist = xAxis! *i
+        const x = profileStore.getX(profileStore.distance.begin + dist)
+        if (x > props.width) break
+        ctx.beginPath()
+        ctx.moveTo(x, yOrig!)
+        ctx.lineTo(x, yOrig! + 5)
+        ctx.stroke()
+    }
+    // Y軸目盛り
+    const yScaleIndex = Math.ceil(low / yAxis!)
+    for (let i = yScaleIndex; ; i++) {
+        const alt = yAxis!*i
+        const y = profileStore.getY(profileStore.altitude.low +alt)
+        if (y < 0) break
+        ctx.beginPath()
+        ctx.moveTo(xOrig, y)
+        ctx.lineTo(xOrig - 5, y)
+        ctx.stroke()
+    }
 
 }
 

@@ -78,17 +78,17 @@ export const useProfileStore = defineStore('profile', {
         },
 
         // グラフ原点のキャンバス座標
-        graphOrigin(state): { x: number | undefined, y: number | undefined } {
-            if (!this.graphSize.width || !this.graphSize.height) return { x: undefined, y: undefined }
+        graphOrigin(state): { xOrig: number | undefined, yOrig: number | undefined } {
+            if (!this.graphSize.width || !this.graphSize.height) return { xOrig: undefined, yOrig: undefined }
             const x = state.margin.left + 0.5
             const y = this.graphSize.height! + state.margin.top + 0.5
-            return { x, y }
+            return { xOrig: x, yOrig: y }
         },
-        
+
         // グラフの解像度 meter/pixel
         graphResolution(state): { x: number | undefined, y: number | undefined } {
-            const x = (state.distance.end !== undefined && this.graphSize.width !== undefined) ? (state.distance.end - state.distance.begin) / this.graphSize.width : undefined
-            const y = (state.altitude.high !== undefined && this.graphSize.height !== undefined) ? (state.altitude.high - state.altitude.low) / this.graphSize.height : undefined
+            const x = (state.distance.end !== undefined && this.graphSize.width !== undefined) ? this.graphSize.width / (state.distance.end - state.distance.begin) : undefined
+            const y = (state.altitude.high !== undefined && this.graphSize.height !== undefined) ? this.graphSize.height / (state.altitude.high - state.altitude.low) : undefined
 
             return { x, y }
         },
@@ -165,16 +165,17 @@ export const useProfileStore = defineStore('profile', {
 
             return pixelAltitude
         },
-
-        xPitch(state) {
-            if (!this.distance.end) {
-                return undefined
+        // 距離→キャンバス座標（原点が +0.5 なのでそのまま +0.5）
+        getX(state) {
+            return (dist: number) => {
+                return this.graphOrigin.xOrig! + Math.floor(dist * this.graphResolution.x!)
             }
-
         },
-
-        yPitch(state) {
-            if (!this.altitude.high) { return undefined }
+        // 標高→キャンバス座標
+        getY(state) {
+            return (alt: number) => {
+                return this.graphOrigin.yOrig! - Math.floor(alt * this.graphResolution.y!)
+            }
         }
     }
 })
