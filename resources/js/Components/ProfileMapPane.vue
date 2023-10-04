@@ -1,7 +1,8 @@
 <template>
     <div ref="profile" class="profile" style="position:relative;">
         <GraphConsole />
-        <Axis :key="redrawKey" :width="width" :height="height"></Axis>
+        <Graph style="position:absolute;left:0;top:0;" :key="redrawKey" :width="width" :height="height"></Graph>
+        <Axis style="position:absolute;left:0;top:0;" :key="redrawKey" :width="width" :height="height"></Axis>
     </div>
 </template>
 
@@ -9,9 +10,11 @@
 import { ref, watch, onMounted } from 'vue'
 import { useProfileStore } from '@/stores/ProfileStore'
 import { useBrmRouteStore } from '@/stores/BrmRouteStore'
-import { useElementBounding } from '@vueuse/core'
+import { useElementBounding, useMouseInElement } from '@vueuse/core'
+
 
 import Axis from '@/Components/profile/Axis.vue'
+import Graph from './profile/Graph.vue'
 import GraphConsole from './profile/GraphConsole.vue'
 
 const profileStore = useProfileStore()
@@ -21,6 +24,7 @@ const profile = ref()
 const redrawKey = ref<symbol>()
 
 const { width, height } = useElementBounding(profile)
+const { x, y, isOutside} = useMouseInElement(profile)
 
 watch([width, height], ([width, height]) => {
     profileStore.width = width
@@ -31,6 +35,7 @@ watch([width, height], ([width, height]) => {
 onMounted(() => {
     watch(() => brmStore.brmDistance, (brmDistance) => {
         profileStore.distance.end = brmDistance
+        redrawKey.value=Symbol()
     })
 
     watch(() => brmStore.brmHighestAltitude, (altitude) => {

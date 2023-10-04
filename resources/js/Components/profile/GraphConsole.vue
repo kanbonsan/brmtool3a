@@ -20,7 +20,7 @@
                 <th>altitude</th><td>{{ alt.low }}～{{ alt.high }}</td>
             </tr>
             <tr>
-                <th>origin</th><td>X: {{ origin.x }}, Y: {{ origin.y }}</td>
+                <th>origin</th><td>X: {{ origin.xOrig }}, Y: {{ origin.yOrig }}</td>
             </tr>
         </table>
     </div>

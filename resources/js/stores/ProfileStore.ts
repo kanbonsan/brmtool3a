@@ -116,13 +116,10 @@ export const useProfileStore = defineStore('profile', {
             if (points.length === 0) return []
 
             const pixels = this.graphSize.width
-            const begin = state.distance.begin
-            const end = state.distance.end
+            const { begin, end } = state.distance
 
             const resolution = (end - begin) / pixels
-
             const pixelAltitude = []
-
 
             for (let pix = 0, ptIndex = 0; pix < pixels; pix++) {
 
@@ -135,6 +132,12 @@ export const useProfileStore = defineStore('profile', {
 
                 while (true) {
                     const pt = points[ptIndex]
+
+                    // タイミングの都合で pt===undefined となることがあるよう
+                    if(!pt){
+                        break 
+                     }                    
+
                     const ptDistA = pt.brmDistance
                     const ptDistB = ptIndex < points.length - 1 ? points[ptIndex + 1].brmDistance : end
                     if (ptDistB < pixDistA) {
@@ -168,13 +171,13 @@ export const useProfileStore = defineStore('profile', {
         // 距離→キャンバス座標（原点が +0.5 なのでそのまま +0.5）
         getX(state) {
             return (dist: number) => {
-                return this.graphOrigin.xOrig! + Math.floor(dist * this.graphResolution.x!)
+                return this.graphOrigin.xOrig! + Math.floor((dist - state.distance.begin) * this.graphResolution.x!)
             }
         },
         // 標高→キャンバス座標
         getY(state) {
             return (alt: number) => {
-                return this.graphOrigin.yOrig! - Math.floor(alt * this.graphResolution.y!)
+                return this.graphOrigin.yOrig! - Math.floor((alt - state.altitude.low) * this.graphResolution.y!)
             }
         }
     }
