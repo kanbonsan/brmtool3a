@@ -1,10 +1,9 @@
 <template>
-    <el-menu class="menu-bar" mode="horizontal">
-
+    <el-menu class="menu-bar" mode="horizontal" :ellipsis="false">
         <el-sub-menu index="1">
             <template #title>ファイル</template>
-            <el-menu-item index="1-1" @click="console.log('new brm')">新規</el-menu-item>
-            <el-menu-item index="1-2">読み込み</el-menu-item>
+            <el-menu-item index="1-1">新規</el-menu-item>
+            <el-menu-item index="1-2" @click="openDialog(FileUpload, 'ファイル読み込み', { width: '300px'})">読み込み</el-menu-item>
             <el-menu-item index="1-3">保存</el-menu-item>
             <el-menu-item index="1-4">エクスポート</el-menu-item>
             <el-menu-item index="1-5">設定</el-menu-item>
@@ -13,9 +12,15 @@
         <el-menu-item index="2" @click="openDialog(BrmSetting, 'ブルベ設定')">ブルベ設定</el-menu-item>
         <div style="flex-grow:1" />
         <template v-if="$page.props.auth.user">
-            <el-menu-item index="3">
-                <Link :href="route('dashboard')">アカウント</Link>
-            </el-menu-item>
+            <el-sub-menu index="3">
+                <template #title>アカウント</template>
+                <el-menu-item index="3-1">
+                    <Link :href="route('dashboard')">アカウント情報</Link>
+                </el-menu-item>
+                <el-menu-item index="3-2">
+                    <Link :href="route('logout')">ログアウト</Link>
+                </el-menu-item>
+            </el-sub-menu>
         </template>
         <template v-else>
             <el-menu-item index="4" v-if="!$page.props.auth.user">
@@ -34,7 +39,7 @@
         <slot />
     </main>
 
-    <el-dialog class="main-dialog" v-model="menuVisible" :title="menuTitle">
+    <el-dialog class="main-dialog" v-model="menuVisible" :title="menuTitle" :style="dialogStyle">
         <component :is="menuComponent" :onClose="handleClose" />
     </el-dialog>
 </template>
@@ -52,6 +57,7 @@ import axios from "axios"
 
 import { useToolStore } from "@/stores/ToolStore"
 import BrmSetting from "@/Components/DialogMenu/BrmSetting.vue"
+import FileUpload from "@/Components/DialogMenu/FileUpload.vue"
 
 const props = defineProps<{
     canLogin?: boolean
@@ -65,7 +71,6 @@ const credentials = ref({
 
 const loginSubmit = () => {
     axios.get("/sanctum/csrf-cookie").then((response) => {
-        console.log(credentials)
         axios
             .post("/login", credentials.value)
             .then((response) => router.reload())
@@ -86,22 +91,26 @@ onMounted(() => {
 
 onUnmounted(() => {
     window.removeEventListener('beforeunload', saveData)
-    
+
 })
 
 // DIALOG
 const menuVisible = ref<boolean>(false)
 const menuComponent = ref<Component>()
 const menuTitle = ref<string>()
+const dialogStyle = ref<any>()
 
-const openDialog = (component: Component, title: string)=>{
-    if( menuVisible.value===true) return
+const openDialog = (component: Component, title: string, options?: any) => {
+    if (menuVisible.value === true) return
+    if(options){
+        dialogStyle.value = {...options}
+    }
     menuComponent.value = component
     menuTitle.value = title
     menuVisible.value = true
 }
 
-const handleClose = ()=>{
+const handleClose = () => {
     menuVisible.value = false
 }
 
@@ -127,7 +136,6 @@ body::-webkit-scrollbar {
 .main-dialog .el-dialog__body {
     padding: 0px;
 }
-
 </style>
 
 <style scoped>

@@ -1,8 +1,6 @@
 <script lang="ts">
 
 import Layout from "@/Layouts/BrmToolLayout.vue"
-import { useDimension } from "@/Composables/dimension"
-const { dimensionUpdate, panes } = useDimension()
 
 export default {
     layout: Layout,
@@ -35,7 +33,6 @@ export default {
         </Pane>
     </Splitpanes>
 </template>
-
 
 <script setup lang="ts">
 

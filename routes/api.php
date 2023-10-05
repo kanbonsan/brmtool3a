@@ -23,3 +23,7 @@ Route::get('getAlt', 'App\Http\Controllers\Api\DemController@getAlt');
 Route::post('cacheDemTiles', 'App\Http\Controllers\Api\DemController@cacheDemTiles');
 
 Route::post('getMultiAlt', 'App\Http\Controllers\Api\DemController@getMultiAlt');
+
+Route::post('upload/file', 'App\Http\Controllers\Api\FileController@upload');
+
+//Route::post('upload/gpx', 'Api\FileController@gpxupload');

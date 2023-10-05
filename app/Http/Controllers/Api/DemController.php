@@ -1,5 +1,4 @@
 <?php
-
 /**
  * 国土地理院 標高タイルを用いて標高値を得る API
  * - $dem_source を上から順に検索
@@ -86,10 +85,8 @@ class DemController extends Controller
     }
 
     public function getMultiAlt(Request $request){
-
-        
-
-
+        //
+        //
     }
 
     /**

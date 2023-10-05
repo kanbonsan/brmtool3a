@@ -1,0 +1,55 @@
+<template>
+    <el-card class="file-upload">
+        <el-form label-width="100px">
+            <el-upload ref="uploadRef" class="upload-demo" action="" :multiple="false" :limit="1" :auto-upload="false"
+                v-model:file-list="files">
+                <template #trigger>
+                    <el-button :disabled="files && files.length > 0" type="primary">ファイル選択</el-button>
+                </template>
+
+                <el-button :disabled="!files" class="ml-3" type="success" @click="submitUpload">
+                    読み込み
+                </el-button>
+
+                <template #tip>
+                    <div class="el-upload__tip">
+                        gpxファイル、brmファイルを読み込みます
+                    </div>
+                </template>
+            </el-upload>
+        </el-form>
+    </el-card>
+    {{ files }}
+</template>
+
+<script setup lang="ts">
+import { UploadUserFile } from 'element-plus'
+import axios from 'axios'
+import { ref } from 'vue'
+
+const uploadRef = ref()
+const files = ref<UploadUserFile[]>()
+
+const submitUpload = async () => {
+    const formData = new FormData()
+    // attachments[0].raw に FileObject が入ってい
+    // key を 'file' としているので、API側では $request->file でファイルとして取得する
+    if (files.value?.length) {
+        const file = files.value[0]
+        formData.append("file", file.raw!)
+    }
+    const response = await axios({
+        method: "post",
+        url: "/api/upload/file",
+        data: formData,
+    })
+    console.log(response)
+}
+
+</script>
+
+<style scoped>
+.file-upload {
+    width: 100%;
+}
+</style>
