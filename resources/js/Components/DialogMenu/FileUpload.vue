@@ -23,11 +23,13 @@
 </template>
 
 <script setup lang="ts">
-import { UploadUserFile } from 'element-plus'
 import axios from 'axios'
 import { ref } from 'vue'
+import { ElMessage, UploadUserFile } from 'element-plus'
+import { useToolStore } from '@/stores/ToolStore'
 
 const uploadRef = ref()
+const toolStore = useToolStore()
 const files = ref<UploadUserFile[]>()
 
 const submitUpload = async () => {
@@ -38,12 +40,27 @@ const submitUpload = async () => {
         const file = files.value[0]
         formData.append("file", file.raw!)
     }
-    const response = await axios({
-        method: "post",
-        url: "/api/upload/file",
-        data: formData,
-    })
-    console.log(response)
+    try {
+        const response = await axios({
+            method: "post",
+            url: "/api/upload/file",
+            data: formData,
+        })
+        // error 処理
+        if (response.data.status === "error") {
+            ElMessage({ type: 'warning', message: 'ファイルが上手く読み込めませんでした.' })
+            files.value = []
+        }
+
+        const brmData = toolStore.brmToPackedData(response.data)
+        console.log(brmData)
+
+
+    } catch (error: any) {
+        ElMessage({ type: 'warning', message: error.response.data.message })
+        files.value = []
+
+    }
 }
 
 </script>

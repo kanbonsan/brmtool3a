@@ -151,6 +151,14 @@ export const useToolStore = defineStore('tool', {
             this.$reset()
             cuesheetStore.$reset()
             routeStore.$reset()
+        },
+
+        // 外部取り込みのデータを内部形式に変換
+        brmToPackedData(data: any) {
+            if( data.type === 'track'){ // GPX ファイル読み込み時
+                console.log('track data')
+            }
+            return data
         }
     }
 })
