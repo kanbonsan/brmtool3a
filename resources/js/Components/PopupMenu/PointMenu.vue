@@ -57,10 +57,6 @@ const onClick = (result: string) => {
 const onCancelClose = () => {
     props.submit({ status: 'success', result: 'cancel' })
 }
-
-onMounted(()=>{
-    console.log(props)
-})
 </script>
 
 <style scoped>

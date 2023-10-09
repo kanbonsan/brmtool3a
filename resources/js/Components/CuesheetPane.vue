@@ -38,9 +38,7 @@ const { width, height } = useElementBounding(cuesheet)
 const currentBrmStart = ref<number | undefined>(undefined)
 const startList = computed(() => toolStore.startList)
 const data = computed(() => {
-
     const d = cuesheetStore.cuesheetData(currentBrmStart.value)
-    console.log(d)
     return d
 })
 

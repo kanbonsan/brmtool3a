@@ -175,9 +175,7 @@ const groupAvailable = computed(() => (groupCandidate.value.pre !== undefined ||
 const form = reactive({ type: cuePoint.type, pcGroup: false, ...props.menuParams.cuePoint.properties })
 
 const note = computed(()=>{
-    console.log(form.note)
     const n = new Markup(form.note)
-    console.log(n.parse())
     return n.html()
 })
 

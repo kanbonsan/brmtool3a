@@ -153,10 +153,20 @@ export const useToolStore = defineStore('tool', {
             routeStore.$reset()
         },
 
+
         // 外部取り込みのデータを内部形式に変換
-        brmToPackedData(data: any) {
-            if( data.type === 'track'){ // GPX ファイル読み込み時
-                console.log('track data')
+        brmDataUpload(data: any) {
+            const routeStore = useBrmRouteStore()
+            const cuesheetStore = useCuesheetStore()
+            const gmapStore = useGmapStore()
+
+            if (data.type === 'track') { // GPX ファイル読み込み時
+                const tracks: Array<{ lat: number, lng: number, alt: number }> = data.track.map((pt: { lat: string, lng: string, alt: string }) => ({ lat: parseFloat(pt.lat), lng: parseFloat(pt.lng), alt: parseFloat(pt.alt) }))
+                const route = routeStore.makePackData(tracks)
+                routeStore.$reset()
+                cuesheetStore.$reset()
+                routeStore.unpack(route)
+                gmapStore.moveStreetViewByPoint(routeStore.points[0], 50)
             }
             return data
         }

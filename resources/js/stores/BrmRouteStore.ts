@@ -775,8 +775,17 @@ export const useBrmRouteStore = defineStore('brmroute', {
             })
 
             this.update()
-        }
+        },
 
+        makePackData(tracks: Array<{ lat: number, lng: number, alt: number }>) {
+            const length = tracks.length
+            const encodedPathAlt = polyline.encode(tracks.map(pt => ([pt.lat, pt.lng, pt.alt])))
+            const excluded = [...Array(length)].map(pt => 0)
+            const voluntary = [...Array(length)].map(pt => 0)
+            const weight = [...Array(length)].map(pt => 1)
+
+            return { encodedPathAlt, pointProperties: { excluded, voluntary, weight } }
+        }
 
     }
 })

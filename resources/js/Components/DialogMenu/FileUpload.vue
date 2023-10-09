@@ -52,7 +52,7 @@ const submitUpload = async () => {
             files.value = []
         }
 
-        const brmData = toolStore.brmToPackedData(response.data)
+        const brmData = toolStore.brmDataUpload(response.data)
         console.log(brmData)
 
 
