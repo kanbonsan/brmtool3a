@@ -10,6 +10,7 @@ import { RoutePoint } from '@/classes/routePoint'
 
 import axios from 'axios'
 
+// weight = 20 を voluntary point（キューポイント） につける
 const simplifyParam = [
     { weight: 3, tolerance: 0.000015 },
     { weight: 5, tolerance: 0.00005 },
@@ -116,6 +117,14 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /** simplify 用の配列（x,y,z) を用意・拡張して path encode にも使えるようにした */
         pointsArray: (state) => state.points.map((pt, index) => ({ x: pt.lng ?? 0, y: pt.lat ?? 0, z: pt.alt ?? -1000, index })),
 
+        /** encodedPathAlt は常時更新する必要がないので関数型 getter にしておく */
+        encodedPathAlt(state) {
+            return () => {
+                const latLngAlt: CoordTuple[] = this.pointsArray.map((pt) => ([pt.y, pt.x, pt.z]))
+                return polyline.encode(latLngAlt)
+            }
+        },
+
         /** ある程度以上のポイント */
         weighedPoints: (state): RoutePoint[] => state.points.filter(pt => pt.weight >= weighedThreshold),
 
@@ -130,7 +139,9 @@ export const useBrmRouteStore = defineStore('brmroute', {
         serializablePoints(state) {
             const arr: Array<{ excluded: boolean, voluntary: boolean, weight: number }> = []
             state.points.forEach((pt) => {
-                const { excluded, voluntary, weight } = pt
+                const excluded = pt.excluded
+                const voluntary = pt.weight >= 20
+                const weight = pt.weight
                 arr.push({ excluded, voluntary, weight })
             })
             return arr
@@ -138,7 +149,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
         pointProperties(state) {
             const excluded = state.points.map((pt: RoutePoint) => pt.excluded ? 1 : 0)
-            const voluntary = state.points.map((pt: RoutePoint) => pt.voluntary ? 1 : 0)
+            const voluntary = state.points.map((pt: RoutePoint) => pt.weight >=20 ? 1 : 0)
             const weight = state.points.map((pt: RoutePoint) => pt.weight)
             return { excluded, voluntary, weight }
         },
@@ -749,9 +760,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
 
         pack() {
-            const latLngAlt: CoordTuple[] = this.pointsArray.map((pt) => ([pt.y, pt.x, pt.z]))
-            const encodedPathAlt = polyline.encode(latLngAlt)
-
+            const encodedPathAlt = this.encodedPathAlt()
             return ({ encodedPathAlt, pointProperties: this.pointProperties })
         },
 
@@ -767,9 +776,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             pointProperties.excluded.forEach((val, index) => {
                 this.points[index].excluded = val === 1 ? true : false
             })
-            pointProperties.voluntary.forEach((val, index) => {
-                this.points[index].voluntary = val === 1 ? true : false
-            })
+
             pointProperties.weight.forEach((weight, index) => {
                 this.points[index].weight = weight
             })
@@ -781,10 +788,9 @@ export const useBrmRouteStore = defineStore('brmroute', {
             const length = tracks.length
             const encodedPathAlt = polyline.encode(tracks.map(pt => ([pt.lat, pt.lng, pt.alt])))
             const excluded = [...Array(length)].map(pt => 0)
-            const voluntary = [...Array(length)].map(pt => 0)
             const weight = [...Array(length)].map(pt => 1)
 
-            return { encodedPathAlt, pointProperties: { excluded, voluntary, weight } }
+            return { encodedPathAlt, pointProperties: { excluded, weight } }
         }
 
     }

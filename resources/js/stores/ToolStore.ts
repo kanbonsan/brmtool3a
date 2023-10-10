@@ -4,6 +4,8 @@ import { defineStore } from 'pinia'
 import { useBrmRouteStore } from './BrmRouteStore'
 import { useCuesheetStore } from './CueSheetStore'
 import { useGmapStore } from './GmapStore'
+import { RoutePoint } from '@/classes/routePoint'
+import { weighedThreshold } from '@/config'
 
 type timestamp = number
 
@@ -11,15 +13,18 @@ type BrmInfo = {
     id: number | undefined
     organization: string,
     clubCode: string | undefined,
+    title?: string, // v2.0 との互換性
+    subtitle?: string, // v2.0 との互換性
     brmDate: timestamp | undefined,
     startTime: timestamp[],
     brmDistance: number | undefined,
-    title?: string,
-    description?: string,
+    description?: string,   // v3.0 で新設
+    // 以下 v3.0 で新設
     pcGroupOpen?: 'head' | 'individual' | 'tail',    // グループPCのオープンをどこに合わせるか
     pcGroupClose?: 'head' | 'individual' | 'tail',
 }
 
+// アプリの設定
 type Properties = {
     clubCode: string,
     pcGroupOpen: 'head' | 'individual' | 'tail',    // グループPCのオープンをどこに合わせるか
@@ -50,9 +55,11 @@ export const useToolStore = defineStore('tool', {
 
     state: (): State => ({
         brmInfo: {
-            id: undefined,
+            id: Date.now(), // 初期化時に決定
             organization: '',
             clubCode: undefined,
+            title: '',
+            subtitle: '',
             brmDate: undefined,
             startTime: [],
             brmDistance: undefined,
@@ -169,6 +176,59 @@ export const useToolStore = defineStore('tool', {
                 gmapStore.moveStreetViewByPoint(routeStore.points[0], 50)
             }
             return data
+        },
+
+        //
+        makeSnapshot() {
+            const routeStore = useBrmRouteStore()
+            const cuesheetStore = useCuesheetStore()
+            const gmapStore = useGmapStore()
+
+            const voluntaryPoints: Array<number> = []    // weight >=20
+            const showPoints: Array<number> = []         // weight >= weighedThreshold
+            const excludedPoints: Array<number> = []
+
+            routeStore.points.forEach((pt: RoutePoint, index: number) => {
+                if (pt.excluded) {
+                    excludedPoints.push(index)
+                }
+                if (pt.weight >= weighedThreshold) {
+                    showPoints.push(index)
+                    if (pt.weight >= 20) {
+                        voluntaryPoints.push(index)
+                    }
+                }
+            })
+
+            const brmInfo={
+                id: null,   // BRMTOOL を踏襲して Date.now() をIDにする
+                organization: '',
+                clubCode: '',
+                title: '',
+                subtitle: '',
+                brmDate: null,
+                brmStart: [],
+                currentBrmStart: null,
+                brmDistance: null,
+                parentBrmLink: null,    // 継承元の Link
+                summary: null,
+            }
+
+            return {
+                app: 'brmtool',
+                version: '3.0', // version 2.0 の上位互換とする
+                ts: Date.now(),
+                brm: {
+                    encodedPath: routeStore.encodedPathAlt(),// string
+                    showVoluntary: voluntaryPoints,  // Array showVoluntary=true のインデックスの配列
+                    excluded: excludedPoints,   // Array excluded ポイントのインデックスの配列
+                    showPoints: showPoints,  // pt.show || pt.showVoluntary を満たすインデックスの配列（v1 形式のデータ出力用で v2 の restore には必要なし）
+                    pathLength: routeStore.count  // 全ポイント数（v1 形式出力用）
+                },
+                brmInfo: this.brmInfo,
+                pois: state.pois.map(poi => poi.getPoiInfo())   // Poi のシリアライズは Poi クラスにまかせる
+
+            }
         }
     }
 })

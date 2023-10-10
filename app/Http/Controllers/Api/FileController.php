@@ -1,4 +1,6 @@
 <?php
+// Tool 2 より移動
+// brmfile のバージョンを 3.0 にする
 
 namespace App\Http\Controllers\Api;
 
@@ -81,13 +83,14 @@ class FileController extends Controller
     }
 
     // BRM ファイルのダウンロード処理（V1/V2 形式・圧縮/非圧縮 に対応）
-    public function download_brmfile(Request $request){
+    // 基本 フロント側で作成した snapshot (json) をそのまま返すだけ（内部構造には関係しない）
+    public function download_brmfile(Request $request)
+    {
         $version = $request->version;
         $compress = $request->compress;
         $data = $version === 1 ? self::conv_v2_to_v1_data($request->data) : $request->data;
 
         return $compress ? gzencode(json_encode($data, JSON_UNESCAPED_UNICODE)) : $data;
-
     }
 
 
@@ -96,7 +99,7 @@ class FileController extends Controller
     public static function upload_brm($_data)
     {
         $data = json_decode($_data);
-        if (isset($data->app) && $data->app === 'brmtool' && $data->version === '2.0') {
+        if (isset($data->app) && $data->app === 'brmtool' && ($data->version === '2.0' || $data->version === '3.0')) {
             return ['status' => 'ok', 'app' => $data->app, 'version' => $data->version, 'type' => 'brm', 'brmData' => $data];
         } else {    // BRMTOOL ver 1 を想定
             try {
@@ -199,7 +202,7 @@ class FileController extends Controller
         $v1_brmName = $v2_brmInfo['title'];
         $v1_brmDistance = (int)preg_replace('/km/', '', $v2_brmInfo['brmDistance']);
         $v1_encodedPathAlt = $v2_encodedPath;
-        $v1_brmDate = date('Y/m/d', $v2_brmDate_ts/1000);
+        $v1_brmDate = date('Y/m/d', $v2_brmDate_ts / 1000);
         $v1_brmStartTime = $v2_brmInfo['brmStart'];
         $v1_brmCurrentStartTime = count($v1_brmStartTime) ? $v1_brmStartTime[0] : "";
         $v1_exclude = self::v2_exclude_to_v1_exclude($v2_excluded);
@@ -258,7 +261,7 @@ class FileController extends Controller
             'type' => $types[$poi['type']],   // v2 から v1 へテーブルを介して変換
             'name' => $signal . $crossing . ($_props['name'] ? $_props['name'] : ''),
             'direction' => $_props['direction'] ? $_props['direction'] : '',
-            'route' => $_props['route'] ? $_props['route'] :'',
+            'route' => $_props['route'] ? $_props['route'] : '',
             'cuePointIdx' => $_props['cueIndex'],
             'pcNo' => false,
             'gpsIcon' => $_gps_icon,
