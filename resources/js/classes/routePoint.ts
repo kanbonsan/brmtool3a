@@ -12,10 +12,12 @@ export class RoutePoint {
     excluded: boolean = false;
     /** 編集ポイントかどうか */
     editable: boolean = true;
-    /** ポイントの表示優先度 */
-    weight: number = 1;
-    /** ユーザーが参照点に設定したか */
-    voluntary: boolean = false;
+    
+    /** ポイントの表示優先度 voluntary point は 20(以上)*/    
+    weight: number = 1; 
+    
+    /** ユーザーが参照点に設定したか */ 
+    // voluntary: boolean = false;  // voluntary フラグを廃止 → weight >= 20 を voluntary とする（2023/10/10）
 
     /** 前の点からの距離（ポイントの増減時でも部分的な更新に留めるために保持） メートル */
     pointDistance: number = 0.0;

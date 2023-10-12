@@ -195,11 +195,13 @@ export const useCuesheetStore = defineStore('cuesheet', {
                     throw new Error('このポイントにはすでにキューポイントが設定されています')
                 }
 
+                // Voluntary ポイントとして登録（cue point が解除されてもそのまま... とくに問題はないでしょう）
+                point.weight = 20
+
                 const cpt = new CuePoint(point.lat, point.lng, 'cue', point.id)
                 this.cuePoints.set(cpt.id, cpt)
 
                 this.update()
-
                 return cpt
 
             } else {

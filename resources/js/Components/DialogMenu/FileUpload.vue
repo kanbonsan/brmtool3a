@@ -3,34 +3,43 @@
         <el-form label-width="100px">
             <el-upload ref="uploadRef" class="upload-demo" action="" :multiple="false" :limit="1" :auto-upload="false"
                 v-model:file-list="files">
-                <template #trigger>
-                    <el-button :disabled="files && files.length > 0" type="primary">ファイル選択</el-button>
-                </template>
-
-                <el-button :disabled="!files" class="ml-3" type="success" @click="submitUpload">
-                    読み込み
-                </el-button>
-
                 <template #tip>
                     <div class="el-upload__tip">
-                        gpxファイル、brmファイルを読み込みます
+                        gpxファイル、brmファイルを読み込みます.<br/> 現在編集中のデータは上書きされますのでご注意ください.
                     </div>
                 </template>
+                <template #trigger>
+                    <el-button :disabled="files && files.length > 0" type="info" plain>ファイル選択</el-button>
+                </template>
+
+
+
+
             </el-upload>
         </el-form>
+        <el-row>
+            <el-button :disabled="!files" class="ml-3" type="primary" @click="submitUpload">
+                読み込み
+            </el-button>
+            <el-button>キャンセル</el-button>
+        </el-row>
     </el-card>
     {{ files }}
 </template>
 
 <script setup lang="ts">
 import axios from 'axios'
-import { ref } from 'vue'
+import { ref, onBeforeUnmount } from 'vue'
 import { ElMessage, UploadUserFile } from 'element-plus'
 import { useToolStore } from '@/stores/ToolStore'
 
 const uploadRef = ref()
 const toolStore = useToolStore()
 const files = ref<UploadUserFile[]>()
+
+onBeforeUnmount(() => {
+    files.value = []
+})
 
 const submitUpload = async () => {
     const formData = new FormData()

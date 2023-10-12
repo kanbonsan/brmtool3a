@@ -3,8 +3,9 @@
         <el-sub-menu index="1">
             <template #title>ファイル</template>
             <el-menu-item index="1-1">新規</el-menu-item>
-            <el-menu-item index="1-2" @click="openDialog(FileUpload, 'ファイル読み込み', { width: '300px'})">読み込み</el-menu-item>
-            <el-menu-item index="1-3">保存</el-menu-item>
+            <el-menu-item index="1-2" @click="openDialog(FileUpload, 'ファイル読み込み', { width: '300px' })">読み込み</el-menu-item>
+            <el-menu-item index="1-3"
+                @click="openDialog(BrmFileDownload, 'BRMファイルダウンロード'), { width: '300px' }">保存</el-menu-item>
             <el-menu-item index="1-4">エクスポート</el-menu-item>
             <el-menu-item index="1-5">設定</el-menu-item>
         </el-sub-menu>
@@ -39,7 +40,7 @@
         <slot />
     </main>
 
-    <el-dialog class="main-dialog" v-model="menuVisible" :title="menuTitle" :style="dialogStyle">
+    <el-dialog class="main-dialog" v-model="menuVisible" :title="menuTitle" :style="dialogStyle" :destroy-on-close="true">
         <component :is="menuComponent" :onClose="handleClose" />
     </el-dialog>
 </template>
@@ -58,6 +59,7 @@ import axios from "axios"
 import { useToolStore } from "@/stores/ToolStore"
 import BrmSetting from "@/Components/DialogMenu/BrmSetting.vue"
 import FileUpload from "@/Components/DialogMenu/FileUpload.vue"
+import BrmFileDownload from "@/Components/DialogMenu/BrmFileDownload.vue"
 
 const props = defineProps<{
     canLogin?: boolean
@@ -102,8 +104,8 @@ const dialogStyle = ref<any>()
 
 const openDialog = (component: Component, title: string, options?: any) => {
     if (menuVisible.value === true) return
-    if(options){
-        dialogStyle.value = {...options}
+    if (options) {
+        dialogStyle.value = { ...options }
     }
     menuComponent.value = component
     menuTitle.value = title
