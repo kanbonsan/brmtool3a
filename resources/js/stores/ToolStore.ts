@@ -185,11 +185,10 @@ export const useToolStore = defineStore('tool', {
         },
 
         // brmfile に保存用のスナップショットを作成する
-        // brmfile のバージョンは 3.0 とし、2.0 との互換性は持たせない（BRMTOOL2 では読み込めない）
+        // brmfile のバージョンは 3.0 とし、2.0 との互換性は持たせない（BRMTOOL2 では読み込めない仕様）
         // バージョン 2.0 は読み込めるようにする
         // バージョン 1 は API で 2.0 に変換して読み込みする
         makeBrmData() {
-            
             return {
                 app: 'brmtool',
                 version: '3.0', // version 2.0 の上位互換とする

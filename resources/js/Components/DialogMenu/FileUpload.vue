@@ -11,10 +11,6 @@
                 <template #trigger>
                     <el-button :disabled="files && files.length > 0" type="info" plain>ファイル選択</el-button>
                 </template>
-
-
-
-
             </el-upload>
         </el-form>
         <el-row>
