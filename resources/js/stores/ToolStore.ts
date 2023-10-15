@@ -168,6 +168,8 @@ export const useToolStore = defineStore('tool', {
 
 
         // 外部取り込みのデータを内部形式に変換
+        // .gpx ファイル と .brm (.brz) ファイルに対応。
+        // .brm ファイルは ver 3.0 用のみ受け入れ. 各バージョンからのコンバートは API に任せる.
         brmDataUpload(data: any) {
             const routeStore = useBrmRouteStore()
             const cuesheetStore = useCuesheetStore()
@@ -180,6 +182,8 @@ export const useToolStore = defineStore('tool', {
                 cuesheetStore.$reset()
                 routeStore.unpack(route)
                 gmapStore.moveStreetViewByPoint(routeStore.points[0], 50)
+            } else if (data.type==='brm'){
+                // brmfile
             }
             return data
         },

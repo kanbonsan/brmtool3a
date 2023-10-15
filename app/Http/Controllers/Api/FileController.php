@@ -2,6 +2,19 @@
 // Tool 2 より移動
 // brmfile のバージョンを 3.0 にする
 
+/**
+ * ブルベファイルの方針（3.0作成時版）
+ * ・ver 1 は残す. 
+ * ・ver 1形式での保存は残す.
+ * ・ver 2.0 形式での保存は廃止.（ver1→ver2→ver3 としての中間形式として存続）
+ * ・ver 2.0 の開発は中止.
+ * ・BRMTOOL3 は 3.0形式と1.0形式の保存
+ * ・ver 3.0 は BRMTOOL3 の snapshot をそのまま JSON に固めたもの
+ * ・ver 3.0 から ver 1.0 のコンバートは本APIで対応
+ * ・ver 1.0 → ver 2.0 のコンバートは実装済み
+ * ・ver 2.0 → ver 3.0 のコンバートを API に新たに実装
+ */
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
