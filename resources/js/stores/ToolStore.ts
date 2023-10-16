@@ -13,8 +13,6 @@ type BrmInfo = {
     id: number | undefined
     organization: string,
     clubCode: string | undefined,
-    title?: string, // v2.0 との互換性
-    subtitle?: string, // v2.0 との互換性
     brmDate: timestamp | undefined,
     startTime: timestamp[],
     brmDistance: number | undefined,
@@ -58,8 +56,6 @@ export const useToolStore = defineStore('tool', {
             id: Date.now(), // 初期化時に決定
             organization: '',
             clubCode: undefined,
-            title: '',
-            subtitle: '',
             brmDate: undefined,
             startTime: [],
             brmDistance: undefined,

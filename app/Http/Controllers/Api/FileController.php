@@ -6,13 +6,12 @@
  * ブルベファイルの方針（3.0作成時版）
  * ・ver 1 は残す. 
  * ・ver 1形式での保存は残す.
- * ・ver 2.0 形式での保存は廃止.（ver1→ver2→ver3 としての中間形式として存続）
- * ・ver 2.0 の開発は中止.
+ * ・ver 2.0 形式は廃止
+ * ・BRMTOOL2 の開発は中止.
  * ・BRMTOOL3 は 3.0形式と1.0形式の保存
  * ・ver 3.0 は BRMTOOL3 の snapshot をそのまま JSON に固めたもの
  * ・ver 3.0 から ver 1.0 のコンバートは本APIで対応
- * ・ver 1.0 → ver 2.0 のコンバートは実装済み
- * ・ver 2.0 → ver 3.0 のコンバートを API に新たに実装
+ * ・ver 1.0 ⇔ ver 3.0 の相互コンバートを実装
  */
 
 namespace App\Http\Controllers\Api;
@@ -109,6 +108,15 @@ class FileController extends Controller
 
 
     // アップロードされた brm ファイルの解析（そのまま）
+    /**
+     * Return
+     *  'status' => 'ok' | 'error'
+     *  'app' => 'brmtool'
+     *  'version' => '1.0' | '3.0'
+     *  'type' => 'brm'
+     *  'brmData' => DATA
+     */
+
     public static function upload_brm($_data)
     {
         $data = json_decode($_data);
@@ -116,7 +124,7 @@ class FileController extends Controller
             return ['status' => 'ok', 'app' => $data->app, 'version' => $data->version, 'type' => 'brm', 'brmData' => $data];
         } else {    // BRMTOOL ver 1 を想定
             try {
-                return ['status' => 'ok', 'app' => 'brmtool', 'version' => '1.0', 'type' => 'brm', 'brmData' => self::conv_v1_to_v2_data($data)];
+                return ['status' => 'ok', 'app' => 'brmtool', 'version' => '3.0', 'type' => 'brm', 'brmData' => self::conv_v1_to_v2_data($data)];
             } catch (\Exception $e) {
                 return ['status' => 'error', 'message' => $e->getMessage()];
             }
@@ -192,6 +200,22 @@ class FileController extends Controller
 
     // BRMTOOL v2 データ → v1 変換
     // V1 形式でのセーブ用
+
+    /**
+     * Returns
+     * 
+     * 'id' => v2.brmInfo.id
+     * 'brmName' => v2.brmInfo.title
+     * 'brmDisntace' => v2.brmInfo.brmDistance の 'km'抜きのint 200|300|400|600|1000
+     * 'brmDate' =>
+     * 'brmStartTime' => 
+     * 'brmCurrentStartTime' =>
+     * 'encodedPathAlt' =>
+     * 'cueLength' =>
+     * 'points' => 
+     * 'exclude' =>
+     * 
+     */
     public static function conv_v2_to_v1_data($data)
     {
         $v2 = $data;
@@ -300,7 +324,7 @@ class FileController extends Controller
 
 
     // v2 の除外リストを v1 の除外リストに変換
-    // v2 はインデックスの羅列（両端を含まない）、v2 は各チャンクの begin, end の配列（両端）
+    // v2 はインデックスの羅列（両端を含まない）、v1 は各チャンクの begin, end の配列（両端）
     public static function v2_exclude_to_v1_exclude($arr)
     {
         sort($arr, SORT_NUMERIC);

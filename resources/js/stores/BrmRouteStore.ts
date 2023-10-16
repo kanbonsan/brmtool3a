@@ -148,10 +148,12 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
 
         pointProperties(state) {
-            const excluded = state.points.map((pt: RoutePoint) => pt.excluded ? 1 : 0)
-            const voluntary = state.points.map((pt: RoutePoint) => pt.weight >=20 ? 1 : 0)
-            const weight = state.points.map((pt: RoutePoint) => pt.weight)
-            return { excluded, voluntary, weight }
+            return () => {
+                const excluded = state.points.map((pt: RoutePoint) => pt.excluded ? 1 : 0)
+                const voluntary = state.points.map((pt: RoutePoint) => pt.weight >= 20 ? 1 : 0)
+                const weight = state.points.map((pt: RoutePoint) => pt.weight)
+                return { excluded, voluntary, weight }
+            }
         },
 
         /**
@@ -761,7 +763,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
         pack() {
             const encodedPathAlt = this.encodedPathAlt()
-            return ({ encodedPathAlt, pointProperties: this.pointProperties })
+            return ({ encodedPathAlt, pointProperties: this.pointProperties() })
         },
 
         unpack({ encodedPathAlt, pointProperties }: { encodedPathAlt: string, pointProperties: { [item: string]: Array<number> } }) {
