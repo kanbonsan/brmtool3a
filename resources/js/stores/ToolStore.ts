@@ -107,6 +107,8 @@ export const useToolStore = defineStore('tool', {
         },
 
         // brmfile 保存用データ 兼 localstorage 保存用データ
+        // brmfileを用意するときはここから内容を抜粋する
+
         snapshot(){
             const routeStore = useBrmRouteStore()
             const cuesheetStore = useCuesheetStore()
@@ -122,7 +124,6 @@ export const useToolStore = defineStore('tool', {
 
         save() {
             const data = this.snapshot()
-
             window.localStorage.setItem('brmtool3', JSON.stringify(data))
         },
 

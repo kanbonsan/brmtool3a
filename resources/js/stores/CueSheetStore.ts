@@ -50,7 +50,9 @@ export const useCuesheetStore = defineStore('cuesheet', {
                     return aRoutePointIndex - bRoutePointIndex
                 })
         },
-
+        /**
+         * スタート・フィニッシュを除くコントロールポイントを取得
+         */
         controlList(): CuePoint[] {
             return this.pointList.filter(cpt => cpt.terminal === undefined && (cpt.type === 'pc' || cpt.type === 'pass'))
         },
@@ -88,6 +90,9 @@ export const useCuesheetStore = defineStore('cuesheet', {
             }
         },
 
+        /**
+         * キューシート表示用データ
+         */
         cuesheetData(state) {
             const brmStore = useBrmRouteStore()
             const toolStore = useToolStore()
@@ -182,11 +187,15 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 })
             }
         }
-
     },
 
     actions: {
 
+        /**
+         * 
+         * @param point RoutePoint を与えたときは 'cue' Lat・Lng を与えたときは 'poi' を登録
+         * @returns CuePoint
+         */
         addCuePoint(point: RoutePoint | { lat: number, lng: number }): CuePoint {
 
             if (point instanceof RoutePoint) {
@@ -248,8 +257,11 @@ export const useCuesheetStore = defineStore('cuesheet', {
 
             this.update()
         },
+
         /**
-         * スタート・ゴールポイントの設定
+         * 状態の更新処理
+         * 
+         *  スタート・ゴールポイントの設定
          * - 末端ポイントは移動できない仕様
          * - 末端にポイントがなければ、未設定かルートの末端部分に変化があったかとなる
          * - 末端でないところにある terminal Pt は普通の cue Pt に変更して、
