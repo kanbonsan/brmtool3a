@@ -7,7 +7,7 @@
             <el-menu-item index="1-3"
                 @click="openDialog(BrmFileDownload, 'BRMファイルダウンロード', { width: '300px' })">保存</el-menu-item>
             <el-menu-item index="1-4">エクスポート</el-menu-item>
-            <el-menu-item index="1-5">設定</el-menu-item>
+            <el-menu-item index="1-5" @click="devTest">開発テスト</el-menu-item>
         </el-sub-menu>
 
         <el-menu-item index="2" @click="openDialog(BrmSetting, 'ブルベ設定')">ブルベ設定</el-menu-item>
@@ -86,6 +86,29 @@ const logout = () => {
 
 const toolStore = useToolStore()
 const saveData = () => { toolStore.save() }
+
+const devTest = async () => {
+//https://qiita.com/lx-sasabo/items/203117bf3361f456cf86
+    const data = {
+        a: undefined,
+        b: null,  
+        c: "c"
+    }
+
+    const response = await axios({
+        method: 'post',
+        url: '/api/download/brmfile',
+        responseType: 'json',
+        data: {
+            version: 3,
+            compress: false,
+            data
+        }
+    })
+    console.log(response.data)
+
+    return true
+}
 
 onMounted(() => {
     window.addEventListener('beforeunload', saveData)

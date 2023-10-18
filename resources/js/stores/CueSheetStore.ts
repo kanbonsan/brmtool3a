@@ -278,6 +278,26 @@ export const useCuesheetStore = defineStore('cuesheet', {
             const routeStore = useBrmRouteStore()
             const brmRange = routeStore.brmRange
 
+            // キューポイントの POI 化
+            this.cuePoints.forEach((cpt: CuePoint) => {
+                // 元々 'poi' のときは終了
+                if (!cpt.routePointId) return
+                // ルートポイントが消滅したとき
+                if (!routeStore.idList.includes(cpt.routePointId)) {
+                    cpt.type = "poi"
+                    cpt.routePointId = null
+                    cpt.terminal=undefined
+                } else {
+                    // ルートポイントが除外区域ではないか？
+                    const rpt = routeStore.getPointById(cpt.routePointId)
+                    if (rpt!.excluded === true) {
+                        cpt.type = "poi"
+                        cpt.routePointId = null
+                        cpt.terminal=undefined
+                    }
+                }
+            })
+
             // 末端の処理
             this.cuePoints.forEach((cpt: CuePoint) => {
                 if (cpt.terminal === undefined) return
@@ -339,23 +359,6 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 cpt.groupNo = groupIdArr.findIndex(id => cpt.groupId === id)
             }
 
-            // キューポイントの POI 化
-            this.cuePoints.forEach((cpt: CuePoint) => {
-                // 元々 'poi' のときは終了
-                if (!cpt.routePointId) return
-                // ルートポイントが消滅したとき
-                if (!routeStore.idList.includes(cpt.routePointId)) {
-                    cpt.type = "poi"
-                    cpt.routePointId = null
-                } else {
-                    // ルートポイントが除外区域ではないか？
-                    const rpt = routeStore.getPointById(cpt.routePointId)
-                    if (rpt!.excluded === true) {
-                        cpt.type = "poi"
-                        cpt.routePointId = null
-                    }
-                }
-            })
 
             // cuePoint.routePointIndex の振り直し
             this.cuePoints.forEach((cpt: CuePoint) => {
