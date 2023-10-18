@@ -32,6 +32,10 @@ class FileController extends Controller
         $filePath = pathinfo($file->getClientOriginalName());
         $content = file_get_contents($file->getRealPath());
 
+        // ファイルの中身をチェックするなら下の PHPクラス を用いるべし
+        // $finfo = new \finfo();
+        // $type =  $finfo->buffer($content);
+
         switch (strtolower($filePath['extension'])) {
 
             case "gpx":
@@ -94,19 +98,6 @@ class FileController extends Controller
         return ['status' => 'ok', 'type' => 'track', 'track' => $track];
     }
 
-    // BRM ファイルのダウンロード処理（V1/V2 形式・圧縮/非圧縮 に対応）
-    // 基本 フロント側で作成した snapshot (json) をそのまま返すだけ（内部構造には関係しない）
-    public function download_brmfile(Request $request)
-    {
-        $version = $request->version;
-        $compress = $request->compress;
-        $data = $version === 1 ? self::conv_v2_to_v1_data($request->data) : $request->data;
-
-        return $compress ? gzencode(json_encode($data, JSON_UNESCAPED_UNICODE)) : $data;
-    }
-
-
-
     // アップロードされた brm ファイルの解析（そのまま）
     /**
      * Return
@@ -116,7 +107,6 @@ class FileController extends Controller
      *  'type' => 'brm'
      *  'brmData' => DATA
      */
-
     public static function upload_brm($_data)
     {
         $data = json_decode($_data);
@@ -130,6 +120,18 @@ class FileController extends Controller
             }
         }
     }
+
+    // BRM ファイルのダウンロード処理（V1/V2 形式・圧縮/非圧縮 に対応）
+    // 基本 フロント側で作成した snapshot (json) をそのまま返すだけ（内部構造には関係しない）
+    public function download_brmfile(Request $request)
+    {
+        $version = $request->version;
+        $compress = $request->compress;
+        //$data = $version === 1 ? self::conv_v2_to_v1_data($request->data) : $request->data;
+        $data = $request->data;
+        return $compress === true ? gzencode(json_encode($data, JSON_UNESCAPED_UNICODE)) : $data;
+    }
+
     // BRMTOOL v1 データを変換
     public static function conv_v1_to_v2_data($data)
     {
@@ -172,6 +174,54 @@ class FileController extends Controller
 
         return ['brmInfo' => $brm_info, 'brm' => $brm, 'pois' => $pois];
     }
+
+    //
+    // v1 BRM Data を v3 に変換
+    //
+    public static function conv_v1_to_v3_data($data)
+    {
+
+        // $brm --- encodedPath, showVoluntary<array>, excluded<array>
+        $_exclude = $data->exclude ?? []; // 除外区間; 除外区間の配列; <{begin, end}> で両端は含まない.
+        $_points = $data->points ?? [];   // ポイントの配列; その中にキュー情報も含まれる.
+        $_length = count($_points);
+        $_id = $data->id ?? null;   // id は引き継がせる
+
+        // 返す方のデータ
+        $brm_excluded = [];
+        $brm_showVoluntary = [];    // ver 1 では showVoluntary を分けていないので、とりあえず cue のあるところだけ true にしておく
+        $pois = [];
+
+        // excluded
+        foreach ($_exclude as $ex) {  // 両端は含まない
+            for ($i = $ex->begin + 1; $i < $ex->end; $i++) {
+                array_push($brm_excluded, $i);
+            }
+        }
+
+        // ポイントの検索
+        for ($index = 0; $index < $_length; $index++) {
+            if ($_points[$index]->cue !== false) {
+                $_cue = $_points[$index]->cue;
+                array_push($brm_showVoluntary, $index);
+                array_push($pois, self::conv_v1_to_v2_poi($_cue, $index));
+            }
+        }
+
+        // BRM info
+        $brm_info['id'] = $_id;
+        $brm_info['title'] = $data->brmName ?? '';
+        $brm_info['brmDistance'] = isset($data->brmDistance) ? $data->brmDistance . 'km' : '';
+        $brm_info['brmDate'] = isset($data->brmDate) ? gmdate('Y-m-d\TH:i:s.v\Z', strtotime($data->brmDate)) : '';
+        $brm_info['brmStart'] = $data->brmStartTime ?? [];
+
+        $brm = ['encodedPath' => $data->encodedPathAlt, 'showVoluntary' => $brm_showVoluntary, 'excluded' => $brm_excluded];
+
+        return ['brmInfo' => $brm_info, 'brm' => $brm, 'pois' => $pois];
+    }
+
+
+
 
     // Poi データの変換
     public static function conv_v1_to_v2_poi($cue, $index)

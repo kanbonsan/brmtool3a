@@ -37,7 +37,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
         /**
          * POI以外のポイントをソートして取得
          */
-        pointList(state): CuePoint[] {
+        pointList(): CuePoint[] {
             const brmStore = useBrmRouteStore()
             // POI 以外
 
@@ -50,6 +50,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
                     return aRoutePointIndex - bRoutePointIndex
                 })
         },
+
         /**
          * スタート・フィニッシュを除くコントロールポイントを取得
          */
@@ -93,15 +94,14 @@ export const useCuesheetStore = defineStore('cuesheet', {
         /**
          * キューシート表示用データ
          */
-        cuesheetData(state) {
+        cuesheetData() {
             const brmStore = useBrmRouteStore()
             const toolStore = useToolStore()
-            const points = this.pointList
+            const points = this.pointList   // 'poi' 以外のポイント
 
             const getDaysLater = (from?: number, to?: number) => {
                 if (!from || !to) return undefined
-                const zero = new Date(from).setHours(0, 0, 0)
-                const toDay = (to - zero) / 24 * 3600_000
+                const zero = new Date(from).setHours(0, 0, 0)   // from の 0:00:00
                 return Math.floor((to - zero) / (24 * 3600_000))
             }
 
@@ -109,6 +109,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 return dt ? `${dt.getHours()}:` + `00${dt.getMinutes()}`.slice(-2) : ''
             }
 
+            // 関数ゲッターの本体
             return (startTs?: number) => {
 
                 return points.map(cpt => {
@@ -274,14 +275,14 @@ export const useCuesheetStore = defineStore('cuesheet', {
          */
         update() {
 
-            const brmStore = useBrmRouteStore()
-            const brmRange = brmStore.brmRange
+            const routeStore = useBrmRouteStore()
+            const brmRange = routeStore.brmRange
 
             // 末端の処理
             this.cuePoints.forEach((cpt: CuePoint) => {
                 if (cpt.terminal === undefined) return
-                const routePoint = brmStore.getPointById(cpt.routePointId)
-                const ptIdx = brmStore.getPointIndex(routePoint!)
+                const routePoint = routeStore.getPointById(cpt.routePointId)
+                const ptIdx = routeStore.getPointIndex(routePoint!)
 
                 if (ptIdx !== brmRange.begin && ptIdx !== brmRange.end) {
                     cpt.terminal = undefined
@@ -289,13 +290,28 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 }
             })
 
-            if (!brmStore.hasCuePoint(brmRange.begin)) {
-                const cpt = this.addCuePoint(brmStore.points[brmRange.begin])
+            // 末端のポイントが PC から変更されてしまった場合は強制的に末端に変える
+            // 末端ポイントではラジオボタンを消すようにしたのでここには引っかからないはずだが、保険のために
+            const beginCpt = routeStore.hasCuePoint(brmRange.begin)
+            const endCpt = routeStore.hasCuePoint(brmRange.end)
+            if (beginCpt !== null) {
+                beginCpt.point.type = 'pc'
+                beginCpt.point.terminal = 'start'
+            }
+            if (endCpt !== null) {
+                endCpt.point.type = 'pc'
+                endCpt.point.terminal = 'finish'
+            }
+
+            // start/finish を持たなくなってしまったときには新設する
+            // 両端を含む部分が削除されたり exclude になったときなど
+            if (!routeStore.hasCuePoint(brmRange.begin)) {
+                const cpt = this.addCuePoint(routeStore.points[brmRange.begin])
                 cpt.type = 'pc'
                 cpt.terminal = 'start'
             }
-            if (!brmStore.hasCuePoint(brmRange.end)) {
-                const cpt = this.addCuePoint(brmStore.points[brmRange.end])
+            if (!routeStore.hasCuePoint(brmRange.end)) {
+                const cpt = this.addCuePoint(routeStore.points[brmRange.end])
                 cpt.type = 'pc'
                 cpt.terminal = 'finish'
             }
@@ -328,12 +344,12 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 // 元々 'poi' のときは終了
                 if (!cpt.routePointId) return
                 // ルートポイントが消滅したとき
-                if (!brmStore.idList.includes(cpt.routePointId)) {
+                if (!routeStore.idList.includes(cpt.routePointId)) {
                     cpt.type = "poi"
                     cpt.routePointId = null
                 } else {
                     // ルートポイントが除外区域ではないか？
-                    const rpt = brmStore.getPointById(cpt.routePointId)
+                    const rpt = routeStore.getPointById(cpt.routePointId)
                     if (rpt!.excluded === true) {
                         cpt.type = "poi"
                         cpt.routePointId = null
@@ -344,8 +360,8 @@ export const useCuesheetStore = defineStore('cuesheet', {
             // cuePoint.routePointIndex の振り直し
             this.cuePoints.forEach((cpt: CuePoint) => {
                 if (cpt.type !== 'poi') {
-                    const rpt = brmStore.getPointById(cpt.routePointId)
-                    cpt.routePointIndex = brmStore.getPointIndex(rpt!)
+                    const rpt = routeStore.getPointById(cpt.routePointId)
+                    cpt.routePointIndex = routeStore.getPointIndex(rpt!)
                 } else {
                     cpt.routePointIndex = undefined
                 }
@@ -532,6 +548,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
          * @returns Array
          */
         pack() {
+
             return Array.from(this.cuePoints.values())
         },
         /**
@@ -556,10 +573,16 @@ export const useCuesheetStore = defineStore('cuesheet', {
             this.cuePoints.clear()
 
             for (const _cpt of arr) {
+
+                const _properties = _cpt.properties as any
+                for (const prop in _properties) {
+                    _properties[prop] = _properties[prop] ?? ''
+                }
+
                 const rptId = _cpt.type === 'poi' ? null : brmStore.points[_cpt.routePointIndex].id
                 const cpt = new CuePoint(_cpt.lat, _cpt.lng, _cpt.type, rptId)
                 cpt.terminal = _cpt.terminal
-                cpt.properties = { ..._cpt.properties }
+                cpt.properties = { ..._properties }
                 if (!group.has(_cpt.groupNo)) { group.set(_cpt.groupNo, Symbol()) }
                 cpt.groupId = group.get(_cpt.groupNo)
                 cpt.timestamp = _cpt.timestamp

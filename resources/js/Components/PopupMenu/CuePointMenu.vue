@@ -2,7 +2,7 @@
     <el-card class="cue-point">
         <template #header>
             <div class="card-header">
-                <span>キューポイント {{ cuePoint.lapDistance }} {{ cuePoint.distance }}</span>
+                <span>{{ pointTitle }}</span>
 
                 <el-icon :size="24">
                     <circle-close @click="onCancelClose"></circle-close>
@@ -12,23 +12,23 @@
         </template>
         <el-form label-width="50px" size="small" :model="form" @input="synchronize">
             <el-row>
-                <el-col :span="cuePoint.type === 'pc' ? 20 : 24" class="desc">ポイントタイプ</el-col>
-                <el-col :span="cuePoint.type === 'pc' ? 3 : 0" :offset="1" class="desc">グループ</el-col>
+                <el-col :span="cuePoint.type === 'pc' && !cuePoint.terminal ? 20 : 24" class="desc">ポイントタイプ</el-col>
+                <el-col :span="cuePoint.type === 'pc' && !cuePoint.terminal ? 3 : 0" :offset="1" class="desc">グループ</el-col>
             </el-row>
             <el-row style="margin-bottom: 10px;">
-                <el-col :span="cuePoint.type === 'pc' ? 20 : 24">
+                <el-col :span="cuePoint.type === 'pc' && !cuePoint.terminal ? 20 : 24">
                     <el-radio-group v-model="form.type" class="cue-type" @change="synchronize">
-                        <el-radio label="cue" border>ポイント</el-radio>
+                        <el-radio :disabled="cuePoint.terminal" label="cue" border>ポイント</el-radio>
                         <el-radio label="pc" border>PC</el-radio>
-                        <el-radio label="pass" border>チェック</el-radio>
-                        <el-radio label="poi" border>POI</el-radio>
+                        <el-radio :disabled="cuePoint.terminal" label="pass" border>チェック</el-radio>
+                        <el-radio :disabled="cuePoint.terminal" label="poi" border>POI</el-radio>
                     </el-radio-group>
                 </el-col>
-                <el-col :span="cuePoint.type === 'pc' ? 3 : 0" :offset="1">
+                <el-col :span="cuePoint.type === 'pc' && !cuePoint.terminal ? 3 : 0" :offset="1">
                     <el-tooltip placement="right" content="前後のPCとグループ設定します">
 
-                        <el-button v-if="cuePoint.groupId===undefined" style="align-self:flex-end;" :disabled="!groupAvailable"
-                            @click="groupConfirm">{{
+                        <el-button v-if="cuePoint.groupId === undefined" style="align-self:flex-end;"
+                            :disabled="!groupAvailable" @click="groupConfirm">{{
                                 form.pcGroup ? '解除' : '設定' }}</el-button>
                         <el-button v-else @click="groupConfirm">共有</el-button>
                     </el-tooltip>
@@ -126,11 +126,11 @@
         <el-row v-if="!cuePoint.groupId">
             <el-button :disabled="!groupCandidate.pre" @click="setGroup('pre')">直前のPC</el-button>
             <el-button :disabled="!groupCandidate.post" @click="setGroup('post')">直後のPC</el-button>
-            <el-button @click="pcDialogVisible=!pcDialogVisible">キャンセル</el-button>
+            <el-button @click="pcDialogVisible = !pcDialogVisible">キャンセル</el-button>
         </el-row>
         <el-row v-else>
             <el-button @click="resetGroup">共有解除</el-button>
-            <el-button @click="pcDialogVisible=!pcDialogVisible">キャンセル</el-button>
+            <el-button @click="pcDialogVisible = !pcDialogVisible">キャンセル</el-button>
         </el-row>
     </el-dialog>
 </template>
@@ -172,9 +172,33 @@ const pcDialogVisible = ref(false)
 const groupCandidate = ref(cuesheetStore.getGroupCandidate(cuePoint))
 const groupAvailable = computed(() => (groupCandidate.value.pre !== undefined || groupCandidate.value.post !== undefined))
 
+// 表題
+const pointTitle = computed(() => {
+    let title: string = ''
+    switch (cuePoint.type) {
+        case 'cue':
+            title = 'ポイント'
+            break
+        case 'pass':
+            title = '通過チェック'
+            break
+        case 'poi':
+            title = 'POI'
+            break
+        case 'pc':
+            if (cuePoint.terminal === undefined) {
+                title = 'PC'
+            } else {
+                title = cuePoint.terminal === 'start' ? 'スタート' : (cuePoint.terminal === 'finish' ? 'フィニッシュ' : '')
+            }
+            break
+    }
+    return title
+})
+
 const form = reactive({ type: cuePoint.type, pcGroup: false, ...props.menuParams.cuePoint.properties })
 
-const note = computed(()=>{
+const note = computed(() => {
     const n = new Markup(form.note)
     return n.html()
 })
@@ -227,7 +251,7 @@ const onCancelClose = () => {
 }
 
 const synchronize = () => {
-    
+
     const cueType = form.type
     cuesheetStore.synchronize(props.menuParams.cuePoint.id, form, cueType)
 }
@@ -241,7 +265,7 @@ const setGroup = (dir: 'pre' | 'post') => {
     pcDialogVisible.value = false
 }
 
-const resetGroup = ()=>{
+const resetGroup = () => {
     cuesheetStore.resetGroup(cuePoint.id)
     pcDialogVisible.value = false
 }
@@ -382,6 +406,7 @@ const updateIcon = () => {
     color: var(--el-color-primary-dark-2);
     font-weight: bold;
 }
+
 .cue-point {
     width: 400px;
 }

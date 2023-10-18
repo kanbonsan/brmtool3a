@@ -9,18 +9,17 @@
                     </div>
                 </template>
                 <template #trigger>
-                    <el-button :disabled="files && files.length > 0" type="info" plain>ファイル選択</el-button>
+                    <el-button :disabled="files && files.length > 0" type="primary" plain>ファイル選択</el-button>
                 </template>
             </el-upload>
         </el-form>
-        <el-row>
+        <el-row class="mt-3" justify="center">
             <el-button :disabled="!files" class="ml-3" type="primary" @click="submitUpload">
                 読み込み
             </el-button>
-            <el-button>キャンセル</el-button>
+            <el-button @click="props.onClose">キャンセル</el-button>
         </el-row>
     </el-card>
-    {{ files }}
 </template>
 
 <script setup lang="ts">
@@ -28,6 +27,8 @@ import axios from 'axios'
 import { ref, onBeforeUnmount } from 'vue'
 import { ElMessage, UploadUserFile } from 'element-plus'
 import { useToolStore } from '@/stores/ToolStore'
+
+const props = defineProps(['onClose'])
 
 const uploadRef = ref()
 const toolStore = useToolStore()
@@ -65,6 +66,8 @@ const submitUpload = async () => {
         ElMessage({ type: 'warning', message: error.response.data.message })
         files.value = []
 
+    } finally {
+        props.onClose()
     }
 }
 

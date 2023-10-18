@@ -1,12 +1,12 @@
 <template>
     <div ref="cuesheet" class="cuesheet">
         <div class="header">
-            <el-radio-group v-if="startList.length" v-model="currentBrmStart" size="small">
+            <el-radio-group v-if="startList.length" v-model="currentBrmStart" size="small" @change="console.log('changed')">
                 <el-radio-button v-for="start of startList" :label="start.ts">{{ start.label }}</el-radio-button>
             </el-radio-group>
         </div>
-        <el-table :data="data" border style="height:100%" size="small" @row-click="onRowClick" :height="`calc( ${height}px - var(--header-height))`"
-            :header-cell-style="headerCellStyle">
+        <el-table :data="data" border style="height:100%" size="small" @row-click="onRowClick"
+            :height="`calc( ${height}px - var(--header-height))`" :header-cell-style="headerCellStyle">
             <el-table-column prop="pointNo" label="No" fixed width="50" align="center" />
             <el-table-column prop="name" label="名称" />
             <el-table-column prop="direction" label="進路" />
@@ -21,8 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { useBrmRouteStore } from '@/stores/BrmRouteStore'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useCuesheetStore } from '@/stores/CueSheetStore'
 import { useToolStore } from '@/stores/ToolStore'
 import { useGmapStore } from '@/stores/GmapStore'
@@ -35,8 +34,18 @@ const gmapStore = useGmapStore()
 const cuesheet = ref()
 const { width, height } = useElementBounding(cuesheet)
 
-const currentBrmStart = ref<number | undefined>(undefined)
+const currentBrmStart = computed(
+    {
+        get() {
+            return toolStore.brmInfo.currentStartTime
+        },
+        set(newTs) {
+            toolStore.brmInfo.currentStartTime = newTs
+        }
+    })
+
 const startList = computed(() => toolStore.startList)
+
 const data = computed(() => {
     const d = cuesheetStore.cuesheetData(currentBrmStart.value)
     return d
@@ -53,9 +62,24 @@ const headerCellStyle = ({ columnIndex }: { columnIndex: number }) => {
     }
 }
 
+const setCurrentStartTime = () => {
+    if (!toolStore.brmInfo.currentStartTime) {
+        toolStore.brmInfo.currentStartTime = toolStore.brmInfo.startTime.length > 0 ? toolStore.brmInfo.startTime[0] : undefined
+    }
+}
+
 onMounted(() => {
-    currentBrmStart.value = startList.value.length > 0 ? startList.value[0].ts : undefined
+    setCurrentStartTime()
 })
+
+// currentStartTime に設定されていたスタート時間が消去されれば、いったんcurrentStartTimeをundefinedとして、あらたにデフォルト時刻を設定する
+watch(() => toolStore.brmInfo.startTime, () => {
+    if (toolStore.brmInfo.currentStartTime && !toolStore.brmInfo.startTime.includes(toolStore.brmInfo.currentStartTime)) {
+        toolStore.brmInfo.currentStartTime = undefined
+    }
+    setCurrentStartTime()
+})
+
 </script>
 
 

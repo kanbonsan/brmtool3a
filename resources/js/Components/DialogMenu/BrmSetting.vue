@@ -40,7 +40,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, computed } from 'vue'
 import { useToolStore } from '@/stores/ToolStore'
-import { useCuesheetStore} from '@/stores/CueSheetStore'
+import { useCuesheetStore } from '@/stores/CueSheetStore'
 import { AJCLUB } from '@/lib/aj_club'
 
 const props = defineProps(["onClose"])
@@ -75,7 +75,7 @@ const startDate = computed(() => {
     const _date: Date = form.brmDate ? form.brmDate : new Date(0)
     return new Date(_date.getTime())
 })
-const defaultStartTime = ref( new Date(new Date().setHours(7,0,0)))
+const defaultStartTime = ref(new Date(new Date().setHours(7, 0, 0)))
 
 // フォーム time picker 用
 const startTime = ref<Date>()
@@ -99,19 +99,21 @@ const startList = computed(() => {
 
 const onBrmDateChange = () => {
 
-    if (form.brmStart.length === 0) return
-    const _prevStart = new Date(form.brmStart[0].getTime()).setHours(0, 0, 0)
+    if (form.brmStart.length !== 0) {
 
-    if (!form.brmDate) {
-        const _currentStart = new Date(0).setHours(0, 0, 0)
-        form.brmStart = form.brmStart.map((d) => {
-            return new Date(d.getTime() - _prevStart + _currentStart)
-        })
-    } else {
-        const _currentStart = form.brmDate.getTime()
-        form.brmStart = form.brmStart.map((d) => {
-            return new Date(d.getTime() - _prevStart + _currentStart)
-        })
+        const _prevStart = new Date(form.brmStart[0].getTime()).setHours(0, 0, 0)   // スタート時間 日時の 0:00:00
+
+        if (!form.brmDate) {    // ブルベ日 未設定または削除
+            const _currentStart = new Date(0).setHours(0, 0, 0) // とりあえずブルベ日を epoch time（タイムゾーン影響あり）
+            form.brmStart = form.brmStart.map((d) => {
+                return new Date(d.getTime() - _prevStart + _currentStart)
+            })
+        } else {
+            const _currentStart = form.brmDate.getTime()
+            form.brmStart = form.brmStart.map((d) => {
+                return new Date(d.getTime() - _prevStart + _currentStart)
+            })
+        }
     }
 
     synchronize()
@@ -127,10 +129,10 @@ const onAddStartTime = () => {
     if (!found) {
         form.brmStart!.push(_start)
     }
-    defaultStartTime.value = new Date( startTime.value.getTime() )
+    defaultStartTime.value = new Date(startTime.value.getTime())
     startTime.value = undefined
     startNextDay.value = false
-    
+
     synchronize()
 }
 

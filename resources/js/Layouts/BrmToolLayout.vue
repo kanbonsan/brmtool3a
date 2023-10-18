@@ -5,7 +5,7 @@
             <el-menu-item index="1-1">新規</el-menu-item>
             <el-menu-item index="1-2" @click="openDialog(FileUpload, 'ファイル読み込み', { width: '300px' })">読み込み</el-menu-item>
             <el-menu-item index="1-3"
-                @click="openDialog(BrmFileDownload, 'BRMファイルダウンロード'), { width: '300px' }">保存</el-menu-item>
+                @click="openDialog(BrmFileDownload, 'BRMファイルダウンロード', { width: '300px' })">保存</el-menu-item>
             <el-menu-item index="1-4">エクスポート</el-menu-item>
             <el-menu-item index="1-5">設定</el-menu-item>
         </el-sub-menu>

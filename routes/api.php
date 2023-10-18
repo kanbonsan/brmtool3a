@@ -26,4 +26,6 @@ Route::post('getMultiAlt', 'App\Http\Controllers\Api\DemController@getMultiAlt')
 
 Route::post('upload/file', 'App\Http\Controllers\Api\FileController@upload');
 
+Route::post('download/brmfile', 'App\Http\Controllers\Api\FileController@download_brmfile');
+
 //Route::post('upload/gpx', 'Api\FileController@gpxupload');
