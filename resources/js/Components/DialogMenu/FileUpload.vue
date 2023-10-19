@@ -59,8 +59,6 @@ const submitUpload = async () => {
         }
 
         const brmData = toolStore.brmDataUpload(response.data)
-        console.log(brmData)
-
 
     } catch (error: any) {
         ElMessage({ type: 'warning', message: error.response.data.message })

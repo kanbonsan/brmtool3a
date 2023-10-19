@@ -262,16 +262,26 @@ export const useCuesheetStore = defineStore('cuesheet', {
         /**
          * 状態の更新処理
          * 
-         *  スタート・ゴールポイントの設定
-         * - 末端ポイントは移動できない仕様
-         * - 末端にポイントがなければ、未設定かルートの末端部分に変化があったかとなる
-         * - 末端でないところにある terminal Pt は普通の cue Pt に変更して、
-         * - 末端ポイントを新設
+         * 1. キューポイントの POI 化
+         *      参照していた RoutePoint が消滅したとき
+         *      RoutePoint が excluded になったとき
+         * 2. start/finish ポイントの処理
+         *      start/finish ポイントの参照する RoutePoint が末端でなくなればただの cue にする
+         *      末端のポイントが start/finish でなくなってしまった場合は強制的に start/finish に変更
+         *      末端に start/finish がなければ新設する
+         * 3. PCグループの処理
+         *      cuePoint.groupNo をつけていく。0 はグループなし、1,2,3... と振る。順番は問わない。
+         *      シリアライズの際に symbol は使えないのでこちらを使用している
+         * 4. cuePoint.routePointIndex の振り直し
          * 
-         * キューポイントに対応する RoutePoint が存在するかのチェック
-         * - ルートが変更されて対応するポイントがなくなったときに所属のキューポイントは'poi'にする
-         * - ポイントが除外範囲になったときも'poi'にする
-         * ルートポイントの変更を伴う処理時には必ず呼び出すようにする
+         * 5. label付け label() 関数
+         *      cuePoint.pcNo, controlNo, checkNo, controlLabel, pcLabel
+         *      はこの時点でつけられる
+         * 6. 距離の計測 distance() 関数
+         *      cuePoint.distance, roundedDistance, lapDistance, roundDistanceString, lapDisntaceString
+         *      はこの時点でつけられる
+         * 7. 時間の計算
+         *      cuePoint.openMin, closeMin はこの時点でつけられる
          */
         update() {
 
@@ -349,6 +359,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 const _pre = _controlList[i - 1] ? _controlList[i - 1].groupId : undefined
                 const _post = _controlList[i + 1] ? _controlList[i + 1].groupId : undefined
 
+                // grId を持ってはいるが、前後ともに違うときはグループが解除されたとして grId を undefined にリセットする
                 if (grId !== undefined && grId !== _pre && grId !== _post) {
                     _controlList[i].groupId = undefined
                 }
@@ -358,7 +369,6 @@ export const useCuesheetStore = defineStore('cuesheet', {
             for (const cpt of _controlList) {
                 cpt.groupNo = groupIdArr.findIndex(id => cpt.groupId === id)
             }
-
 
             // cuePoint.routePointIndex の振り直し
             this.cuePoints.forEach((cpt: CuePoint) => {
@@ -395,6 +405,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 const _current = _controlList[i]
                 const _pre = _controlList[i - 1] ?? { type: undefined, groupId: undefined }
                 if (_current.type === 'pc') {
+                    // groupId が undef でなく、前の groupId と同じか=>前のPCと同じグループ=>pcNoは同じ
                     _current.pcNo = _current.groupId && _current.groupId === _pre.groupId ? _pcNo : ++_pcNo
                     _current.controlNo = _current.groupId && _current.groupId === _pre.groupId ? _controlNo : ++_controlNo
                 }
@@ -461,15 +472,15 @@ export const useCuesheetStore = defineStore('cuesheet', {
             }
 
             let prevRoundedDistance = 0 // 10倍した値、引き算を整数で行わないと誤差がでることがあるため
-            _pointList.forEach((pt: CuePoint) => {
-                const routePoint = brmStore.getPointById(pt.routePointId)
-                pt.distance = routePoint?.brmDistance
-                pt.roundedDistance = Math.ceil((pt.distance! / 1000) * 10) / 10
-                pt.lapDistance = (pt.roundedDistance * 10 - prevRoundedDistance) / 10
-                prevRoundedDistance = pt.roundedDistance * 10
+            _pointList.forEach((cpt: CuePoint) => {
+                const routePoint = brmStore.getPointById(cpt.routePointId)
+                cpt.distance = routePoint?.brmDistance
+                cpt.roundedDistance = Math.ceil((cpt.distance! / 1000) * 10) / 10
+                cpt.lapDistance = (cpt.roundedDistance * 10 - prevRoundedDistance) / 10
+                prevRoundedDistance = cpt.roundedDistance * 10
 
-                pt.roundDistanceString = addZero(pt.roundedDistance)
-                pt.lapDistanceString = addZero(pt.lapDistance)
+                cpt.roundDistanceString = addZero(cpt.roundedDistance)
+                cpt.lapDistanceString = addZero(cpt.lapDistance)
             })
         },
 
@@ -570,22 +581,15 @@ export const useCuesheetStore = defineStore('cuesheet', {
         }>) {
             const brmStore = useBrmRouteStore()
             const group = new Map<number, symbol | undefined>()
-            group.set(0, undefined)
+            group.set(0, undefined) // groupNo = 0 は グループなし。あとの番号は順不同で OK
 
             // データをクリア
             this.cuePoints.clear()
-
             for (const _cpt of arr) {
-
-                const _properties = _cpt.properties as any
-                for (const prop in _properties) {
-                    _properties[prop] = _properties[prop] ?? ''
-                }
-
                 const rptId = _cpt.type === 'poi' ? null : brmStore.points[_cpt.routePointIndex].id
                 const cpt = new CuePoint(_cpt.lat, _cpt.lng, _cpt.type, rptId)
                 cpt.terminal = _cpt.terminal
-                cpt.properties = { ..._properties }
+                cpt.properties = { ..._cpt.properties }
                 if (!group.has(_cpt.groupNo)) { group.set(_cpt.groupNo, Symbol()) }
                 cpt.groupId = group.get(_cpt.groupNo)
                 cpt.timestamp = _cpt.timestamp

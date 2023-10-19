@@ -31,23 +31,23 @@ export class CuePoint {
         garminDisplay: true
     }
 
-    groupId: symbol | undefined     // 同一 ID は同じグループに（default は undefined）
-    groupNo: number                 // serialize / unserialize 用に番号も振っておく（cuesheetStore.update()で更新）
-    pointNo: number | undefined     // POIと初期値は undefined, 都度自動的に振る 0:groupId=undefined, 1から順にグループ
-    pcNo: number | undefined        // PC(スタート・ゴール除く)に1から振る. 同一グループは同一No
-    checkNo: number | undefined     // チェックポイントに1から振る
-    controlNo: number | undefined   // PC, CHECK の通し番号. グループを考慮
-    pcLabel?: string                // PC, CHECK それぞれ別番号
-    controlLabel?: string           // PC, CHECK 通しのラベル
+    groupId: symbol | undefined     // *) 同一 ID は同じグループに（default は undefined）
+    groupNo: number                 // *) serialize / unserialize 用に番号も振っておく（cuesheetStore.update()で更新）
+    pointNo: number | undefined     // *) POIと初期値は undefined, 都度自動的に振る 0:groupId=undefined, 1から順にグループ
+    pcNo: number | undefined        // *) PC(スタート・ゴール除く)に1から振る. 同一グループは同一No
+    checkNo: number | undefined     // *) チェックポイントに1から振る
+    controlNo: number | undefined   // *) PC, CHECK の通し番号. グループを考慮
+    pcLabel?: string                // *) PC, CHECK それぞれ別番号
+    controlLabel?: string           // *) PC, CHECK 通しのラベル
 
-    distance?: number               // そのポイントの brmDistance
-    roundedDistance?: number         // キューシート表示用の丸めた距離（km）
-    lapDistance?: number            // 直前の cuePoint からの距離・roundedDistanceから計算
-    roundDistanceString?: string    // 表示用に小数1桁を0に
-    lapDistanceString?: string
+    distance?: number               // *) そのポイントの brmDistance
+    roundedDistance?: number        // *) キューシート表示用の丸めた距離（km）
+    lapDistance?: number            // *) 直前の cuePoint からの距離・roundedDistanceから計算
+    roundDistanceString?: string    // *) 表示用に小数1桁を0に
+    lapDistanceString?: string      // *) 
 
-    openMin?: number                // PCオープン（分）
-    closeMin?: number               // PCクローズ（分）
+    openMin?: number                // *) PCオープン（分）
+    closeMin?: number               // *) PCクローズ（分）
 
     // マーカーの位置（GPXファイルにも反映）・マーカードラッグ終了時に再設定
     lat: number

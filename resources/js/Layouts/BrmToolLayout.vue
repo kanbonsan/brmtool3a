@@ -88,11 +88,11 @@ const toolStore = useToolStore()
 const saveData = () => { toolStore.save() }
 
 const devTest = async () => {
-//https://qiita.com/lx-sasabo/items/203117bf3361f456cf86
+
     const data = {
         a: undefined,
         b: null,  
-        c: "c"
+        c: ""
     }
 
     const response = await axios({
