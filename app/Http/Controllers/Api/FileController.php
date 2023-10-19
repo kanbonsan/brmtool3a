@@ -137,40 +137,40 @@ class FileController extends Controller
     {
 
         // $brm --- encodedPath, showVoluntary<array>, excluded<array>
-        $_exclude = $data->exclude ?? []; // 除外区間; 除外区間の配列; <{begin, end}> で両端は含まない.
-        $_points = $data->points ?? [];   // ポイントの配列; その中にキュー情報も含まれる.
-        $_length = count($_points);
-        $_id = $data->id ?? null;   // id は引き継がせる
+        $v1_exclude = $data->exclude ?? []; // 除外区間; 除外区間の配列; <{begin, end}> で両端は含まない.
+        $v1_points = $data->points ?? [];   // ポイントの配列; その中にキュー情報も含まれる.
+        $v1_length = count($v1_points);
+        $v1_id = $data->id ?? null;   // id は引き継がせる
 
         // 返す方のデータ
-        $brm_excluded = [];
+        $excluded_index = [];
         $brm_showVoluntary = [];    // ver 1 では showVoluntary を分けていないので、とりあえず cue のあるところだけ true にしておく
         $pois = [];
 
         // excluded
-        foreach ($_exclude as $ex) {  // 両端は含まない
+        foreach ($v1_exclude as $ex) {  // 両端は含まない
             for ($i = $ex->begin + 1; $i < $ex->end; $i++) {
-                array_push($brm_excluded, $i);
+                array_push($excluded_index, $i);
             }
         }
 
         // ポイントの検索
-        for ($index = 0; $index < $_length; $index++) {
-            if ($_points[$index]->cue !== false) {
-                $_cue = $_points[$index]->cue;
+        for ($index = 0; $index < $v1_length; $index++) {
+            if ($v1_points[$index]->cue !== false) {
+                $_cue = $v1_points[$index]->cue;
                 array_push($brm_showVoluntary, $index);
                 array_push($pois, self::conv_v1_to_v2_poi($_cue, $index));
             }
         }
 
         // BRM info
-        $brm_info['id'] = $_id;
+        $brm_info['id'] = $v1_id;
         $brm_info['title'] = $data->brmName ?? '';
         $brm_info['brmDistance'] = isset($data->brmDistance) ? $data->brmDistance . 'km' : '';
         $brm_info['brmDate'] = isset($data->brmDate) ? gmdate('Y-m-d\TH:i:s.v\Z', strtotime($data->brmDate)) : '';
         $brm_info['brmStart'] = $data->brmStartTime ?? [];
 
-        $brm = ['encodedPath' => $data->encodedPathAlt, 'showVoluntary' => $brm_showVoluntary, 'excluded' => $brm_excluded];
+        $brm = ['encodedPath' => $data->encodedPathAlt, 'showVoluntary' => $brm_showVoluntary, 'excluded' => $excluded_index];
 
         return ['brmInfo' => $brm_info, 'brm' => $brm, 'pois' => $pois];
     }
@@ -182,40 +182,44 @@ class FileController extends Controller
     {
 
         // $brm --- encodedPath, showVoluntary<array>, excluded<array>
-        $_exclude = $data->exclude ?? []; // 除外区間; 除外区間の配列; <{begin, end}> で両端は含まない.
-        $_points = $data->points ?? [];   // ポイントの配列; その中にキュー情報も含まれる.
-        $_length = count($_points);
-        $_id = $data->id ?? null;   // id は引き継がせる
+        $v1_exclude = $data->exclude ?? []; // 除外区間; 除外区間の配列; <{begin, end}> で両端は含まない.
+        $v1_points = $data->points ?? [];   // ポイントの配列; その中にキュー情報も含まれる.
+        $v1_length = count($v1_points);
+        $v1_id = $data->id ?? null;   // id は引き継がせる
 
         // 返す方のデータ
-        $brm_excluded = [];
-        $brm_showVoluntary = [];    // ver 1 では showVoluntary を分けていないので、とりあえず cue のあるところだけ true にしておく
+        $v3_tool = [];  // toolStore
+        
+        $v3_route = []; // routeStore
+        $v3_cuesheet = []; // cuesheetStore
+
+        $excluded_index = [];
         $pois = [];
 
         // excluded
-        foreach ($_exclude as $ex) {  // 両端は含まない
+        foreach ($v1_exclude as $ex) {  // 両端は含まない
             for ($i = $ex->begin + 1; $i < $ex->end; $i++) {
-                array_push($brm_excluded, $i);
+                array_push($excluded_index, $i);
             }
         }
 
         // ポイントの検索
-        for ($index = 0; $index < $_length; $index++) {
-            if ($_points[$index]->cue !== false) {
-                $_cue = $_points[$index]->cue;
-                array_push($brm_showVoluntary, $index);
+        for ($index = 0; $index < $v1_length; $index++) {
+            if ($v1_points[$index]->cue !== false) {
+                $_cue = $v1_points[$index]->cue;
                 array_push($pois, self::conv_v1_to_v2_poi($_cue, $index));
             }
         }
 
         // BRM info
-        $brm_info['id'] = $_id;
-        $brm_info['title'] = $data->brmName ?? '';
-        $brm_info['brmDistance'] = isset($data->brmDistance) ? $data->brmDistance . 'km' : '';
+        $brm_info['id'] = (int)$v1_id;
+        $brm_info['description'] = $data->brmName ?? '';
+        $brm_distance = isset($data->brmDistance) ? (int)$data->brmDistance : null;
+        $brm_date = 
         $brm_info['brmDate'] = isset($data->brmDate) ? gmdate('Y-m-d\TH:i:s.v\Z', strtotime($data->brmDate)) : '';
         $brm_info['brmStart'] = $data->brmStartTime ?? [];
 
-        $brm = ['encodedPath' => $data->encodedPathAlt, 'showVoluntary' => $brm_showVoluntary, 'excluded' => $brm_excluded];
+        $brm = ['encodedPath' => $data->encodedPathAlt, 'showVoluntary' => $brm_showVoluntary, 'excluded' => $excluded_index];
 
         return ['brmInfo' => $brm_info, 'brm' => $brm, 'pois' => $pois];
     }

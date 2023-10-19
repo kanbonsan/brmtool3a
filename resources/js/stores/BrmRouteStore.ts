@@ -137,12 +137,11 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
         /** serialize / unserialize 用の配列 */
         serializablePoints(state) {
-            const arr: Array<{ excluded: boolean, voluntary: boolean, weight: number }> = []
+            const arr: Array<{ excluded: boolean, weight: number }> = []
             state.points.forEach((pt) => {
                 const excluded = pt.excluded
-                const voluntary = pt.weight >= 20
                 const weight = pt.weight
-                arr.push({ excluded, voluntary, weight })
+                arr.push({ excluded, weight })
             })
             return arr
         },
@@ -150,9 +149,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
         pointProperties(state) {
             return () => {
                 const excluded = state.points.map((pt: RoutePoint) => pt.excluded ? 1 : 0)
-                const voluntary = state.points.map((pt: RoutePoint) => pt.weight >= 20 ? 1 : 0)
                 const weight = state.points.map((pt: RoutePoint) => pt.weight)
-                return { excluded, voluntary, weight }
+                return { excluded, weight }
             }
         },
 
