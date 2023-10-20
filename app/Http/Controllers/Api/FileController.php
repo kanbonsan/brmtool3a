@@ -19,6 +19,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\GpxFile;
+use Carbon\Carbon;
 
 class FileController extends Controller
 {
@@ -189,7 +190,7 @@ class FileController extends Controller
 
         // 返す方のデータ
         $v3_tool = [];  // toolStore
-        
+
         $v3_route = []; // routeStore
         $v3_cuesheet = []; // cuesheetStore
 
@@ -214,12 +215,29 @@ class FileController extends Controller
         // BRM info
         $brm_info['id'] = (int)$v1_id;
         $brm_info['description'] = $data->brmName ?? '';
-        $brm_distance = isset($data->brmDistance) ? (int)$data->brmDistance : null;
-        $brm_date = 
+        if(isset($data->brmDistance)){
+            $brm_info['brmDistance'] = (int)$data->brmDistance;
+        }
+        $brm_date = isset($data->brmDate) ? new Carbon($data->brmDate, 'Asia/Tokyo') : null;
+
+        $brm_start = isset($data->brmStartTime) ? array_map(function ($start) use ($brm_date) {
+            $base_date = $brm_date === null ? new Carbon('1970-1-1 0:00:00', 'Asia/Tokyo') : $brm_date;
+            $hhmm = preg_split(':', $start);
+            return ($base_date->timestamp + (int)$hhmm[0] * 3600 + (int)$hhmm[1] * 60) * 1000;    //millisec
+        }, $data->brmStartTime) : null;
+
+        if ($brm_date) {
+            $brm_info['brmDate'] = $brm_date->timestamp * 1000;  //millisec
+        }
+
+        if($brm_start){
+            $brm_info['brmStart'] = $brm_start;
+        }
+
         $brm_info['brmDate'] = isset($data->brmDate) ? gmdate('Y-m-d\TH:i:s.v\Z', strtotime($data->brmDate)) : '';
         $brm_info['brmStart'] = $data->brmStartTime ?? [];
 
-        $brm = ['encodedPath' => $data->encodedPathAlt, 'showVoluntary' => $brm_showVoluntary, 'excluded' => $excluded_index];
+        $brm = ['encodedPath' => $data->encodedPathAlt, 'excluded' => $excluded_index];
 
         return ['brmInfo' => $brm_info, 'brm' => $brm, 'pois' => $pois];
     }
