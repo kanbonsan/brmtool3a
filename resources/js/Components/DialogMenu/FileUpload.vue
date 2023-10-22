@@ -57,11 +57,12 @@ const submitUpload = async () => {
             ElMessage({ type: 'warning', message: 'ファイルが上手く読み込めませんでした.' })
             files.value = []
         }
-
+        console.log(response.data)
         const brmData = toolStore.brmDataUpload(response.data)
 
     } catch (error: any) {
-        ElMessage({ type: 'warning', message: error.response.data.message })
+        console.log(error)
+        ElMessage({ type: 'warning', message: 'error occured' })
         files.value = []
 
     } finally {

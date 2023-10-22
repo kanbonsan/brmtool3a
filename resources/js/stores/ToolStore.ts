@@ -192,7 +192,9 @@ export const useToolStore = defineStore('tool', {
                 routeStore.unpack(route)
                 gmapStore.moveStreetViewByPoint(routeStore.points[0], 50)
             } else if (data.type === 'brm') {
-                const { tool, route, cuesheet } = data.brmData.data
+                console.log(data)
+                
+                const { tool, route, cuesheet } = data.brmData
                 console.log(cuesheet)
                 this.reset()
                 this.unpack(tool)

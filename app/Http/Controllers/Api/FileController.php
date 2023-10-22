@@ -115,7 +115,7 @@ class FileController extends Controller
             return ['status' => 'ok', 'app' => $data->app, 'version' => $data->version, 'type' => 'brm', 'brmData' => $data];
         } else {    // BRMTOOL ver 1 を想定
             try {
-                return ['status' => 'ok', 'app' => 'brmtool', 'version' => '3.0', 'type' => 'brm', 'brmData' => self::conv_v1_to_v2_data($data)];
+                return ['status' => 'ok', 'app' => 'brmtool', 'version' => '3.0', 'type' => 'brm', 'brmData' => self::conv_v1_to_v3_data($data)];
             } catch (\Exception $e) {
                 return ['status' => 'error', 'message' => $e->getMessage()];
             }
@@ -128,8 +128,8 @@ class FileController extends Controller
     {
         $version = $request->version;
         $compress = $request->compress;
-        //$data = $version === 1 ? self::conv_v2_to_v1_data($request->data) : $request->data;
-        $data = $request->data;
+        $data = $version === 1 ? self::conv_v2_to_v1_data($request->data) : $request->data;
+
         return $compress === true ? gzencode(json_encode($data, JSON_UNESCAPED_UNICODE)) : $data;
     }
 
@@ -146,7 +146,7 @@ class FileController extends Controller
         // 返す方のデータ
         $excluded_index = [];
         $brm_showVoluntary = [];    // ver 1 では showVoluntary を分けていないので、とりあえず cue のあるところだけ true にしておく
-        $pois = [];
+        $v3_pois = [];
 
         // excluded
         foreach ($v1_exclude as $ex) {  // 両端は含まない
@@ -160,7 +160,7 @@ class FileController extends Controller
             if ($v1_points[$index]->cue !== false) {
                 $_cue = $v1_points[$index]->cue;
                 array_push($brm_showVoluntary, $index);
-                array_push($pois, self::conv_v1_to_v2_poi($_cue, $index));
+                array_push($v3_pois, self::conv_v1_to_v2_poi($_cue, $index));
             }
         }
 
@@ -173,7 +173,7 @@ class FileController extends Controller
 
         $brm = ['encodedPath' => $data->encodedPathAlt, 'showVoluntary' => $brm_showVoluntary, 'excluded' => $excluded_index];
 
-        return ['brmInfo' => $brm_info, 'brm' => $brm, 'pois' => $pois];
+        return ['brmInfo' => $brm_info, 'brm' => $brm, 'v3_pois' => $v3_pois];
     }
 
     //
@@ -194,13 +194,14 @@ class FileController extends Controller
         $v3_route = []; // routeStore
         $v3_cuesheet = []; // cuesheetStore
 
-        $excluded_index = [];
-        $pois = [];
+        // ポイント数分の配列を用意
+        $v3_excluded = array_fill(0, $v1_length, 0);
+        $v3_weight = array_fill(0, $v1_length, 1);
 
         // excluded
         foreach ($v1_exclude as $ex) {  // 両端は含まない
             for ($i = $ex->begin + 1; $i < $ex->end; $i++) {
-                array_push($excluded_index, $i);
+                $v3_excluded[$i] = 1;
             }
         }
 
@@ -208,21 +209,22 @@ class FileController extends Controller
         for ($index = 0; $index < $v1_length; $index++) {
             if ($v1_points[$index]->cue !== false) {
                 $_cue = $v1_points[$index]->cue;
-                array_push($pois, self::conv_v1_to_v2_poi($_cue, $index));
+                array_push($v3_cuesheet, self::conv_v1_to_v3_poi($_cue, $index));
+                $v3_weight[$index] = 20;
             }
         }
 
         // BRM info
         $brm_info['id'] = (int)$v1_id;
         $brm_info['description'] = $data->brmName ?? '';
-        if(isset($data->brmDistance)){
+        if (isset($data->brmDistance)) {
             $brm_info['brmDistance'] = (int)$data->brmDistance;
         }
         $brm_date = isset($data->brmDate) ? new Carbon($data->brmDate, 'Asia/Tokyo') : null;
 
         $brm_start = isset($data->brmStartTime) ? array_map(function ($start) use ($brm_date) {
             $base_date = $brm_date === null ? new Carbon('1970-1-1 0:00:00', 'Asia/Tokyo') : $brm_date;
-            $hhmm = preg_split(':', $start);
+            $hhmm = preg_split('/:/', $start);
             return ($base_date->timestamp + (int)$hhmm[0] * 3600 + (int)$hhmm[1] * 60) * 1000;    //millisec
         }, $data->brmStartTime) : null;
 
@@ -230,16 +232,16 @@ class FileController extends Controller
             $brm_info['brmDate'] = $brm_date->timestamp * 1000;  //millisec
         }
 
-        if($brm_start){
-            $brm_info['brmStart'] = $brm_start;
+        if ($brm_start) {
+            $brm_info['startTime'] = $brm_start;
         }
 
-        $brm_info['brmDate'] = isset($data->brmDate) ? gmdate('Y-m-d\TH:i:s.v\Z', strtotime($data->brmDate)) : '';
-        $brm_info['brmStart'] = $data->brmStartTime ?? [];
+        $v3_tool['brmInfo'] = $brm_info;
+        $v3_route['encodedPathAlt'] = $data->encodedPathAlt;
+        $v3_route['pointProperties']['excluded'] = $v3_excluded;
+        $v3_route['pointProperties']['weight'] = $v3_weight;
 
-        $brm = ['encodedPath' => $data->encodedPathAlt, 'excluded' => $excluded_index];
-
-        return ['brmInfo' => $brm_info, 'brm' => $brm, 'pois' => $pois];
+        return ['tool' => $v3_tool, 'route' => $v3_route, 'cuesheet' => $v3_cuesheet];
     }
 
 
@@ -264,6 +266,40 @@ class FileController extends Controller
         $properties['direction'] = $cue->direction;
         $properties['garminDeviceIcon'] = $cue->gpsIcon->symName;
         $properties['garminDeviceText'] = $cue->gpsIcon->name;
+
+        $poi['properties'] = $properties;
+
+        return $poi;
+    }
+
+    // Poi データの変換
+    public static function conv_v1_to_v3_poi($cue, $index)
+    {
+        $poi = [];
+        $properties = [];
+        $conv_type = ['start' => 'pc', 'goal' => 'pc', 'point' => 'cue', 'pc' => 'pc', 'pass' => 'pass', 'poi' => 'poi'];
+
+
+        $poi['type'] = $conv_type[$cue->type];
+        if ($cue->type === 'start') {
+            $poi['terminal'] = 'start';
+        }
+        if ($cue->type === 'goal') {
+            $poi['terminal'] = 'finish';
+        }
+        $poi['lat'] = $cue->marker->lat;
+        $poi['lng'] = $cue->marker->lng;
+        $poi['routePointIndex'] = $index;
+        $poi['groupNo'] = 0;  // グループなし
+
+        $properties['name'] = $cue->name;
+        $properties['direction'] = $cue->direction;
+        $properties['route'] = $cue->route;
+        $properties['note'] = $cue->memo ? $cue->memo : '';
+
+        $properties['garminDeviceIcon'] = $cue->gpsIcon->symName;
+        $properties['garminDeviceText'] = $cue->gpsIcon->name;
+        $properties['garminDisplay'] = $cue->visible;
 
         $poi['properties'] = $properties;
 
@@ -300,7 +336,7 @@ class FileController extends Controller
         $v2_show_points = $v2_brm['showPoints'];
         $v2_points_count = $v2_brm['pathLength'];   // ポイント数
 
-        $v2_pois = $v2['pois'];
+        $v2_pois = $v2['v3_pois'];
         $v2_pois_list = [];
         foreach ($v2_pois as $poi) {
             $v2_pois_list[$poi['attachedPointIndex']] = $poi;

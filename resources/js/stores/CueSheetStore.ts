@@ -577,7 +577,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
             terminal: 'start' | 'finish' | undefined,
             properties: cueProperties,
             groupNo: number,
-            timestamp: number
+            timestamp?: number
         }>) {
             const brmStore = useBrmRouteStore()
             const group = new Map<number, symbol | undefined>()
@@ -592,7 +592,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 cpt.properties = { ..._cpt.properties }
                 if (!group.has(_cpt.groupNo)) { group.set(_cpt.groupNo, Symbol()) }
                 cpt.groupId = group.get(_cpt.groupNo)
-                cpt.timestamp = _cpt.timestamp
+                cpt.timestamp = _cpt.timestamp ?? Date.now()
 
                 this.cuePoints.set(cpt.id, cpt)
             }
