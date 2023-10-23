@@ -1,6 +1,6 @@
 <template>
     <Transition>
-        <div v-if="modelValue > 0" class="drawer">
+        <div v-if="modelValue > 0" class="drawer" style="z-index:2000;">
             <el-card style="height:100%;">
                 <template #header>{{ title }}
                     <div style="position:absolute;top:5px;right:5px">
@@ -51,7 +51,7 @@ const resetTimeout = debounce(() => {
         return
     }
 
-    timer = setTimeout(() => {
+    timer = window.setTimeout(() => {
         emit('update:modelValue', 0)
         emit('timeout')
         

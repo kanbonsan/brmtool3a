@@ -44,6 +44,7 @@ class FileController extends Controller
                 break;
 
             case "brm":
+            case "brm3":
                 return self::upload_brm($content);
                 break;
 
@@ -111,7 +112,7 @@ class FileController extends Controller
     public static function upload_brm($_data)
     {
         $data = json_decode($_data);
-        if (isset($data->app) && $data->app === 'brmtool' && ($data->version === '2.0' || $data->version === '3.0')) {
+        if (isset($data->app) && $data->app === 'brmtool' && $data->version === '3.0') {
             return ['status' => 'ok', 'app' => $data->app, 'version' => $data->version, 'type' => 'brm', 'brmData' => $data];
         } else {    // BRMTOOL ver 1 を想定
             try {
@@ -120,60 +121,6 @@ class FileController extends Controller
                 return ['status' => 'error', 'message' => $e->getMessage()];
             }
         }
-    }
-
-    // BRM ファイルのダウンロード処理（V1/V2 形式・圧縮/非圧縮 に対応）
-    // 基本 フロント側で作成した snapshot (json) をそのまま返すだけ（内部構造には関係しない）
-    public function download_brmfile(Request $request)
-    {
-        $version = $request->version;
-        $compress = $request->compress;
-        $data = $version === 1 ? self::conv_v2_to_v1_data($request->data) : $request->data;
-
-        return $compress === true ? gzencode(json_encode($data, JSON_UNESCAPED_UNICODE)) : $data;
-    }
-
-    // BRMTOOL v1 データを変換
-    public static function conv_v1_to_v2_data($data)
-    {
-
-        // $brm --- encodedPath, showVoluntary<array>, excluded<array>
-        $v1_exclude = $data->exclude ?? []; // 除外区間; 除外区間の配列; <{begin, end}> で両端は含まない.
-        $v1_points = $data->points ?? [];   // ポイントの配列; その中にキュー情報も含まれる.
-        $v1_length = count($v1_points);
-        $v1_id = $data->id ?? null;   // id は引き継がせる
-
-        // 返す方のデータ
-        $excluded_index = [];
-        $brm_showVoluntary = [];    // ver 1 では showVoluntary を分けていないので、とりあえず cue のあるところだけ true にしておく
-        $v3_pois = [];
-
-        // excluded
-        foreach ($v1_exclude as $ex) {  // 両端は含まない
-            for ($i = $ex->begin + 1; $i < $ex->end; $i++) {
-                array_push($excluded_index, $i);
-            }
-        }
-
-        // ポイントの検索
-        for ($index = 0; $index < $v1_length; $index++) {
-            if ($v1_points[$index]->cue !== false) {
-                $_cue = $v1_points[$index]->cue;
-                array_push($brm_showVoluntary, $index);
-                array_push($v3_pois, self::conv_v1_to_v2_poi($_cue, $index));
-            }
-        }
-
-        // BRM info
-        $brm_info['id'] = $v1_id;
-        $brm_info['title'] = $data->brmName ?? '';
-        $brm_info['brmDistance'] = isset($data->brmDistance) ? $data->brmDistance . 'km' : '';
-        $brm_info['brmDate'] = isset($data->brmDate) ? gmdate('Y-m-d\TH:i:s.v\Z', strtotime($data->brmDate)) : '';
-        $brm_info['brmStart'] = $data->brmStartTime ?? [];
-
-        $brm = ['encodedPath' => $data->encodedPathAlt, 'showVoluntary' => $brm_showVoluntary, 'excluded' => $excluded_index];
-
-        return ['brmInfo' => $brm_info, 'brm' => $brm, 'v3_pois' => $v3_pois];
     }
 
     //
@@ -245,6 +192,99 @@ class FileController extends Controller
         return ['tool' => $v3_tool, 'route' => $v3_route, 'cuesheet' => $v3_cuesheet];
     }
 
+    // Poi データの変換
+    public static function conv_v1_to_v3_poi($cue, $index)
+    {
+        $poi = [];
+        $properties = [];
+        $conv_type = ['start' => 'pc', 'goal' => 'pc', 'point' => 'cue', 'pc' => 'pc', 'pass' => 'pass', 'poi' => 'poi'];
+
+
+        $poi['type'] = $conv_type[$cue->type];
+        if ($cue->type === 'start') {
+            $poi['terminal'] = 'start';
+        }
+        if ($cue->type === 'goal') {
+            $poi['terminal'] = 'finish';
+        }
+        $poi['lat'] = $cue->marker->lat;
+        $poi['lng'] = $cue->marker->lng;
+        $poi['routePointIndex'] = $index;
+        $poi['groupNo'] = 0;  // グループなし
+
+        $properties['signal'] = false;
+        $properties['crossing'] = '';
+        $properties['name'] = $cue->name ? $cue->name : '';
+        $properties['direction'] = $cue->direction ? $cue->direction : '';
+        $properties['route'] = $cue->route ? $cue->route : '';
+        $properties['note'] = $cue->memo ? $cue->memo :  '';
+
+        $properties['garminDeviceIcon'] = $cue->gpsIcon->symName ? $cue->gpsIcon->symName : '';
+        $properties['garminDeviceText'] = $cue->gpsIcon->name ? $cue->gpsIcon->name : '';
+        $properties['garminDisplay'] = $cue->visible;
+
+        $poi['properties'] = $properties;
+
+        return $poi;
+    }
+
+
+
+    // BRM ファイルのダウンロード処理（V1/V2 形式・圧縮/非圧縮 に対応）
+    // 基本 フロント側で作成した snapshot (json) をそのまま返すだけ（内部構造には関係しない）
+    public function download_brmfile(Request $request)
+    {
+        $version = $request->version;
+        $compress = $request->compress;
+        $data = $version === 1 ? self::conv_v2_to_v1_data($request->data) : $request->data;
+
+        return $compress === true ? gzencode(json_encode($data, JSON_UNESCAPED_UNICODE)) : $data;
+    }
+
+    // BRMTOOL v1 データを変換
+    public static function conv_v1_to_v2_data($data)
+    {
+
+        // $brm --- encodedPath, showVoluntary<array>, excluded<array>
+        $v1_exclude = $data->exclude ?? []; // 除外区間; 除外区間の配列; <{begin, end}> で両端は含まない.
+        $v1_points = $data->points ?? [];   // ポイントの配列; その中にキュー情報も含まれる.
+        $v1_length = count($v1_points);
+        $v1_id = $data->id ?? null;   // id は引き継がせる
+
+        // 返す方のデータ
+        $excluded_index = [];
+        $brm_showVoluntary = [];    // ver 1 では showVoluntary を分けていないので、とりあえず cue のあるところだけ true にしておく
+        $v3_pois = [];
+
+        // excluded
+        foreach ($v1_exclude as $ex) {  // 両端は含まない
+            for ($i = $ex->begin + 1; $i < $ex->end; $i++) {
+                array_push($excluded_index, $i);
+            }
+        }
+
+        // ポイントの検索
+        for ($index = 0; $index < $v1_length; $index++) {
+            if ($v1_points[$index]->cue !== false) {
+                $_cue = $v1_points[$index]->cue;
+                array_push($brm_showVoluntary, $index);
+                array_push($v3_pois, self::conv_v1_to_v2_poi($_cue, $index));
+            }
+        }
+
+        // BRM info
+        $brm_info['id'] = $v1_id;
+        $brm_info['title'] = $data->brmName ?? '';
+        $brm_info['brmDistance'] = isset($data->brmDistance) ? $data->brmDistance . 'km' : '';
+        $brm_info['brmDate'] = isset($data->brmDate) ? gmdate('Y-m-d\TH:i:s.v\Z', strtotime($data->brmDate)) : '';
+        $brm_info['brmStart'] = $data->brmStartTime ?? [];
+
+        $brm = ['encodedPath' => $data->encodedPathAlt, 'showVoluntary' => $brm_showVoluntary, 'excluded' => $excluded_index];
+
+        return ['brmInfo' => $brm_info, 'brm' => $brm, 'v3_pois' => $v3_pois];
+    }
+
+
 
 
 
@@ -274,39 +314,7 @@ class FileController extends Controller
         return $poi;
     }
 
-    // Poi データの変換
-    public static function conv_v1_to_v3_poi($cue, $index)
-    {
-        $poi = [];
-        $properties = [];
-        $conv_type = ['start' => 'pc', 'goal' => 'pc', 'point' => 'cue', 'pc' => 'pc', 'pass' => 'pass', 'poi' => 'poi'];
 
-
-        $poi['type'] = $conv_type[$cue->type];
-        if ($cue->type === 'start') {
-            $poi['terminal'] = 'start';
-        }
-        if ($cue->type === 'goal') {
-            $poi['terminal'] = 'finish';
-        }
-        $poi['lat'] = $cue->marker->lat;
-        $poi['lng'] = $cue->marker->lng;
-        $poi['routePointIndex'] = $index;
-        $poi['groupNo'] = 0;  // グループなし
-
-        $properties['name'] = $cue->name ?? '';
-        $properties['direction'] = $cue->direction ?? '';
-        $properties['route'] = $cue->route ?? '';
-        $properties['note'] = $cue->memo ?? '';
-
-        $properties['garminDeviceIcon'] = $cue->gpsIcon->symName ?? '';
-        $properties['garminDeviceText'] = $cue->gpsIcon->name ?? '';
-        $properties['garminDisplay'] = $cue->visible ?? true;
-
-        $poi['properties'] = $properties;
-
-        return $poi;
-    }
 
     // BRMTOOL v2 データ → v1 変換
     // V1 形式でのセーブ用

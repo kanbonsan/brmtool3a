@@ -15,11 +15,13 @@
                 <el-button>button</el-button>
             </CustomControl>
         </GoogleMap>
-
-        <lower-drawer v-model="drawerActive" :title="drawers[drawerComp]?.title" :timeout="drawers[drawerComp]?.timeout"
-            @timeout="drawers[drawerComp]?.timeoutFunc" @submit="onLowerDrawerSubmit" v-slot="{ reset, submit }">
-            <component :is="drawers[drawerComp]?.component" :resetTimeout="reset" :submitFunc="submit"></component>
-        </lower-drawer>
+        <Teleport to="body">
+            <lower-drawer v-model="drawerActive" :title="drawers[drawerComp]?.title"
+                :timeout="drawers[drawerComp]?.timeout" @timeout="drawers[drawerComp]?.timeoutFunc"
+                @submit="onLowerDrawerSubmit" v-slot="{ reset, submit }">
+                <component :is="drawers[drawerComp]?.component" :resetTimeout="reset" :submitFunc="submit"></component>
+            </lower-drawer>
+        </Teleport>
     </div>
 </template>
 
@@ -35,7 +37,6 @@ import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useCuesheetStore } from "@/stores/CueSheetStore"
 import { useGmapStore } from "@/stores/GmapStore"
 import { useToolStore } from "@/stores/ToolStore"
-import { useMessage } from "@/stores/MessageStore"
 import circle from '../../images/pointCircle.png'
 
 import BrmPolyline from "@/Components/BrmPolyline.vue"
