@@ -215,6 +215,7 @@ class FileController extends Controller
         }
 
         // BRM info
+        // Asia/Tokyo 決め打ち。i18n 時は考えないと。
         $brm_info['id'] = (int)$v1_id;
         $brm_info['description'] = $data->brmName ?? '';
         if (isset($data->brmDistance)) {
@@ -254,12 +255,13 @@ class FileController extends Controller
         $properties = [];
         $conv_type = ['start' => 'start', 'goal' => 'finish', 'point' => 'cue', 'pc' => 'pc', 'pass' => 'pass', 'poi' => 'poi'];
 
-
         $poi['type'] = $conv_type[$cue->type];
         $poi['attachedPointIndex'] = $index;
         $poi['fractionOfSegment'] = null;
         $poi['showOnDevice'] = $cue->visible ?? true;
 
+        $properties['signal'] = false;
+        $properties['crossing'] = 'crossing';
         $properties['name'] = $cue->name;
         $properties['route'] = $cue->route;
         $properties['note'] = $cue->memo ? $cue->memo : '';
@@ -292,14 +294,14 @@ class FileController extends Controller
         $poi['routePointIndex'] = $index;
         $poi['groupNo'] = 0;  // グループなし
 
-        $properties['name'] = $cue->name;
-        $properties['direction'] = $cue->direction;
-        $properties['route'] = $cue->route;
-        $properties['note'] = $cue->memo ? $cue->memo : '';
+        $properties['name'] = $cue->name ?? '';
+        $properties['direction'] = $cue->direction ?? '';
+        $properties['route'] = $cue->route ?? '';
+        $properties['note'] = $cue->memo ?? '';
 
-        $properties['garminDeviceIcon'] = $cue->gpsIcon->symName;
-        $properties['garminDeviceText'] = $cue->gpsIcon->name;
-        $properties['garminDisplay'] = $cue->visible;
+        $properties['garminDeviceIcon'] = $cue->gpsIcon->symName ?? '';
+        $properties['garminDeviceText'] = $cue->gpsIcon->name ?? '';
+        $properties['garminDisplay'] = $cue->visible ?? true;
 
         $poi['properties'] = $properties;
 

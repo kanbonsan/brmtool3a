@@ -195,10 +195,10 @@ export const useToolStore = defineStore('tool', {
                 console.log(data)
                 
                 const { tool, route, cuesheet } = data.brmData
-                console.log(cuesheet)
                 this.reset()
                 this.unpack(tool)
                 routeStore.unpack(route)
+                
                 setTimeout(() => cuesheetStore.unpack(cuesheet), 1000)
             }
             return data
