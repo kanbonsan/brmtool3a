@@ -88,24 +88,9 @@ const toolStore = useToolStore()
 const saveData = () => { toolStore.save() }
 
 const devTest = async () => {
-
-    const data = {
-        a: undefined,
-        b: null,  
-        c: ""
-    }
-
-    const response = await axios({
-        method: 'post',
-        url: '/api/download/brmfile',
-        responseType: 'json',
-        data: {
-            version: 3,
-            compress: false,
-            data
-        }
-    })
-    console.log(response.data)
+    console.log('save')
+    toolStore.save()
+    console.log('done')
 
     return true
 }

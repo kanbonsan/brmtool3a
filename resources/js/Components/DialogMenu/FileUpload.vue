@@ -5,7 +5,7 @@
                 v-model:file-list="files">
                 <template #tip>
                     <div class="el-upload__tip">
-                        gpxファイル、brmファイルを読み込みます.<br/> 現在編集中のデータは上書きされますのでご注意ください.
+                        gpxファイル、brmファイルを読み込みます.<br /> 現在編集中のデータは上書きされますのでご注意ください.
                     </div>
                 </template>
                 <template #trigger>
@@ -47,7 +47,6 @@ const submitUpload = async () => {
         formData.append("file", file.raw!)
     }
     try {
-        console.log('pre axios')
         const response = await axios({
             method: "post",
             url: "/api/upload/file",
@@ -59,15 +58,14 @@ const submitUpload = async () => {
             ElMessage({ type: 'warning', message: 'ファイルが上手く読み込めませんでした.' })
             files.value = []
         }
-        console.log(response.data)
-        const brmData = toolStore.brmDataUpload(response.data)
+        toolStore.brmDataUpload(response.data)
 
     } catch (error: any) {
-        console.log(error)
-        ElMessage({ type: 'warning', message: 'error occured' })
+        ElMessage({ type: 'warning', message: '読み込みに失敗しました.' })
         files.value = []
 
     } finally {
+        files.value = []
         props.onClose()
     }
 }
