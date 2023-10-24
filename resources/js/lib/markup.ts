@@ -22,8 +22,7 @@ export const Markup = class {
     tag: Array<any>
     tagName: any
 
-
-    constructor(str: string, tags = []) {
+    constructor(str: string, tags: any[] = []) {
 
         const escapedTags = Array.from(rules.values()).map(item => item.escaped)
         // $1: pre, $2: tag, $3: body, $4: post
