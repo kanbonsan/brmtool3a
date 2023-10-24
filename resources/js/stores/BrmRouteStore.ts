@@ -764,7 +764,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             return ({ encodedPathAlt, pointProperties: this.pointProperties() })
         },
 
-        unpack({ encodedPathAlt, pointProperties }: { encodedPathAlt: string, pointProperties: { [item: string]: Array<number> } }) {
+        async unpack({ encodedPathAlt, pointProperties }: { encodedPathAlt: string, pointProperties: { [item: string]: Array<number> } }) {
 
             this.points.length = 0
             const _points = polyline.decode(encodedPathAlt)
@@ -782,6 +782,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             })
 
             this.update()
+            return
         },
 
         makePackData(tracks: Array<{ lat: number, lng: number, alt: number }>) {

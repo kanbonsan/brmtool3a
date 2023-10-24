@@ -29,7 +29,7 @@
         <el-form label-width="50px" size="small" :model="form">
             <el-row>
                 <el-col :span="20">
-                <el-radio-group class="cue-type" v-model="form.type" @change="synchronize" size="small">
+                <el-radio-group class="cue-type" size="small">
                     <el-radio label="cue" border>ポイント</el-radio>
                     <el-radio label="pc" border>PC</el-radio>
                     <el-radio label="pass" border>チェック</el-radio>
@@ -77,9 +77,6 @@
             <el-row>
                 <el-col :span="12"><el-form-item label="進路">
                         <el-input v-model="form.direction"></el-input>
-                    </el-form-item></el-col>
-                <el-col :span="12"><el-form-item label="道路">
-                        <el-input v-model="form.route"></el-input>
                     </el-form-item></el-col>
             </el-row>
 

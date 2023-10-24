@@ -47,11 +47,13 @@ const submitUpload = async () => {
         formData.append("file", file.raw!)
     }
     try {
+        console.log('pre axios')
         const response = await axios({
             method: "post",
             url: "/api/upload/file",
             data: formData,
         })
+        console.log('axios returns')
         // error 処理
         if (response.data.status === "error") {
             ElMessage({ type: 'warning', message: 'ファイルが上手く読み込めませんでした.' })

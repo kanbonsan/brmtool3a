@@ -113,11 +113,12 @@ export const useToolStore = defineStore('tool', {
             return { brmInfo: this.brmInfo, fileInfo: this.fileInfo, properties: this.properties, panes: this.panes }
         },
 
-        unpack({ brmInfo, fileInfo, properties, panes }: { brmInfo: any, fileInfo: any, properties: any, panes: any }) {
+        async unpack({ brmInfo, fileInfo, properties, panes }: { brmInfo: any, fileInfo: any, properties: any, panes: any }) {
             this.brmInfo = { ...this.brmInfo, ...brmInfo }
             this.fileInfo = { ...this.fileInfo, ...fileInfo }
             this.properties = { ...this.properties, ...properties }
             this.panes = { ...this.panes, ...panes }
+            return 
         },
 
         // brmfile 保存用データ 兼 localstorage 保存用データ
@@ -141,7 +142,7 @@ export const useToolStore = defineStore('tool', {
             window.localStorage.setItem('brmtool3', JSON.stringify(data))
         },
 
-        restore() {
+        async restore() {
 
             const routeStore = useBrmRouteStore()
             const cuesheetStore = useCuesheetStore()
@@ -152,12 +153,14 @@ export const useToolStore = defineStore('tool', {
                 console.log('no backup')
                 return false
             }
+
             const { tool, route, cuesheet, gmap } = JSON.parse(data)
 
             try {
-                this.unpack(tool)
-                routeStore.unpack(route)
-                cuesheetStore.unpack(cuesheet)
+                this.reset()
+                await this.unpack(tool)
+                await routeStore.unpack(route)
+                await cuesheetStore.unpack(cuesheet)
                 gmapStore.unpack(gmap)
                 return true
             } catch (e) {
@@ -179,7 +182,7 @@ export const useToolStore = defineStore('tool', {
         // 外部取り込みのデータを内部形式に変換
         // .gpx ファイル と .brm (.brz) ファイルに対応。
         // .brm ファイルは ver 3.0 用のみ受け入れ. 各バージョンからのコンバートは API に任せる.
-        brmDataUpload(data: any) {
+        async brmDataUpload(data: any) {
             const routeStore = useBrmRouteStore()
             const cuesheetStore = useCuesheetStore()
             const gmapStore = useGmapStore()
@@ -189,17 +192,17 @@ export const useToolStore = defineStore('tool', {
                 const route = routeStore.makePackData(tracks)
                 routeStore.$reset()
                 cuesheetStore.$reset()
-                routeStore.unpack(route)
+                await routeStore.unpack(route)
                 gmapStore.moveStreetViewByPoint(routeStore.points[0], 50)
             } else if (data.type === 'brm') {
                 console.log(data)
                 
                 const { tool, route, cuesheet } = data.brmData
                 this.reset()
-                this.unpack(tool)
-                routeStore.unpack(route)
-                
-                setTimeout(() => cuesheetStore.unpack(cuesheet), 1000)
+                await this.unpack(tool)
+                await routeStore.unpack(route)
+                await cuesheetStore.unpack(cuesheet)
+                gmapStore.moveStreetViewByPoint(routeStore.points[0], 50)
             }
             return data
         },
@@ -219,7 +222,9 @@ export const useToolStore = defineStore('tool', {
             return {
                 app: 'brmtool',
                 version: '3.0',
-                data: { tool, route, cuesheet }
+                tool,
+                route,
+                cuesheet
             }
         }
     }

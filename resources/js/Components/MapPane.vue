@@ -16,9 +16,8 @@
             </CustomControl>
         </GoogleMap>
         <Teleport to="body">
-            <lower-drawer v-model="drawerActive" :title="drawers[drawerComp]?.title"
-                :timeout="drawers[drawerComp]?.timeout" @timeout="drawers[drawerComp]?.timeoutFunc"
-                @submit="onLowerDrawerSubmit" v-slot="{ reset, submit }">
+            <lower-drawer v-model="drawerActive" :title="drawers[drawerComp]?.title" :timeout="drawers[drawerComp]?.timeout"
+                @timeout="drawers[drawerComp]?.timeoutFunc" @submit="onLowerDrawerSubmit" v-slot="{ reset, submit }">
                 <component :is="drawers[drawerComp]?.component" :resetTimeout="reset" :submitFunc="submit"></component>
             </lower-drawer>
         </Teleport>
@@ -223,14 +222,16 @@ const popupParams = ref<{
 
 onMounted(() => {
 
-    toolStore.reset()
+    // console.log('mappane onmounted', gmap.value)
 
-    if (gmap.value && gmap.value.ready) {
-        if (toolStore.restore()) {
-            gmap.value.map?.setCenter(gmapStore.center)
-            gmap.value.map?.setZoom(gmapStore.zoom!)
-        }
-    }
+    // toolStore.reset()
+
+    // if (gmap.value && gmap.value.ready) {
+    //     if (toolStore.restore()) {
+    //         gmap.value.map?.setCenter(gmapStore.center)
+    //         gmap.value.map?.setZoom(gmapStore.zoom!)
+    //     }
+    // }
 
 })
 
@@ -263,7 +264,9 @@ watch(
         })
 
         /** ルートの設定 */
+
         if (!toolStore.restore()) {
+            console.log('mappane restore 失敗')
             routeStore.setPoints(brm.encodedPathAlt)
         }
 
@@ -300,7 +303,8 @@ watch(
             mapObjectVisibleTimer = window.setTimeout(() => { mapObjectVisible.value = true }, 1500)
             mapObjectVisible.value = false
         })
-    }
+    },
+    { immediate: true }
 )
 
 watch(() => gmapStore.center, async (newCenter) => {

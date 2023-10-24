@@ -569,7 +569,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
          * 
          * @param json シリアライズデータからの復元
          */
-        unpack(arr: Array<{
+        async unpack(arr: Array<{
             type: cueType,
             lat: number,
             lng: number,
@@ -598,6 +598,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
             }
 
             this.update()
+            return
 
         }
     }

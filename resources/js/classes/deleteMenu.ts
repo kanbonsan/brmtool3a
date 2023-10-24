@@ -5,7 +5,7 @@ export class DeleteMenu extends google.maps.OverlayView {
     private div_: HTMLDivElement
     private mapDiv_: HTMLElement | null
     private divListener_: EventListener | null
-    private callback: () => void
+    private callback?: () => void
 
     constructor() {
         super()
@@ -56,7 +56,7 @@ export class DeleteMenu extends google.maps.OverlayView {
         this.set("vertex", null)
 
         // callback
-        this.callback()
+        this.callback!()
     }
 
     close() {
@@ -84,7 +84,7 @@ export class DeleteMenu extends google.maps.OverlayView {
         map: google.maps.Map,
         path: google.maps.MVCArray<google.maps.LatLng>,
         vertex: number,
-        callback?
+        callback? : any,
     ) {
         this.set("position", path.getAt(vertex))
         this.set("path", path)
