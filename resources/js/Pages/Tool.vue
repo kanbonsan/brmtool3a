@@ -9,7 +9,7 @@ export default {
 
 <template>
     <Splitpanes class="default-theme" @resized="onResizeVertical">
-        <Pane class="map-pane" :size="verticalSize">
+        <Pane class="left-pane" :size="verticalSize">
             <Splitpanes horizontal @resized="onResizeLeft">
                 <pane :size="leftSize">
                     <MapPane />
@@ -20,7 +20,7 @@ export default {
             </Splitpanes>
 
         </Pane>
-        <Pane class="side-pane" :size="100 - verticalSize">
+        <Pane class="right-pane" :size="100 - verticalSize">
             <Splitpanes horizontal @resized="onResizeRight">
                 <pane :size="rightSize">
                     <StreetViewPane />
