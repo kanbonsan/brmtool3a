@@ -52,9 +52,15 @@ const verticalSize = computed(() => toolStore.panes.vertical)
 const leftSize = computed(() => toolStore.panes.left)
 const rightSize = computed(() => toolStore.panes.right)
 
-const onResizeVertical = (dim: any) => { toolStore.panes.vertical = dim[0].size }
-const onResizeLeft = (dim: any) => { toolStore.panes.left = dim[0].size}
-const onResizeRight = (dim: any) => { toolStore.panes.right = dim[0].size}
+const onResizeVertical = (dim: any) => {
+    toolStore.setPaneSize('vertical', dim[0].size)
+}
+const onResizeLeft = (dim: any) => {
+    toolStore.setPaneSize('left', dim[0].size)
+}
+const onResizeRight = (dim: any) => {
+    toolStore.setPaneSize('right', dim[0].size)
+}
 
 </script>
 

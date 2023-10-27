@@ -1,6 +1,6 @@
 <template>
     <Transition>
-        <div v-if="modelValue > 0" class="drawer" style="z-index:2000;">
+        <div v-if="modelValue > 0" class="drawer" :style="styles">
             <el-card style="height:100%;">
                 <template #header>{{ title }}
                     <div style="position:absolute;top:5px;right:5px">
@@ -16,7 +16,8 @@
 </template>
 
 <script setup lang="ts">
-import { watch, computed, onMounted } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
+import { useToolStore } from '@/stores/ToolStore'
 import { debounce } from 'lodash'
 interface Props {
     title: string | undefined
@@ -26,18 +27,28 @@ interface Props {
 
 const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue', 'timeout', 'submit'])
+const toolStore = useToolStore()
+const styles = computed(() => ({
+    zIndex: 2000,
+    '--pane-width': `${paneWidth.value}px`
+}))
+const paneWidth = ref<number>()
+
+watch(() => toolStore.panes.vertical, () => {
+    paneWidth.value = document.querySelector(".left-pane")?.getBoundingClientRect().width
+}, { immediate: true })
 
 const activateCount = computed(() => props.modelValue)
 
 let timer: number | null = null
 
-onMounted(()=>resetTimeout())
+onMounted(() => resetTimeout())
 
 watch(activateCount, () => {
     resetTimeout()
 })
 
-const onCancelClose = ()=>{
+const onCancelClose = () => {
     emit('update:modelValue', 0)    // クローズ
     emit('timeout') // タイムアウトを emit して設定をリセットしてもらう
 }
@@ -47,14 +58,14 @@ const resetTimeout = debounce(() => {
         clearTimeout(timer)
     }
     // timeout 時間 0 でタイムアウト消去解除
-    if( props.timeout === 0){
+    if (props.timeout === 0) {
         return
     }
 
     timer = window.setTimeout(() => {
         emit('update:modelValue', 0)
         emit('timeout')
-        
+
     }, props.timeout)
 }, 250)
 
@@ -62,14 +73,14 @@ const resetTimeout = debounce(() => {
  * 親コンポーネントに submit 内容を送って drawer は消去
  * @param payload 
  */
-const submitFunc = (payload: any)=>{
+const submitFunc = (payload: any) => {
     // timeout 処理が残っていると次に timeout=0 がきたときにも残りの timeout を食らう
-    if( timer !== null){
+    if (timer !== null) {
         clearTimeout(timer)
     }
     emit('update:modelValue', 0)
     emit('submit', payload)
-    
+
 }
 
 
@@ -81,7 +92,7 @@ const submitFunc = (payload: any)=>{
     position: absolute;
     bottom: 0;
     left: 0;
-    width: calc(100% - var(--drawer-margin) * 2);
+    width: calc(var(--pane-width) - var(--drawer-margin) * 2);
     margin: var(--drawer-margin);
 
 }

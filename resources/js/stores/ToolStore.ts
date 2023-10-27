@@ -79,9 +79,9 @@ export const useToolStore = defineStore('tool', {
             startPcClose: 30,
         },
         panes: {
-            vertical: 50,
-            left: 50,
-            right: 50
+            vertical: 60,
+            left: 65,
+            right: 35
         }
     }),
 
@@ -108,6 +108,10 @@ export const useToolStore = defineStore('tool', {
     },
 
     actions: {
+
+        setPaneSize( name:string, percentage: number){
+            this.panes[name] = percentage
+        },
 
         pack() {
             return { brmInfo: this.brmInfo, fileInfo: this.fileInfo, properties: this.properties, panes: this.panes }
