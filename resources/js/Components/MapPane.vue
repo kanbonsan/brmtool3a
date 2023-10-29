@@ -218,30 +218,13 @@ const popupParams = ref<{
     reject?: (payload: any) => void
 }>({ activated: false })
 
-
-
-onMounted(() => {
-
-    // console.log('mappane onmounted', gmap.value)
-
-    // toolStore.reset()
-
-    // if (gmap.value && gmap.value.ready) {
-    //     if (toolStore.restore()) {
-    //         gmap.value.map?.setCenter(gmapStore.center)
-    //         gmap.value.map?.setZoom(gmapStore.zoom!)
-    //     }
-    // }
-
-})
-
 onUnmounted(() => {
     toolStore.save()
 })
 
 watch(
     (): boolean | undefined => gmap.value?.ready,
-    (ready) => {
+    async (ready) => {
         if (!ready || !gmap.value?.api || !gmap.value?.map) {
             return
         }
@@ -265,8 +248,7 @@ watch(
 
         /** ルートの設定 */
 
-        if (!toolStore.restore()) {
-            console.log('mappane restore 失敗')
+        if (!await toolStore.restore()) {
             routeStore.setPoints(brm.encodedPathAlt)
         }
 

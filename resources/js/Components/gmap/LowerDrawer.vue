@@ -1,6 +1,6 @@
 <template>
     <Transition>
-        <div v-if="modelValue > 0" class="drawer" :style="styles">
+        <div ref="el" v-if="modelValue > 0" class="drawer" :style="styles">
             <el-card style="height:100%;">
                 <template #header>{{ title }}
                     <div style="position:absolute;top:5px;right:5px">
@@ -19,6 +19,7 @@
 import { ref, watch, computed, onMounted } from 'vue'
 import { useToolStore } from '@/stores/ToolStore'
 import { debounce } from 'lodash'
+import { profile } from 'console'
 interface Props {
     title: string | undefined
     timeout: number
@@ -28,14 +29,26 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue', 'timeout', 'submit'])
 const toolStore = useToolStore()
+
+const el = ref<HTMLElement | null>(null)
+const paneWidth = ref<number>()
+const paneHeight = ref<number>()
+const profilePaneHeight = ref<number>()
+const drawerHeight = ref(200)
+
 const styles = computed(() => ({
     zIndex: 2000,
-    '--pane-width': `${paneWidth.value}px`
+    '--panel-width': `${paneWidth.value}px`,
+    '--drawer-height': `${drawerHeight.value}px`,
+    '--drawer-bottom': `${Math.max(profilePaneHeight.value! - drawerHeight.value - 16, 0)}px`,
 }))
-const paneWidth = ref<number>()
 
-watch(() => toolStore.panes.vertical, () => {
-    paneWidth.value = document.querySelector(".left-pane")?.getBoundingClientRect().width
+watch(() => [toolStore.panes.vertical, toolStore.panes.left], () => {
+    const dim = document.querySelector(".left-pane")?.getBoundingClientRect()
+    paneWidth.value = dim!.width
+    paneHeight.value = dim!.height
+    profilePaneHeight.value = paneHeight.value * (100 - toolStore.panes.left) / 100
+
 }, { immediate: true })
 
 const activateCount = computed(() => props.modelValue)
@@ -90,10 +103,13 @@ const submitFunc = (payload: any) => {
 .drawer {
     --drawer-margin: 10px;
     position: absolute;
-    bottom: 0;
-    left: 0;
-    width: calc(var(--pane-width) - var(--drawer-margin) * 2);
+    bottom: var(--drawer-bottom);
+    left: calc(var(--panel-width)/2);
+    width: calc(var(--panel-width) - var(--drawer-margin) * 2);
+    height: var(--drawer-height);
     margin: var(--drawer-margin);
+    transform: translate(-50%, 0);
+    max-width: 500px;
 
 }
 
