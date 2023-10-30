@@ -45,8 +45,9 @@ const styles = computed(() => ({
 
 watch(() => [toolStore.panes.vertical, toolStore.panes.left], () => {
     const dim = document.querySelector(".left-pane")?.getBoundingClientRect()
-    paneWidth.value = dim!.width
-    paneHeight.value = dim!.height
+    if (!dim) return
+    paneWidth.value = dim.width
+    paneHeight.value = dim.height
     profilePaneHeight.value = paneHeight.value * (100 - toolStore.panes.left) / 100
 
 }, { immediate: true })

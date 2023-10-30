@@ -248,10 +248,11 @@ watch(
 
         /** ルートの設定 */
 
-        if (!await toolStore.restore()) {
+        const result = await toolStore.restore()
+        if (!result) {
             routeStore.setPoints(brm.encodedPathAlt)
         }
-
+        
         map.addListener(
             "bounds_changed",
             debounce(() => {

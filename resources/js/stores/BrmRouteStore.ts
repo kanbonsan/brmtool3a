@@ -29,7 +29,8 @@ type State = {
         end: number | null
     }
     subpathTempPath: Array<{ lat: number, lng: number }>
-    subpathDirectionControlPoints: Array<{ lat: number, lng: number }>
+    subpathDirectionControlPoints: Array<{ lat: number, lng: number }>,
+    cacheDemTilesTs: number, // cacheDemTiles を重複呼び出ししないようにするタイムスタンプ
 }
 
 type BrmRange = { begin: number, end: number }
@@ -70,7 +71,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
             end: null
         },
         subpathTempPath: [], // 確定前のサブパスのポイントを入れておく
-        subpathDirectionControlPoints: [],   // 確定前の direction service の経由点を入れておく    
+        subpathDirectionControlPoints: [],   // 確定前の direction service の経由点を入れておく
+        cacheDemTilesTs: 0,  // 0: 使用されていない。 呼び出し時の timestamp を保持。 timeout 時間を考慮。
     }),
 
     getters: {
@@ -483,6 +485,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * 諸々の操作をしたあとにパスの状態を適切にする
          */
         update() {
+            console.log('brmroute updated')
             // ポイントウエイトを設定
             this.setWeight()
 
@@ -490,7 +493,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             this.setDistance()
 
             // 標高獲得用の DEM タイルを予めサーバーにキャッシュしておく
-            this.cacheDemTiles()
+            //this.cacheDemTiles()
 
             // キューポイントの update
             const cuesheetStore = useCuesheetStore()
@@ -574,13 +577,28 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
         async cacheDemTiles() {
 
-            const result = await axios({
-                method: "post",
-                url: "api/cacheDemTiles",
-                data: {
-                    points: this.pointsArray.map((pt) => ({ lat: pt.y, lng: pt.x }))
-                }
-            })
+            const ts = Date.now()
+            if (this.cacheDemTilesTs > 0 && this.cacheDemTilesTs + 30_000 < ts) {
+                console.log('cacheDemTiles: busy')
+                return
+            }
+
+            try {
+                this.cacheDemTilesTs = ts
+                await axios({
+                    method: "post",
+                    url: "api/cacheDemTiles",
+                    data: {
+                        points: this.pointsArray.map((pt) => ({ lat: pt.y, lng: pt.x }))
+                    },
+                    timeout: 30_000,    // 30秒
+                })
+                this.cacheDemTilesTs = 0
+            }
+            catch (e: any) {
+                console.log('cacheDemTiles: somethig wrong')
+                this.cacheDemTilesTs = Date.now()    // API の不具合の可能性のためさらに遅延させる
+            }
         },
 
         /**
