@@ -155,7 +155,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
             return () => {
                 const excluded = state.points.map((pt: RoutePoint) => pt.excluded ? 1 : 0)
                 const weight = state.points.map((pt: RoutePoint) => pt.weight)
-                return { excluded, weight }
+                const demCached = state.points.map(pt => pt.demCached ? 1 : 0)
+                return { excluded, weight, demCached }
             }
         },
 
@@ -588,19 +589,19 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 return
             }
 
-            const points = this.pointsArray.filter((pt)=>!pt.demCached).map((pt) => ({ lat: pt.y, lng: pt.x }))
-
-            for (const chunk of _.chunk(points, 1000)) {
+            const pts = this.points.filter((pt) => !pt.demCached)
+            for (const chunk of _.chunk(pts, 1000)) {
                 try {
                     this.cacheDemTilesTs = ts
                     await axios({
                         method: "post",
                         url: "api/cacheDemTiles",
                         data: {
-                            points: chunk
+                            points: chunk.map(pt => ({ lat: pt.lat, lng: pt.lng }))
                         },
                         timeout: 30_000,    // 30秒
                     })
+                    chunk.forEach(pt => { pt.demCached = true })
                     this.cacheDemTilesTs = 0
                 }
                 catch (e: any) {
@@ -611,9 +612,6 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 }
 
             }
-
-            console.log(points.length)
-
         },
 
         /**
@@ -754,7 +752,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
          */
         async directionQuery() {
             const apiKey = import.meta.env.VITE_OPENROUTESERVICE_KEY
-            const profile = 'cycling-regular'
+            const profile = 'cycling-road'  // 'driving-car', 'driving-hgv', 'cycling-regular', 'cycling-mountain', 'cycling-electric'
             const url = `https://api.openrouteservice.org/v2/directions/${profile}/json`
             const coordinates = [...this.subpathDirectionControlPoints.map(pt => ([pt.lng, pt.lat]))]
 
@@ -814,17 +812,28 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 this.points[index].weight = weight
             })
 
+            if (pointProperties.demCached) {
+                pointProperties.demCached.forEach((val, index) => {
+                    this.points[index].demCached = val === 1 ? true : false
+                })
+            }
+
             this.update()
             return
         },
-
+        /**
+         * GPX データから読み込み用のデータを作成する
+         * @param tracks 
+         * @returns 
+         */
         makePackData(tracks: Array<{ lat: number, lng: number, alt: number }>) {
             const length = tracks.length
             const encodedPathAlt = polyline.encode(tracks.map(pt => ([pt.lat, pt.lng, pt.alt])))
             const excluded = [...Array(length)].map(pt => 0)
             const weight = [...Array(length)].map(pt => 1)
+            const demCached = [...Array(length)].map(pt => 0)
 
-            return { encodedPathAlt, pointProperties: { excluded, weight } }
+            return { encodedPathAlt, pointProperties: { excluded, weight, demCached } }
         }
 
     }
