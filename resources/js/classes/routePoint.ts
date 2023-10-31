@@ -15,6 +15,8 @@ export class RoutePoint {
     
     /** ポイントの表示優先度 voluntary point は 20(以上)*/    
     weight: number = 1; 
+    /** 標高キャッシュ済みか */
+    demCached: boolean = false;
     
     /** 前の点からの距離（ポイントの増減時でも部分的な更新に留めるために保持） メートル */
     pointDistance: number = 0.0;

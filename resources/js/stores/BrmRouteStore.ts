@@ -9,6 +9,7 @@ import { useCuesheetStore } from './CueSheetStore'
 import { RoutePoint } from '@/classes/routePoint'
 
 import axios from 'axios'
+import _ from 'lodash'
 
 // weight = 20 を voluntary point（キューポイント） につける
 const simplifyParam = [
@@ -17,6 +18,8 @@ const simplifyParam = [
     { weight: 7, tolerance: 0.0002 },
     { weight: 9, tolerance: 0.0005 }
 ]
+
+const wait = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 type State = {
     points: RoutePoint[],
@@ -117,7 +120,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
 
         /** simplify 用の配列（x,y,z) を用意・拡張して path encode にも使えるようにした */
-        pointsArray: (state) => state.points.map((pt, index) => ({ x: pt.lng ?? 0, y: pt.lat ?? 0, z: pt.alt ?? -1000, index })),
+        pointsArray: (state) => state.points.map((pt, index) => ({ x: pt.lng ?? 0, y: pt.lat ?? 0, z: pt.alt ?? -1000, index, demCached: pt.demCached })),
 
         /** encodedPathAlt は常時更新する必要がないので関数型 getter にしておく */
         encodedPathAlt(state) {
@@ -481,26 +484,6 @@ export const useBrmRouteStore = defineStore('brmroute', {
     },
 
     actions: {
-        /**
-         * 諸々の操作をしたあとにパスの状態を適切にする
-         */
-        update() {
-            console.log('brmroute updated')
-            // ポイントウエイトを設定
-            this.setWeight()
-
-            // 距離を計算
-            this.setDistance()
-
-            // 標高獲得用の DEM タイルを予めサーバーにキャッシュしておく
-            //this.cacheDemTiles()
-
-            // キューポイントの update
-            const cuesheetStore = useCuesheetStore()
-            cuesheetStore.update()
-
-        },
-
         /** encoded Path を与えて初期化する */
         setPoints(path: string) {
 
@@ -514,12 +497,30 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
 
         /**
+         * 諸々の操作をしたあとにパスの状態を適切にする
+         */
+        async update() {
+            // ポイントウエイトを設定
+            await this.setWeight()
+
+            // 距離を計算
+            await this.setDistance()
+
+            // 標高獲得用の DEM タイルを予めサーバーにキャッシュしておく
+            this.cacheDemTiles()
+
+            // キューポイントの update
+            const cuesheetStore = useCuesheetStore()
+            cuesheetStore.update()
+
+        },
+        /**
          * ポイントウエイトの設定
          *  パラメータに従って重み付けしてマーカーを付けるかどうかを決定する
          *  max 10（キューポイント設定点や任意設定点につける）
          *  min 1
          */
-        setWeight() {
+        async setWeight() {
             // ポイントウエイトのリセット
 
             for (const condition of simplifyParam) {
@@ -531,6 +532,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
                     this.points[pt.index].weight = Math.max(this.points[pt.index].weight, weight)
                 })
             }
+
+            return
         },
         /**
          * ポイントの距離を設定する
@@ -540,7 +543,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * @param {number} end 同終了ポイント
          * @return {void}
          */
-        setDistance(begin = -Infinity, end = Infinity) {
+        async setDistance(begin = -Infinity, end = Infinity) {
 
             const _begin = Math.max(1, begin)
             const _end = Math.min(end + 1, this.count - 1)
@@ -573,32 +576,44 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 prevBrmDistance = _current.brmDistance
                 prevIsExcluded = _current.excluded
             }
+
+            return
         },
 
         async cacheDemTiles() {
 
             const ts = Date.now()
-            if (this.cacheDemTilesTs > 0 && this.cacheDemTilesTs + 30_000 < ts) {
+            if (this.cacheDemTilesTs > 0 && this.cacheDemTilesTs + 60_000 < ts) {
                 console.log('cacheDemTiles: busy')
                 return
             }
 
-            try {
-                this.cacheDemTilesTs = ts
-                await axios({
-                    method: "post",
-                    url: "api/cacheDemTiles",
-                    data: {
-                        points: this.pointsArray.map((pt) => ({ lat: pt.y, lng: pt.x }))
-                    },
-                    timeout: 30_000,    // 30秒
-                })
-                this.cacheDemTilesTs = 0
+            const points = this.pointsArray.filter((pt)=>!pt.demCached).map((pt) => ({ lat: pt.y, lng: pt.x }))
+
+            for (const chunk of _.chunk(points, 1000)) {
+                try {
+                    this.cacheDemTilesTs = ts
+                    await axios({
+                        method: "post",
+                        url: "api/cacheDemTiles",
+                        data: {
+                            points: chunk
+                        },
+                        timeout: 30_000,    // 30秒
+                    })
+                    this.cacheDemTilesTs = 0
+                }
+                catch (e: any) {
+                    console.error('cacheDemTiles: somethig wrong', e.name, e.message)
+                    this.cacheDemTilesTs = Date.now()    // API の不具合の可能性のためさらに遅延させる
+                } finally {
+                    await wait(5000)
+                }
+
             }
-            catch (e: any) {
-                console.log('cacheDemTiles: somethig wrong')
-                this.cacheDemTilesTs = Date.now()    // API の不具合の可能性のためさらに遅延させる
-            }
+
+            console.log(points.length)
+
         },
 
         /**
