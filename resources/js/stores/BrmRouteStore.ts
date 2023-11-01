@@ -500,13 +500,14 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /**
          * 諸々の操作をしたあとにパスの状態を適切にする
          */
-        async update() {
+        async update(flag=false) {
+
             // ポイントウエイトを設定
-            await this.setWeight()
+            this.setWeight()
 
             // 距離を計算
-            await this.setDistance()
-
+            if(!flag) this.setDistance()
+            
             // 標高獲得用の DEM タイルを予めサーバーにキャッシュしておく
             this.cacheDemTiles()
 
@@ -521,7 +522,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
          *  max 10（キューポイント設定点や任意設定点につける）
          *  min 1
          */
-        async setWeight() {
+        setWeight() {
             // ポイントウエイトのリセット
 
             for (const condition of simplifyParam) {
@@ -540,11 +541,10 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * ポイントの距離を設定する
          *  Hubeny 計算のコストを考えて hubeny の計算範囲を指定できるようにする
          * 
-         * @param {number} begin hubeny 計算の開始ポイント（index）
-         * @param {number} end 同終了ポイント
-         * @return {void}
+         * begin hubeny 計算の開始ポイント（index）
+         * end 同終了ポイント
          */
-        async setDistance(begin = -Infinity, end = Infinity) {
+        setDistance(begin = -Infinity, end = Infinity) {
 
             const _begin = Math.max(1, begin)
             const _end = Math.min(end + 1, this.count - 1)
@@ -578,7 +578,6 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 prevIsExcluded = _current.excluded
             }
 
-            return
         },
 
         async cacheDemTiles() {
@@ -695,7 +694,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             this.subpathTemp = { ...this.subpath }
         },
 
-        subpathReplace() {
+        async subpathReplace() {
             //
             // excluded range を考慮していない
             // 標高の取り込みを行っていない
@@ -705,6 +704,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             const arr: RoutePoint[] = []
 
             let index = 0
+
             this.subpathTempPath.forEach(pt => {
                 if (index < length && pt.lat === orig[index]?.lat && pt.lng === orig[index]?.lng) {
                     arr.push(orig[index++])
@@ -714,8 +714,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             })
 
             this.points.splice(this.subpath.begin!, this.subpath.end! - this.subpath.begin! + 1, ...arr)
-
-            this.update()
+            await this.update(true)
         },
 
         subpathDelete() {
