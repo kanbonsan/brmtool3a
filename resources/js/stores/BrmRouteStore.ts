@@ -500,14 +500,14 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /**
          * 諸々の操作をしたあとにパスの状態を適切にする
          */
-        async update(flag=false) {
+        update() {
 
             // ポイントウエイトを設定
             this.setWeight()
 
             // 距離を計算
-            if(!flag) this.setDistance()
-            
+            this.setDistance()
+
             // 標高獲得用の DEM タイルを予めサーバーにキャッシュしておく
             this.cacheDemTiles()
 
@@ -544,7 +544,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * begin hubeny 計算の開始ポイント（index）
          * end 同終了ポイント
          */
-        setDistance(begin = -Infinity, end = Infinity) {
+        async setDistance(begin = -Infinity, end = Infinity) {
 
             const _begin = Math.max(1, begin)
             const _end = Math.min(end + 1, this.count - 1)
@@ -563,12 +563,17 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
                 _current.pointDistance = hubeny(_current.lat, _current.lng, _prev.lat, _prev.lng) * HubenyCorrection
             }
+
+
+
             // 距離の積算
-            this.points[0].routeDistance = this.points[0].brmDistance = 0.0
+            this.points[0].routeDistance = 0.0
+            this.points[0].brmDistance = 0.0
+
             let prevBrmDistance = 0.0
             let prevIsExcluded = this.points[0].excluded
 
-            for (let index = 1; index < this.count; index++) {
+            for (let index = 1, len = this.count; index < len; index++) {
                 const _prev = this.points[index - 1]
                 const _current = this.points[index]
                 _current.routeDistance = _prev.routeDistance + _current.pointDistance
@@ -714,7 +719,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             })
 
             this.points.splice(this.subpath.begin!, this.subpath.end! - this.subpath.begin! + 1, ...arr)
-            await this.update(true)
+            await this.update()
         },
 
         subpathDelete() {

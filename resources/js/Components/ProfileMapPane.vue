@@ -32,20 +32,20 @@ watch([width, height], ([width, height]) => {
     redrawKey.value = Symbol()
 }, { immediate: true })
 
-onMounted(() => {
-    watch(() => brmStore.brmDistance, (brmDistance) => {
-        profileStore.distance.end = brmDistance
-        redrawKey.value=Symbol()
-    })
+// onMounted(() => {
+//     watch(() => brmStore.brmDistance, (brmDistance) => {
+//         profileStore.distance.end = brmDistance
+//         redrawKey.value=Symbol()
+//     })
 
-    watch(() => brmStore.brmHighestAltitude, (altitude) => {
-        profileStore.altitude.high = altitude
-    })
+//     watch(() => brmStore.brmHighestAltitude, (altitude) => {
+//         profileStore.altitude.high = altitude
+//     })
 
-    watch([() => profileStore.distance, () => profileStore.altitude], (dist, alt) => {
-        redrawKey.value = Symbol()
-    }) 
-})
+//     watch([() => profileStore.distance, () => profileStore.altitude], (dist, alt) => {
+//         redrawKey.value = Symbol()
+//     }) 
+// })
 
 </script>
 
