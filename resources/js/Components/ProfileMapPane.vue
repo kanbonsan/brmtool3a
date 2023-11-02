@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import { useProfileStore } from '@/stores/ProfileStore'
 import { useBrmRouteStore } from '@/stores/BrmRouteStore'
 import { useElementBounding, useMouseInElement } from '@vueuse/core'
@@ -24,7 +24,7 @@ const profile = ref()
 const redrawKey = ref<symbol>()
 
 const { width, height } = useElementBounding(profile)
-const { x, y, isOutside} = useMouseInElement(profile)
+const { x, y, isOutside } = useMouseInElement(profile)
 
 watch([width, height], ([width, height]) => {
     profileStore.width = width
@@ -32,20 +32,23 @@ watch([width, height], ([width, height]) => {
     redrawKey.value = Symbol()
 }, { immediate: true })
 
-// onMounted(() => {
-//     watch(() => brmStore.brmDistance, (brmDistance) => {
-//         profileStore.distance.end = brmDistance
-//         redrawKey.value=Symbol()
-//     })
+//onMounted(() => {
+    watch(() => brmStore.brmDistance,  async (brmDistance) => {
+        profileStore.$patch((state)=>{
+            state.distance.end = brmDistance
+        })
+        redrawKey.value = Symbol()
+    }
+    )
 
-//     watch(() => brmStore.brmHighestAltitude, (altitude) => {
-//         profileStore.altitude.high = altitude
-//     })
+    watch(() => brmStore.brmHighestAltitude, async(altitude) => {
+        profileStore.$patch((state)=>state.altitude.high=altitude)
+    })
 
-//     watch([() => profileStore.distance, () => profileStore.altitude], (dist, alt) => {
-//         redrawKey.value = Symbol()
-//     }) 
-// })
+    watch([() => profileStore.distance, () => profileStore.altitude], (dist, alt) => {
+        redrawKey.value = Symbol()
+    })
+//})
 
 </script>
 
