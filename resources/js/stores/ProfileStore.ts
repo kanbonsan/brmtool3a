@@ -108,7 +108,7 @@ export const useProfileStore = defineStore('profile', {
             mean: number
         }> {
 
-            if (!this!.graphSize!.height! || !this.graphSize.width || !state.distance.end) return []
+            if (!this.graphSize!.height! || !this.graphSize.width || !state.distance.end) return []
 
             const brmStore = useBrmRouteStore()
             const points = brmStore.points.filter(pt => !pt.excluded)
@@ -179,6 +179,12 @@ export const useProfileStore = defineStore('profile', {
             return (alt: number) => {
                 return this.graphOrigin.yOrig! - Math.floor((alt - state.altitude.low) * this.graphResolution.y!)
             }
+        }
+    },
+    actions: {
+        setDistance(range:{begin?:number, end?:number}){
+            this.distance.begin = range.begin ?? this.distance.begin
+            this.distance.end = range.end ?? this.distance.end
         }
     }
 })

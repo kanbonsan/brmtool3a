@@ -486,35 +486,38 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
     actions: {
         /** encoded Path を与えて初期化する */
-        setPoints(path: string) {
+        async setPoints(path: string) {
 
             const _points = polyline.decode(path)
-
-            this.points = [...(_points.map((pt) => {
-                return new RoutePoint(pt.lat, pt.lng, pt.alt ?? undefined)
-            }))]
-
+            console.log('setPath')
+            await this.$patch((state) => {
+                state.points = [...(_points.map((pt) => {
+                    return new RoutePoint(pt.lat, pt.lng, pt.alt ?? undefined)
+                }))]
+            })
+            await wait(1000)
+            console.log('end setpath')
             this.update()
         },
 
         /**
          * 諸々の操作をしたあとにパスの状態を適切にする
          */
-        update() {
+        async update() {
+
+            const cuesheetStore = useCuesheetStore()
 
             // ポイントウエイトを設定
-            this.setWeight()
+            await this.setWeight()
 
             // 距離を計算
-            this.setDistance()
+            await this.setDistance()
+
+            // キューポイントの update
+            await cuesheetStore.update()
 
             // 標高獲得用の DEM タイルを予めサーバーにキャッシュしておく
             this.cacheDemTiles()
-
-            // キューポイントの update
-            const cuesheetStore = useCuesheetStore()
-            cuesheetStore.update()
-
         },
         /**
          * ポイントウエイトの設定
@@ -522,7 +525,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
          *  max 10（キューポイント設定点や任意設定点につける）
          *  min 1
          */
-        setWeight() {
+        async setWeight() {
             // ポイントウエイトのリセット
 
             for (const condition of simplifyParam) {
