@@ -25,7 +25,7 @@ type State = {
         high: number | undefined,
     },
 
-    redrawKey: Symbol
+    updateCount: number,
 }
 
 const distancePitchList = [5, 10, 50, 100, 200, 250, 500, 1000, 5000, 10_000, 20_000, 25_000, 50_000, 100_000]
@@ -53,8 +53,7 @@ export const useProfileStore = defineStore('profile', {
                 low: 0.0,
                 high: undefined
             },
-
-            redrawKey: Symbol()
+            updateCount: 0
 
         }),
 
@@ -111,8 +110,15 @@ export const useProfileStore = defineStore('profile', {
             max: number,
             mean: number
         }> {
+            if (!this.graphSize.height || !this.graphSize.width) {
+                console.log('graphSize empty')
+                return []
+            }
 
-            if (!this.graphSize!.height! || !this.graphSize.width || !state.distance.end) return []
+            if (!state.distance.end) {
+                console.log('no distance end')
+                return []
+            }
 
             const brmStore = useBrmRouteStore()
             const points = brmStore.points.filter(pt => !pt.excluded)
@@ -138,9 +144,9 @@ export const useProfileStore = defineStore('profile', {
                     const pt = points[ptIndex]
 
                     // タイミングの都合で pt===undefined となることがあるよう
-                    if(!pt){
-                        break 
-                     }                    
+                    if (!pt) {
+                        break
+                    }
 
                     const ptDistA = pt.brmDistance
                     const ptDistB = ptIndex < points.length - 1 ? points[ptIndex + 1].brmDistance : end
@@ -186,9 +192,9 @@ export const useProfileStore = defineStore('profile', {
         }
     },
     actions: {
-        update(){
+        update() {
             const brmStore = useBrmRouteStore()
-            this.$patch((state)=>{
+            this.$patch((state) => {
                 state.distance = {
                     begin: 0.0,
                     end: brmStore.brmDistance
@@ -197,7 +203,7 @@ export const useProfileStore = defineStore('profile', {
                     low: 0.0,
                     high: brmStore.brmHighestAltitude
                 }
-                state.redrawKey = Symbol()
+                ++state.updateCount
             })
 
         }

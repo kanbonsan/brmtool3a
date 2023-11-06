@@ -69,7 +69,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 }
 
 onMounted(() => {
+    console.log('axis onmounted')
     const ctx = axis.value?.getContext('2d')
-    draw(ctx!)
+    //draw(ctx!)
 })
 </script>

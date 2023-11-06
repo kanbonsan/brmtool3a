@@ -29,8 +29,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
 const graph = ref<HTMLCanvasElement>()
 onMounted(() => {
+    console.log('graph mounted')
     const ctx = graph.value?.getContext('2d')
-    draw(ctx!)
+    //draw(ctx!)
 })
 
 </script>

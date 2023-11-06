@@ -30,8 +30,9 @@ watch([width, height], ([width, height]) => {
     redrawKey.value = Symbol()
 }, { immediate: true })
 
-watchEffect(()=>{
-    
+watch(()=>profileStore.updateCount, (count)=>{
+    console.log('profile update', count)
+    redrawKey.value = Symbol()
 })
 
 </script>
