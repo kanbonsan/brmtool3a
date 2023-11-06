@@ -24,6 +24,8 @@ type State = {
         low: number,
         high: number | undefined,
     },
+
+    redrawKey: Symbol
 }
 
 const distancePitchList = [5, 10, 50, 100, 200, 250, 500, 1000, 5000, 10_000, 20_000, 25_000, 50_000, 100_000]
@@ -32,7 +34,6 @@ const altitudePitchList = [20, 50, 100, 250, 500, 1000, 2000]
 const graphScalePitch = 50
 
 export const useProfileStore = defineStore('profile', {
-
 
     state:
         (): State => ({
@@ -51,7 +52,10 @@ export const useProfileStore = defineStore('profile', {
             altitude: {
                 low: 0.0,
                 high: undefined
-            }
+            },
+
+            redrawKey: Symbol()
+
         }),
 
     getters: {
@@ -182,9 +186,20 @@ export const useProfileStore = defineStore('profile', {
         }
     },
     actions: {
-        setDistance(range:{begin?:number, end?:number}){
-            this.distance.begin = range.begin ?? this.distance.begin
-            this.distance.end = range.end ?? this.distance.end
+        update(){
+            const brmStore = useBrmRouteStore()
+            this.$patch((state)=>{
+                state.distance = {
+                    begin: 0.0,
+                    end: brmStore.brmDistance
+                }
+                state.altitude = {
+                    low: 0.0,
+                    high: brmStore.brmHighestAltitude
+                }
+                state.redrawKey = Symbol()
+            })
+
         }
     }
 })

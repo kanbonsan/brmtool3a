@@ -10,6 +10,7 @@ import { RoutePoint } from '@/classes/routePoint'
 
 import axios from 'axios'
 import _ from 'lodash'
+import { useProfileStore } from './ProfileStore'
 
 // weight = 20 を voluntary point（キューポイント） につける
 const simplifyParam = [
@@ -486,17 +487,16 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
     actions: {
         /** encoded Path を与えて初期化する */
-        async setPoints(path: string) {
+        setPoints(path: string) {
 
             const _points = polyline.decode(path)
-            console.log('setPath')
-            await this.$patch((state) => {
+
+            this.$patch((state) => {
                 state.points = [...(_points.map((pt) => {
                     return new RoutePoint(pt.lat, pt.lng, pt.alt ?? undefined)
                 }))]
             })
-            await wait(1000)
-            console.log('end setpath')
+
             this.update()
         },
 
@@ -506,6 +506,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
         async update() {
 
             const cuesheetStore = useCuesheetStore()
+            const profileStore = useProfileStore()
 
             // ポイントウエイトを設定
             await this.setWeight()
@@ -516,8 +517,14 @@ export const useBrmRouteStore = defineStore('brmroute', {
             // キューポイントの update
             await cuesheetStore.update()
 
+            profileStore.update()
+
             // 標高獲得用の DEM タイルを予めサーバーにキャッシュしておく
             this.cacheDemTiles()
+
+
+
+
         },
         /**
          * ポイントウエイトの設定
@@ -534,11 +541,12 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 const _result = simplifyPath(this.pointsArray, tolerance)
 
                 _result.forEach(pt => {
-                    this.points[pt.index].weight = Math.max(this.points[pt.index].weight, weight)
+                    const index = pt.index
+                    this.points[index].weight = Math.max(this.points[index].weight, weight)
                 })
             }
 
-            return
+            return Promise.resolve
         },
         /**
          * ポイントの距離を設定する
@@ -556,35 +564,35 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 throw new Error('setDistance: 開始点が終了点よりあとになっています')
             }
 
-            // 先頭ごと入れ替わったときへの対応
-            this.points[0].pointDistance = 0.0
+            this.$patch((state) => {
+                // 先頭ごと入れ替わったときへの対応
+                state.points[0].pointDistance = 0.0
 
-            // 区間距離の計算
-            for (let index = _begin; index <= _end; index++) {
-                const _current = this.points[index]
-                const _prev = this.points[index - 1]
+                // 区間距離の計算
+                for (let index = _begin; index <= _end; index++) {
+                    const _current = state.points[index]
+                    const _prev = state.points[index - 1]
 
-                _current.pointDistance = hubeny(_current.lat, _current.lng, _prev.lat, _prev.lng) * HubenyCorrection
-            }
+                    _current.pointDistance = hubeny(_current.lat, _current.lng, _prev.lat, _prev.lng) * HubenyCorrection
+                }
 
+                // 距離の積算
+                state.points[0].routeDistance = 0.0
+                state.points[0].brmDistance = 0.0
 
+                let prevBrmDistance = 0.0
+                let prevIsExcluded = state.points[0].excluded
 
-            // 距離の積算
-            this.points[0].routeDistance = 0.0
-            this.points[0].brmDistance = 0.0
+                for (let index = 1, len = state.points.length; index < len; index++) {
+                    const _prev = state.points[index - 1]
+                    const _current = state.points[index]
+                    _current.routeDistance = _prev.routeDistance + _current.pointDistance
 
-            let prevBrmDistance = 0.0
-            let prevIsExcluded = this.points[0].excluded
-
-            for (let index = 1, len = this.count; index < len; index++) {
-                const _prev = this.points[index - 1]
-                const _current = this.points[index]
-                _current.routeDistance = _prev.routeDistance + _current.pointDistance
-
-                _current.brmDistance = (prevIsExcluded || _current.excluded) ? prevBrmDistance : prevBrmDistance + _current.pointDistance
-                prevBrmDistance = _current.brmDistance
-                prevIsExcluded = _current.excluded
-            }
+                    _current.brmDistance = (prevIsExcluded || _current.excluded) ? prevBrmDistance : prevBrmDistance + _current.pointDistance
+                    prevBrmDistance = _current.brmDistance
+                    prevIsExcluded = _current.excluded
+                }
+            })
 
         },
 
@@ -689,8 +697,9 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * @param range [number, number]
          */
         setSubpath(range: [number, number]) {
-            this.subpath.begin = range[0]
-            this.subpath.end = range[1]
+            this.$patch({
+                subpath: { begin: range[0], end: range[1]}
+            })
         },
 
         resetSubpath(pt?: RoutePoint) {
