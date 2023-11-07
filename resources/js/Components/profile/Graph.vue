@@ -16,11 +16,11 @@ const draw = (ctx: CanvasRenderingContext2D) => {
     const width = data.length
     const { xOrig, yOrig } = profileStore.graphOrigin
     ctx.save()
-    ctx.strokeStyle="brown"
+    ctx.strokeStyle = "brown"
     for (let i = 0; i < width; i++) {
         ctx.beginPath()
         ctx.moveTo(xOrig! + i, yOrig!)
-        ctx.lineTo(xOrig! + i, Math.max(profileStore.getY(data[i].mean),0))
+        ctx.lineTo(xOrig! + i, Math.max(profileStore.getY(data[i].mean), 0))
         ctx.stroke()
     }
     ctx.restore()
@@ -29,9 +29,9 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 
 const graph = ref<HTMLCanvasElement>()
 onMounted(() => {
-    console.log('graph mounted')
     const ctx = graph.value?.getContext('2d')
-    //draw(ctx!)
+    if (!ctx) return
+    draw(ctx)
 })
 
 </script>

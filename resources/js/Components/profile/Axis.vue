@@ -4,7 +4,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeMount, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useProfileStore } from "@/stores/ProfileStore"
 
 const props = defineProps<
@@ -13,7 +13,6 @@ const props = defineProps<
 const profileStore = useProfileStore()
 
 const axis = ref<HTMLCanvasElement>()
-
 
 const draw = (ctx: CanvasRenderingContext2D) => {
 
@@ -69,8 +68,8 @@ const draw = (ctx: CanvasRenderingContext2D) => {
 }
 
 onMounted(() => {
-    console.log('axis onmounted')
     const ctx = axis.value?.getContext('2d')
-    //draw(ctx!)
+    if (!ctx) return
+    draw(ctx)
 })
 </script>

@@ -22,7 +22,7 @@ type State = {
     },
     altitude: {
         low: number,
-        high: number | undefined,
+        high: number,
     },
 
     updateCount: number,
@@ -51,7 +51,7 @@ export const useProfileStore = defineStore('profile', {
             },
             altitude: {
                 low: 0.0,
-                high: undefined
+                high: 1000.0,
             },
             updateCount: 0
 
@@ -189,23 +189,6 @@ export const useProfileStore = defineStore('profile', {
             return (alt: number) => {
                 return this.graphOrigin.yOrig! - Math.floor((alt - state.altitude.low) * this.graphResolution.y!)
             }
-        }
-    },
-    actions: {
-        update() {
-            const brmStore = useBrmRouteStore()
-            this.$patch((state) => {
-                state.distance = {
-                    begin: 0.0,
-                    end: brmStore.brmDistance
-                }
-                state.altitude = {
-                    low: 0.0,
-                    high: brmStore.brmHighestAltitude
-                }
-                ++state.updateCount
-            })
-
         }
     }
 })

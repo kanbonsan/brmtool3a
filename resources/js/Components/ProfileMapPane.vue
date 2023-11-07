@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed, watchEffect } from 'vue'
+import { ref, watch } from 'vue'
 import { useProfileStore } from '@/stores/ProfileStore'
 import { useBrmRouteStore } from '@/stores/BrmRouteStore'
 import { useElementBounding, useMouseInElement } from '@vueuse/core'
@@ -30,9 +30,12 @@ watch([width, height], ([width, height]) => {
     redrawKey.value = Symbol()
 }, { immediate: true })
 
-watch(()=>profileStore.updateCount, (count)=>{
-    console.log('profile update', count)
-    redrawKey.value = Symbol()
+watch([()=>brmStore.brmDistance, ()=>brmStore.brmHighestAltitude],([distance,altitude])=>{
+    profileStore.$patch((state)=>{
+        state.distance.end = distance
+        state.altitude.high = altitude
+    })
+    redrawKey.value=Symbol()
 })
 
 </script>

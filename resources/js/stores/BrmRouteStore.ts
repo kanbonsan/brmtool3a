@@ -113,10 +113,10 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
 
         /** 最大標高 */
-        brmHighestAltitude(state): number | undefined {
-            if (state.points.length === 0) return undefined
+        brmHighestAltitude(state): number {
+            if (state.points.length === 0) return 1000
             return state.points.reduce((prevAlt: number, pt: RoutePoint) => {
-                return pt.excluded ? prevAlt : Math.max(prevAlt, pt.alt!)
+                return pt.excluded ? prevAlt : (!pt.alt ? prevAlt : Math.max(prevAlt, pt.alt))  // Math.max() に undefined が渡ると NaN が返る
             }, -Infinity)
         },
 
@@ -516,8 +516,6 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
             // キューポイントの update
             await cuesheetStore.update()
-
-            profileStore.update()
 
             // 標高獲得用の DEM タイルを予めサーバーにキャッシュしておく
             this.cacheDemTiles()
