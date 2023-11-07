@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { polyline, type CoordTuple } from '@/lib/polyline'
 import { simplifyPath } from '@/lib/douglasPeucker'
 import { hubeny } from '@/lib/hubeny'
-import { HubenyCorrection, weighedThreshold } from '@/config.js'
+import { HubenyCorrection, weighedThreshold, maxShownPointCount } from '@/config.js'
 
 import { useGmapStore } from '@/stores/GmapStore.js'
 import { useCuesheetStore } from './CueSheetStore'
@@ -76,7 +76,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
         subpathTempPath: [], // 確定前のサブパスのポイントを入れておく
         subpathDirectionControlPoints: [],   // 確定前の direction service の経由点を入れておく
-        cacheDemTilesTs: 0,  // 0: 使用されていない。 呼び出し時の timestamp を保持。 timeout 時間を考慮。
+        cacheDemTilesTs: 0,  // 呼び出し時の timestamp を保持。 timeout 時間を考慮。"0"は使用中でない。
     }),
 
     getters: {
@@ -112,7 +112,9 @@ export const useBrmRouteStore = defineStore('brmroute', {
             return state.points[range.end].brmDistance
         },
 
-        /** 最大標高 */
+        /** 最大標高
+         * Profile Map の目盛りに使うのでデフォルト値を 1000m とした。
+        */
         brmHighestAltitude(state): number {
             if (state.points.length === 0) return 1000
             return state.points.reduce((prevAlt: number, pt: RoutePoint) => {
@@ -120,7 +122,10 @@ export const useBrmRouteStore = defineStore('brmroute', {
             }, -Infinity)
         },
 
-        /** simplify 用の配列（x,y,z) を用意・拡張して path encode にも使えるようにした */
+        /** simplify 用の配列（x,y,z) を用意
+         * ・拡張して path encode にも使えるようにした
+         * ・さらに標高キャッシュに送る用に、キャッシュ済みかを含めた
+         */
         pointsArray: (state) => state.points.map((pt, index) => ({ x: pt.lng ?? 0, y: pt.lat ?? 0, z: pt.alt ?? -1000, index, demCached: pt.demCached })),
 
         /** encodedPathAlt は常時更新する必要がないので関数型 getter にしておく */
@@ -131,9 +136,14 @@ export const useBrmRouteStore = defineStore('brmroute', {
             }
         },
 
-        /** ある程度以上のポイント */
-        weighedPoints: (state): RoutePoint[] => state.points.filter(pt => pt.weight >= weighedThreshold),
+        pointsBeyondWeight:(state) => (weight:number):RoutePoint[]=>{
+            if( !state.points) return []
 
+            return state.points.filter(pt=>pt.weight>=weight)
+        },
+
+        /** ある程度以上のポイント */
+        weighedPoints: (state): RoutePoint[] => state.points.filter(pt => pt.weight >= weighedThreshold),//this.pointsBeyondWeight(weighedThreshold), //
 
         /** map 内におさまるポイント */
         availablePoints(state): RoutePoint[] {
@@ -152,6 +162,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             return arr
         },
 
+        /** pack() / unpack() 用 */
         pointProperties(state) {
             return () => {
                 const excluded = state.points.map((pt: RoutePoint) => pt.excluded ? 1 : 0)

@@ -111,12 +111,10 @@ export const useProfileStore = defineStore('profile', {
             mean: number
         }> {
             if (!this.graphSize.height || !this.graphSize.width) {
-                console.log('graphSize empty')
                 return []
             }
 
             if (!state.distance.end) {
-                console.log('no distance end')
                 return []
             }
 
