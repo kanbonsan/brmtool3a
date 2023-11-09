@@ -2,25 +2,12 @@
     <div class="console">
         <table>
             <tr>
-                <th>width</th><td>{{ width }}</td>
+                <th>zoom</th>
+                <td>{{ zoom }}</td>
             </tr>
-            <tr>
-                <th>height</th><td>{{ height }}</td>
-            </tr>
-            <tr>
-                <th>graph</th><td>wd:{{ graphSize.width }}, ht:{{ graphSize.height }}</td>
-            </tr>
-            <tr>
-                <th>scale</th><td>X:{{ graphScale.xAxis }}m, Y:{{ graphScale.yAxis }}m</td>
-            </tr>
-            <tr>
-                <th>distance</th><td>{{ distance.begin }}～{{ distance.end }}</td>
-            </tr>
-            <tr>
-                <th>altitude</th><td>{{ alt.low }}～{{ alt.high }}</td>
-            </tr>
-            <tr>
-                <th>origin</th><td>X: {{ origin.xOrig }}, Y: {{ origin.yOrig }}</td>
+            <tr v-for="item of list">
+                <th>{{ item.weight }}</th>
+                <td>{{ item.count }}</td>
             </tr>
         </table>
     </div>
@@ -29,15 +16,14 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useProfileStore } from '@/stores/ProfileStore';
+import { useBrmRouteStore } from '@/stores/BrmRouteStore';
+import { useGmapStore } from '@/stores/GmapStore';
 
-const store = useProfileStore()
-const width = computed(()=>store.width)
-const height = computed(()=>store.height)
-const graphSize = computed(()=>store.graphSize)
-const graphScale = computed(()=>store.graphScale)
-const distance = computed(()=>store.distance)
-const alt = computed(()=>store.altitude)
-const origin = computed(()=>store.graphOrigin)
+const brmStore = useBrmRouteStore()
+const gmapStore = useGmapStore()
+const list = computed(()=>brmStore.weightList)
+
+const zoom = computed(()=>gmapStore.zoom)
 
 </script>
 

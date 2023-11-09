@@ -22,9 +22,6 @@ export const HubenyCorrection = 1.0013
 // Polyline に使うポイントの weight の閾値（weight は min 1～max 20）20 は voluntary point
 export const weighedThreshold = 5
 
-// 画面に表示する RoutePoint の最大数
-export const maxShownPointCount = 300
-
 // パス上の mouseover イベントでポイントにスナップする範囲（ピクセル）
 export const NeighborThreshold = 10
 

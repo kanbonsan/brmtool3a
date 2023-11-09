@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { polyline, type CoordTuple } from '@/lib/polyline'
 import { simplifyPath } from '@/lib/douglasPeucker'
 import { hubeny } from '@/lib/hubeny'
-import { HubenyCorrection, weighedThreshold, maxShownPointCount } from '@/config.js'
+import { HubenyCorrection, weighedThreshold } from '@/config.js'
 
 import { useGmapStore } from '@/stores/GmapStore.js'
 import { useCuesheetStore } from './CueSheetStore'
@@ -10,14 +10,15 @@ import { RoutePoint } from '@/classes/routePoint'
 
 import axios from 'axios'
 import _ from 'lodash'
-import { useProfileStore } from './ProfileStore'
 
 // weight = 20 を voluntary point（キューポイント） につける
 const simplifyParam = [
+    { weight: 2, tolerance: 0.00001 },
     { weight: 3, tolerance: 0.000015 },
     { weight: 5, tolerance: 0.00005 },
     { weight: 7, tolerance: 0.0002 },
-    { weight: 9, tolerance: 0.0005 }
+    { weight: 9, tolerance: 0.0005 },
+    { weight: 10, tolerance: 0.0007 }
 ]
 
 const wait = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
@@ -136,19 +137,33 @@ export const useBrmRouteStore = defineStore('brmroute', {
             }
         },
 
-        pointsBeyondWeight:(state) => (weight:number):RoutePoint[]=>{
-            if( !state.points) return []
+        pointsBeyondWeight: (state) => (weight: number): RoutePoint[] => {
+            if (!state.points) return []
 
-            return state.points.filter(pt=>pt.weight>=weight)
+            return state.points.filter(pt => pt.weight >= weight)
         },
 
         /** ある程度以上のポイント */
-        weighedPoints: (state): RoutePoint[] => state.points.filter(pt => pt.weight >= weighedThreshold),//this.pointsBeyondWeight(weighedThreshold), //
-
-        /** map 内におさまるポイント */
         availablePoints(state): RoutePoint[] {
+            const editable = this.editableIndex
+            if (editable[0] === null || editable[1] === null) return []
+
             const gmapStore = useGmapStore()
-            return this.weighedPoints.filter(pt => gmapStore.latLngBounds?.contains(pt))
+            const subpathMode = gmapStore.subpathMode
+            const zoom = gmapStore.zoom ?? 9
+
+            const threshold = Math.min(20, (subpathMode ? 17 : 22) - zoom)
+
+            const begin = subpathMode ? state.subpath.begin : editable[0]
+            const end = subpathMode ? state.subpath.end : editable[1]
+
+            const _points = state.points
+                .slice(begin! + 1, end!)
+                .filter(pt => pt.weight >= threshold)
+            
+            _points.push( state.points[begin!], state.points[end!]) // 両端は閾値にかからなくても加える
+            return _points.filter(pt=>gmapStore.latLngBounds?.contains(pt))
+
         },
 
         /** serialize / unserialize 用の配列 */
@@ -366,7 +381,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 const posLat = position.lat()
                 const posLng = position.lng()
 
-                const candidate = this.weighedPoints.filter((pt: RoutePoint) => {
+                const candidate = this.availablePoints.filter((pt: RoutePoint) => {
 
                     if (pt.editable === false || pt.excluded === true) {
                         return false
@@ -494,6 +509,17 @@ export const useBrmRouteStore = defineStore('brmroute', {
             }
         },
 
+        // debug用
+        weightList(state) {
+            const weight = [1, 2, 3, 5, 7, 9, 10, 20]
+            const list: Array<{ weight: number, count: number }> = []
+            for (const wt of weight) {
+                const count = state.points.filter(pt => pt.weight >= wt).length
+                list.push({ weight: wt, count })
+            }
+            return list
+        }
+
     },
 
     actions: {
@@ -514,35 +540,30 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /**
          * 諸々の操作をしたあとにパスの状態を適切にする
          */
-        async update() {
+        update() {
 
             const cuesheetStore = useCuesheetStore()
-            const profileStore = useProfileStore()
 
             // ポイントウエイトを設定
-            await this.setWeight()
+            this.setWeight()
 
             // 距離を計算
-            await this.setDistance()
+            this.setDistance()
 
             // キューポイントの update
-            await cuesheetStore.update()
+            cuesheetStore.update()
 
             // 標高獲得用の DEM タイルを予めサーバーにキャッシュしておく
             this.cacheDemTiles()
-
-
-
 
         },
         /**
          * ポイントウエイトの設定
          *  パラメータに従って重み付けしてマーカーを付けるかどうかを決定する
-         *  max 10（キューポイント設定点や任意設定点につける）
+         *  max 20（キューポイント設定点や任意設定点につける）
          *  min 1
          */
-        async setWeight() {
-            // ポイントウエイトのリセット
+        setWeight() {
 
             for (const condition of simplifyParam) {
                 const tolerance = condition.tolerance
@@ -555,7 +576,6 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 })
             }
 
-            return Promise.resolve
         },
         /**
          * ポイントの距離を設定する
@@ -564,7 +584,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * begin hubeny 計算の開始ポイント（index）
          * end 同終了ポイント
          */
-        async setDistance(begin = -Infinity, end = Infinity) {
+        setDistance(begin = -Infinity, end = Infinity) {
 
             const _begin = Math.max(1, begin)
             const _end = Math.min(end + 1, this.count - 1)
@@ -707,7 +727,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
          */
         setSubpath(range: [number, number]) {
             this.$patch({
-                subpath: { begin: range[0], end: range[1]}
+                subpath: { begin: range[0], end: range[1] }
             })
         },
 
@@ -725,6 +745,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             // excluded range を考慮していない
             // 標高の取り込みを行っていない
             //
+            
             const orig = this.subpathRange.points
             const length = orig.length
             const arr: RoutePoint[] = []

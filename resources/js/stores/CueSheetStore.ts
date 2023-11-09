@@ -212,6 +212,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 this.cuePoints.set(cpt.id, cpt)
 
                 this.update()
+
                 return cpt
 
             } else {
@@ -296,14 +297,14 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 if (!routeStore.idList.includes(cpt.routePointId)) {
                     cpt.type = "poi"
                     cpt.routePointId = null
-                    cpt.terminal=undefined
+                    cpt.terminal = undefined
                 } else {
                     // ルートポイントが除外区域ではないか？
                     const rpt = routeStore.getPointById(cpt.routePointId)
                     if (rpt!.excluded === true) {
                         cpt.type = "poi"
                         cpt.routePointId = null
-                        cpt.terminal=undefined
+                        cpt.terminal = undefined
                     }
                 }
             })
@@ -319,7 +320,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
                     cpt.type = 'cue'
                 }
             })
-
+const t1=performance.now()
             // 末端のポイントが PC から変更されてしまった場合は強制的に末端に変える
             // 末端ポイントではラジオボタンを消すようにしたのでここには引っかからないはずだが、保険のために
             const beginCpt = routeStore.hasCuePoint(brmRange.begin)
@@ -364,6 +365,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
                     _controlList[i].groupId = undefined
                 }
             }
+const t2=performance.now()            
             // グループIdの一覧を配列に[0]をグループなしに
             const groupIdArr = [undefined, ...Array.from(groupIdSet)]
             for (const cpt of _controlList) {
@@ -383,6 +385,8 @@ export const useCuesheetStore = defineStore('cuesheet', {
             this.label()
             this.distance()
             this.setTime()
+
+console.log('cuesheet update', Math.floor(t2-t1))
         },
 
         /**
