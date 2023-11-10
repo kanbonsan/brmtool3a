@@ -25,6 +25,7 @@ const wait = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms
 
 type State = {
     points: RoutePoint[],
+    idMap: Map<Symbol, number>,  // id→index の対応（検索の高速化のため）
     subpath: {
         begin: number | null,
         end: number | null
@@ -67,6 +68,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
     state: (): State => ({
         points: [],
+        idMap: new Map(),
         subpath: {
             begin: null,
             end: null
@@ -160,9 +162,9 @@ export const useBrmRouteStore = defineStore('brmroute', {
             const _points = state.points
                 .slice(begin! + 1, end!)
                 .filter(pt => pt.weight >= threshold)
-            
-            _points.push( state.points[begin!], state.points[end!]) // 両端は閾値にかからなくても加える
-            return _points.filter(pt=>gmapStore.latLngBounds?.contains(pt))
+
+            _points.push(state.points[begin!], state.points[end!]) // 両端は閾値にかからなくても加える
+            return _points.filter(pt => gmapStore.latLngBounds?.contains(pt))
 
         },
 
@@ -219,13 +221,13 @@ export const useBrmRouteStore = defineStore('brmroute', {
          */
         getPointById: (state) => (id: symbol | null) => {
             if (id === null) return undefined
-            const idx = state.points.findIndex(pt => pt.id === id)
-            return state.points[idx]
+            const idx = state.idMap.get(id)
+            return state.points[idx!]
         },
 
         /** point の インデックスを返す */
         getPointIndex: (state) => (pt: RoutePoint) => {
-            return state.points.findIndex(_pt => _pt.id === pt.id)
+            return state.idMap.get(pt.id) as number
         },
 
         /**
@@ -544,6 +546,9 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
             const cuesheetStore = useCuesheetStore()
 
+            // 
+            this.setIdMap()
+
             // ポイントウエイトを設定
             this.setWeight()
 
@@ -557,6 +562,13 @@ export const useBrmRouteStore = defineStore('brmroute', {
             this.cacheDemTiles()
 
         },
+
+        setIdMap() {
+            this.$patch({
+                idMap: new Map(this.points.map((pt, index) => ([pt.id, index])))
+            })
+        },
+
         /**
          * ポイントウエイトの設定
          *  パラメータに従って重み付けしてマーカーを付けるかどうかを決定する
@@ -745,7 +757,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             // excluded range を考慮していない
             // 標高の取り込みを行っていない
             //
-            
+
             const orig = this.subpathRange.points
             const length = orig.length
             const arr: RoutePoint[] = []
