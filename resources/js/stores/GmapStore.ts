@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { RoutePoint } from '@/classes/routePoint'
+import { CuePoint } from "@/classes/cuePoint"
 import { useBrmRouteStore } from './BrmRouteStore'
 
 type MapMode = 'edit' | 'subpath' | 'subpathSelect' | 'subpathEdit' | 'subpathDirection' | 'subpathDirectionConfirm'
@@ -39,7 +40,9 @@ type State = {
     },
 
     guideMarkers: Array<GuideMarker>,
-    infoMarker?: { marker: GuideMarker, routePoint: RoutePoint }
+    infoMarker?: { marker: GuideMarker, routePoint: RoutePoint },
+
+    cuePointPopup: CuePoint | undefined,
 
 }
 
@@ -71,6 +74,7 @@ export const useGmapStore = defineStore('gmap', {
         guideMarkers: [],
         infoMarker: undefined,
 
+        cuePointPopup: undefined,
 
     }),
 
@@ -140,6 +144,12 @@ export const useGmapStore = defineStore('gmap', {
                     // ガイドマーカーの中心を設定（Infowindow を置く）
                     if (i === 0) this.infoMarker = { marker: _marker, routePoint: rpt }
                 }
+            }
+        },
+
+        setCuePopup( cuePoint: CuePoint){
+            if(!this.cuePointPopup){
+                this.cuePointPopup = cuePoint
             }
         },
 
