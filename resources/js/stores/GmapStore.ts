@@ -147,8 +147,8 @@ export const useGmapStore = defineStore('gmap', {
             }
         },
 
-        setCuePopup( cuePoint: CuePoint){
-            if(!this.cuePointPopup){
+        setCuePopup(cuePoint: CuePoint) {
+            if (!this.cuePointPopup) {
                 this.cuePointPopup = cuePoint
             }
         },
