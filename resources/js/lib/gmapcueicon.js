@@ -127,12 +127,12 @@ const IconParams = {
         strokeStyle: 'black',
         fillStyle: 'grey',
         noLabel: true,
-        small:{
+        small: {
             width: 16,
             height: 16,
             noLabel: true,
         },
-        mini:{
+        mini: {
             width: 12,
             height: 12,
             noLabel: true
@@ -168,7 +168,7 @@ function badge(ctx, opt) {
 }
 
 function index(ctx, opt) {
-    if (opt.noIndex) {
+    if (opt.noIndex || !opt.index) {
         return
     }
     const wd = Math.max(10, Math.ceil(ctx.measureText(opt.index).width))
@@ -183,7 +183,7 @@ function index(ctx, opt) {
 }
 
 function label(ctx, opt) {
-    if(opt.noLabel){
+    if (opt.noLabel) {
         return
     }
 
@@ -236,7 +236,7 @@ export function markerIcon(_options = {}) {
     if (['start', 'finish', 'pc', 'pass'].includes(options.type)) {
         context.save()
         context.translate(opt.width, opt.height)
-        //index(context, opt)
+        index(context, opt)
         context.restore()
     }
 

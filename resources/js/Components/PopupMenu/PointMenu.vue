@@ -24,6 +24,21 @@
             </el-tooltip>
         </el-row>
         <el-row v-if="gmapStore.editMode">
+            <el-tooltip placement="right" content="編集範囲設定スライダーを表示します" :auto-close="2000">
+                <el-dropdown style="width:100%">
+                    <el-button :disabled="!gmapStore.editMode" class="menu-button" size="small" type="primary"
+                        @click="onClick('editableRange')">編集範囲設定</el-button>
+                    <template #dropdown>
+                        <el-dropdown-menu>
+                            <el-dropdown-item>Action 1</el-dropdown-item>
+                            <el-dropdown-item>Action 1</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </template>
+                </el-dropdown>
+
+            </el-tooltip>
+        </el-row>
+        <el-row v-if="gmapStore.editMode">
             <el-tooltip placement="right" content="サブパス選択を開始します" :auto-close="2000">
                 <el-button class="menu-button" size="small" type="primary"
                     @click="onClick('subpathBegin')">サブパス選択開始</el-button>
@@ -31,12 +46,14 @@
         </el-row>
         <el-row v-if="gmapStore.subpathSelectMode">
             <el-tooltip placement="right" content="この点をサブパスの終点にします" :auto-close="2000">
-                <el-button class="menu-button" size="small" type="primary" @click="onClick('subpathEnd')">サブパス範囲確定</el-button>
+                <el-button class="menu-button" size="small" type="primary"
+                    @click="onClick('subpathEnd')">サブパス範囲確定</el-button>
             </el-tooltip>
         </el-row>
-        <el-row v-if="gmapStore.editMode||gmapStore.subpathMode">
+        <el-row v-if="gmapStore.editMode || gmapStore.subpathMode">
             <el-tooltip placement="right" content="ストリートビューを移動します" :auto-close="2000">
-                <el-button class="menu-button" size="small" type="danger" @click="onClick('moveStreetview')">ストリートビュー</el-button>
+                <el-button class="menu-button" size="small" type="danger"
+                    @click="onClick('moveStreetview')">ストリートビュー</el-button>
             </el-tooltip>
         </el-row>
 
@@ -44,8 +61,8 @@
 </template>
 
 <script setup lang="ts">
-import { useGmapStore } from '@/stores/GmapStore';
-import { onMounted} from 'vue'
+import { useGmapStore } from '@/stores/GmapStore'
+import { onMounted } from 'vue'
 
 const props = defineProps(['submit', 'menuParams'])
 const gmapStore = useGmapStore()
@@ -60,7 +77,7 @@ const onCancelClose = () => {
 </script>
 
 <style scoped>
-.route-point{
+.route-point {
     width: 150px;
 }
 

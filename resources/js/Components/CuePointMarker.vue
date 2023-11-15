@@ -67,7 +67,7 @@ const getOption = (cpt: CuePoint) => {
         inactive,   // gmapcueicon.js の方で inactive === true の場合 type を 'inactive' に設定する
         size: inactive ? (zoom! > 12 ? 'small' : 'mini') : (zoom! > 12 ? 'normal' : (zoom! > 10 ? 'small' : 'mini')),
         label,
-        index: routePointIndex
+        index: cpt.pointNo
     }
 
     return {
