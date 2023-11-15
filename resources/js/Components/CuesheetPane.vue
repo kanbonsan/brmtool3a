@@ -53,6 +53,7 @@ const data = computed(() => {
 
 const onRowClick = (row: any) => {
     gmapStore.setCenter(row.routePoint)
+    gmapStore.setZoom(14)
     gmapStore.moveStreetViewByPoint(row.routePoint)
 }
 

@@ -11,6 +11,7 @@ import { ref, watch } from "vue"
 import { Marker } from "vue3-google-map"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useCuesheetStore } from "@/stores/CueSheetStore"
+import { useGmapStore } from "@/stores/GmapStore"
 import { computed, inject } from "vue"
 import { googleMapsKey } from "./gmap/keys"
 import { CuePoint } from "@/classes/cuePoint"
@@ -21,6 +22,7 @@ import { ElMessage } from "element-plus"
 
 const routeStore = useBrmRouteStore()
 const cuesheetStore = useCuesheetStore()
+const gmapStore = useGmapStore()
 
 const props = defineProps(["visible"])
 const cuePoints = computed(() => cuesheetStore.getArray)
@@ -29,34 +31,53 @@ const refRoutePoint = ref<RoutePoint | null>()
 let timer: number | null = null
 
 const popups = inject(googleMapsKey)
-
 const marker = ref()
 
 const getOption = (cpt: CuePoint) => {
 
-    let cueType: string
+    const routePointIndex = routeStore.getPointIndexById(cpt.routePointId)
+    const zoom = gmapStore.zoom
 
+    let cueType: string
     if (cpt.type !== 'pc') { cueType = cpt.type }
     else {
         cueType = cpt.terminal !== undefined ? cpt.terminal : 'pc'
     }
 
-    const iconOption = {
-        type: cueType,
-        inactive: true,
-        show: false,
-        size: 'small',
-        label: `${cpt.pointNo}`,
-        index: '10'
+    const inactive = !cuesheetStore.isActive(cpt)
+
+    let label:string = ''
+    switch(cueType){
+        case 'cue':
+            label=`${cpt.pointNo}`
+            break
+        case 'pc':
+            label=`${cpt.pcLabel}`
+            break
+        case 'pass':
+            label=`${cpt.checkNo}`
+            break
+        case 'poi':
+            label=`${cpt.poiNo}`
+            break
     }
 
+    const iconOption = {
+        type: cueType,
+        inactive,   // gmapcueicon.js の方で inactive === true の場合 type を 'inactive' に設定する
+        size: inactive ? (zoom! > 12 ? 'small' : 'mini') : (zoom! > 12 ? 'normal' : (zoom! > 10 ? 'small' : 'mini')),
+        label,
+        index: routePointIndex
+    }
 
     return {
         position: { lat: cpt.lat, lng: cpt.lng },
-        opacity: 1.0,
+        opacity: inactive ? 0.75 : 1.0,
+        clickable: !inactive,   // このフラグがうまく機能しない ちなみに draggable フラグは機能する
         draggable: true,
         visible: props.visible,
-        icon: { url: markerIcon(iconOption) }
+        icon: { url: markerIcon(iconOption) },
+        zIndex: inactive ? 1 : 2,
     }
 }
 
@@ -71,6 +92,8 @@ watch(refRoutePoint, (currentPt, prevPt) => {
 
 const onClick = async (cpt: CuePoint, $event: google.maps.MapMouseEvent) => {
 
+    if( !cuesheetStore.isActive(cpt)) return    // Markerオプションで clickableをfalseにしても反応するためこちらで反応しないようにした
+
     if (timer !== null) { return }
 
     timer = window.setTimeout(async () => {
@@ -79,6 +102,13 @@ const onClick = async (cpt: CuePoint, $event: google.maps.MapMouseEvent) => {
     }, 250)
 
 }
+
+watch(() => gmapStore.popupCuePoint, async (cpt: CuePoint | undefined) => {
+    if (cpt === undefined) return
+
+    gmapStore.resetCuePointTrigger()
+    await cueMarkerPopup(cpt, 'CuePointMenu')
+})
 
 /**
  * ダブルクリックでキューポイントを参照点に戻す
@@ -97,13 +127,13 @@ const onDblClick = (cpt: CuePoint, index: number, $event: google.maps.MapMouseEv
 
 }
 
-const onContextmenu = async( cpt: CuePoint ) => {
+const onContextmenu = async (cpt: CuePoint) => {
     popups!.menuParams.value = { cpt }
     const res: any = await cueMarkerPopup(cpt, 'CuePointDeleteConfirmMenu')
-    
-    if( res.result === 'delete' ){
+
+    if (res.result === 'delete') {
         cuesheetStore.removeCuePoint(cpt.id)
-        ElMessage({type: 'info', message: 'ポイントを削除しました'})
+        ElMessage({ type: 'info', message: 'ポイントを削除しました' })
     }
 }
 

@@ -6,8 +6,7 @@
                 @mouseover="markerMouseover(pt)" @mouseout="markerMouseout(pt)">
             </Marker>
             <BrmPolyline :api="api" :map="map" :ready="ready" :visible="mapObjectVisible" />
-            <CustomPopup ref='cusp' :api="api" :map="map" :ready="ready" :params="popupParams"
-                v-slot="{ submit}">
+            <CustomPopup ref='cusp' :api="api" :map="map" :ready="ready" :params="popupParams" v-slot="{ submit }">
                 <component :is="menus[menuComp]?.component" :submit="submit" :menuParams="menuParams"></component>
             </CustomPopup>
             <CuePointMarker :api="api" :map="map" :ready="ready" :visible="mapObjectVisible" />
@@ -252,7 +251,7 @@ watch(
         if (!result) {
             routeStore.setPoints(brm.encodedPathAlt)
         }
-        
+
         map.addListener(
             "bounds_changed",
             debounce(() => {
@@ -292,12 +291,16 @@ watch(
 
 watch(() => gmapStore.center, async (newCenter) => {
     gmapStore.map?.setCenter(newCenter)
-    gmapStore.map?.setZoom(14)
-})
+}, { deep: true })
 
 watch(() => gmapStore.zoomBounds, async (newBB) => {
     if (!newBB) return
     gmapStore.map?.fitBounds(newBB!)
+})
+
+watch(() => gmapStore.zoom, async (newZoom, oldZoom) => {
+    if (!newZoom || newZoom === oldZoom) return
+    gmapStore.map?.setZoom(newZoom)
 })
 
 // Lower Drawer Menu

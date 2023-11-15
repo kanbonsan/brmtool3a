@@ -34,6 +34,7 @@ export class CuePoint {
     groupId: symbol | undefined     // *) 同一 ID は同じグループに（default は undefined）
     groupNo: number                 // *) serialize / unserialize 用に番号も振っておく（cuesheetStore.update()で更新）
     pointNo: number | undefined     // *) POIと初期値は undefined, 都度自動的に振る 0:groupId=undefined, 1から順にグループ
+    poiNo?: number                  // *) POI番号, timestamp 順に 1 から順に振る
     pcNo: number | undefined        // *) PC(スタート・ゴール除く)に1から振る. 同一グループは同一No
     checkNo: number | undefined     // *) チェックポイントに1から振る
     controlNo: number | undefined   // *) PC, CHECK の通し番号. グループを考慮
@@ -66,6 +67,7 @@ export class CuePoint {
         this.groupId = undefined
         this.groupNo = 0
         this.pointNo = undefined
+        this.poiNo = undefined
         this.checkNo = undefined
         this.controlNo = undefined
         this.pcLabel = ''

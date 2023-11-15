@@ -202,9 +202,7 @@ function label(ctx, opt) {
 export function markerIcon(_options = {}) {
 
     const options = {
-        type: _options.type || 'cue',   // start, finish, pc, pass, poi
-        inactive: _options.inactive === true ? true : false,
-        show: _options.show === false ? false : true,
+        type: _options.inactive ? 'inactive' : (_options.type || 'cue'),
         size: _options.size || 'normal', // 'small', 'mini'
         label: _options.label ?? null,
         index: _options.index ?? null,
@@ -238,7 +236,7 @@ export function markerIcon(_options = {}) {
     if (['start', 'finish', 'pc', 'pass'].includes(options.type)) {
         context.save()
         context.translate(opt.width, opt.height)
-        index(context, opt)
+        //index(context, opt)
         context.restore()
     }
 

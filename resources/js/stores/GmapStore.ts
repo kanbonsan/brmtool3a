@@ -42,10 +42,10 @@ type State = {
     guideMarkers: Array<GuideMarker>,
     infoMarker?: { marker: GuideMarker, routePoint: RoutePoint },
 
-    cuePointPopup: CuePoint | undefined,
+    // Cuesheet から popup をトリガーする
+    popupCuePoint?: CuePoint
 
 }
-
 
 export const useGmapStore = defineStore('gmap', {
 
@@ -74,7 +74,7 @@ export const useGmapStore = defineStore('gmap', {
         guideMarkers: [],
         infoMarker: undefined,
 
-        cuePointPopup: undefined,
+        popupCuePoint: undefined
 
     }),
 
@@ -98,18 +98,18 @@ export const useGmapStore = defineStore('gmap', {
 
         setCenter(pos: { lat: number, lng: number } | google.maps.LatLng) {
             if (pos instanceof google.maps.LatLng) {
-                this.center = { lat: pos.lat(), lng: pos.lng() }
+                this.$patch({ center: { lat: pos.lat(), lng: pos.lng() } })
             } else {
-                this.center = { lat: pos.lat, lng: pos.lng }
+                this.$patch({ center: { lat: pos.lat, lng: pos.lng } })
             }
         },
 
-        setZoomBoundingBox(bb: google.maps.LatLngBounds) {
-            this.zoomBounds = bb
+        setZoom(zoom: number) {
+            this.$patch({ zoom: zoom })
         },
 
-        setZoom(zoom: number) {
-            this.map?.setZoom(zoom)
+        setZoomBoundingBox(bb: google.maps.LatLngBounds) {
+            this.$patch({ zoomBounds: bb })
         },
 
         moveStreetView(position: google.maps.LatLng | google.maps.LatLngLiteral, pov?: google.maps.StreetViewPov) {
@@ -147,11 +147,14 @@ export const useGmapStore = defineStore('gmap', {
             }
         },
 
-        setCuePopup(cuePoint: CuePoint) {
-            if (!this.cuePointPopup) {
-                this.cuePointPopup = cuePoint
-            }
+        openCuePointMenu(cpt: CuePoint) {
+            this.$patch({ popupCuePoint: cpt })
         },
+
+        resetCuePointTrigger() {
+            this.$patch({ popupCuePoint: undefined })
+        },
+
 
         pack() {
             return {

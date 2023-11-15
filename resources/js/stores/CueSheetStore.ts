@@ -33,6 +33,25 @@ export const useCuesheetStore = defineStore('cuesheet', {
         getArray(state) {
             return Array.from(state.cuePoints, (cue) => cue[1])
         },
+        
+        /**
+         * キューポイントが編集範囲か
+         * 　POI の場合は常に可. editableRange が null を返したときも考慮
+         */
+        isActive() {
+            const routeStore = useBrmRouteStore()
+            const editableRange = routeStore.editableIndex
+            const isAvailable = (editableRange[0] !== null && editableRange[1] !== null)
+            return (cpt: CuePoint) => {
+                if (cpt.type === 'poi' || !isAvailable) return true
+                const routeIndex = routeStore.getPointIndexById(cpt.routePointId)
+                if (routeIndex! < editableRange[0]! || editableRange[1]! < routeIndex!) {
+                    return false
+                } else {
+                    return true
+                }
+            }
+        },
 
         /**
          * POI以外のポイントをソートして取得
@@ -56,6 +75,15 @@ export const useCuesheetStore = defineStore('cuesheet', {
          */
         controlList(): CuePoint[] {
             return this.pointList.filter(cpt => cpt.terminal === undefined && (cpt.type === 'pc' || cpt.type === 'pass'))
+        },
+
+        /**
+         * POIリスト
+         */
+        poiList(): CuePoint[] {
+            return this.getArray.filter(cpt => {
+                return cpt.type === 'poi'
+            }).sort((a, b) => a.timestamp - b.timestamp)
         },
 
         /**
@@ -394,10 +422,16 @@ export const useCuesheetStore = defineStore('cuesheet', {
         label() {
             const _pointList = this.pointList
             const _controlList = this.controlList
+            const _poiList = this.poiList
 
             // pointNo （キューシートの一列目の番号）
             _pointList.forEach((cpt, index) => {
                 cpt.pointNo = index + 1
+            })
+
+            // poiNo（アイコンのラベル付けのために使用）
+            _poiList.forEach((cpt, index) => {
+                cpt.poiNo = index + 1
             })
 
             // PC, Check ( PC1A:共有 - CHECK - PC1B:共有 という並びはない. 将来的に CHK の共有ができることも考慮)

@@ -230,6 +230,14 @@ export const useBrmRouteStore = defineStore('brmroute', {
             return state.idMap.get(pt.id) as number
         },
 
+        /** point id からインデックスを返す */
+        getPointIndexById(){
+            return  (id: symbol | null) => {
+                const point = this.getPointById(id)
+                return point ? this.getPointIndex(point) : null
+            }
+        },
+
         /**
          * (getter) 除外範囲の開始と終了の各インデックスを求める
          * リアクティブに polyline を書き換えてもらうために unique ID を Symbol() で振る
@@ -276,8 +284,6 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
         /**
          * 編集範囲のインデックスを返す
-         * @param state 
-         * @returns
          */
         editableIndex(state) {
             // 編集可能範囲（除外と違って範囲は一つだけ）
