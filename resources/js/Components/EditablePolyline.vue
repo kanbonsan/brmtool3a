@@ -14,7 +14,7 @@ const editMode = computed(() => gmapStore.editMode || gmapStore.subpathSelectMod
 
 const editableRanges = computed(() => store.editableRanges)
 
-watch(() => editableRanges.value, _.debounce(() => {
+watch(() => store.editableIndex, _.debounce(() => {
     if (!window.google) return
     const editable = editableRanges.value.find(r => r.editable === true)
     const bb = new google.maps.LatLngBounds

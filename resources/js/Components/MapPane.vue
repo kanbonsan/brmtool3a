@@ -10,8 +10,8 @@
                 <component :is="menus[menuComp]?.component" :submit="submit" :menuParams="menuParams"></component>
             </CustomPopup>
             <CuePointMarker :api="api" :map="map" :ready="ready" :visible="mapObjectVisible" />
-            <CustomControl position="TOP_CENTER" style="top:10px;">
-                <el-button>編集範囲</el-button>
+            <CustomControl position="BOTTOM_CENTER">
+                <el-button style="margin-bottom:10px;">編集範囲</el-button>
             </CustomControl>
         </GoogleMap>
         <Teleport to="body">
