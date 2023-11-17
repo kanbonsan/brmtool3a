@@ -19,19 +19,13 @@
         </el-row>
         <el-row v-if="gmapStore.editMode">
             <el-tooltip placement="right" content="編集範囲設定スライダーを表示します" :auto-close="2000">
-                <el-button :disabled="!gmapStore.editMode" class="menu-button" size="small" type="primary"
-                    @click="onClick('editableRange')">編集範囲設定</el-button>
-            </el-tooltip>
-        </el-row>
-        <el-row v-if="gmapStore.editMode">
-            <el-tooltip placement="right" content="編集範囲設定スライダーを表示します" :auto-close="2000">
-                <el-dropdown style="width:100%">
-                    <el-button :disabled="!gmapStore.editMode" class="menu-button" size="small" type="primary"
-                        @click="onClick('editableRange')">編集範囲設定</el-button>
+                <el-dropdown style="width:100%" @command="onChangeEditableRange">
+                    <el-button :disabled="!gmapStore.editMode" class="menu-button" size="small"
+                        type="primary">編集範囲設定</el-button>
                     <template #dropdown>
                         <el-dropdown-menu>
-                            <el-dropdown-item>Action 1</el-dropdown-item>
-                            <el-dropdown-item>Action 1</el-dropdown-item>
+                            <el-dropdown-item command="editFormer">前 を編集</el-dropdown-item>
+                            <el-dropdown-item command="editLatter">後 を編集</el-dropdown-item>
                         </el-dropdown-menu>
                     </template>
                 </el-dropdown>
@@ -73,6 +67,10 @@ const onClick = (result: string) => {
 
 const onCancelClose = () => {
     props.submit({ status: 'success', result: 'cancel' })
+}
+
+const onChangeEditableRange = (cmd: string)=>{
+    props.submit({status:'success', result: cmd})
 }
 </script>
 

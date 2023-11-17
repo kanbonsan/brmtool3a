@@ -231,8 +231,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
 
         /** point id からインデックスを返す */
-        getPointIndexById(){
-            return  (id: symbol | null) => {
+        getPointIndexById() {
+            return (id: symbol | null) => {
                 const point = this.getPointById(id)
                 return point ? this.getPointIndex(point) : null
             }
@@ -852,6 +852,18 @@ export const useBrmRouteStore = defineStore('brmroute', {
                     this.points[i].editable = false
                 }
             }
+        },
+
+        setEditRangeBegin(beginIndex: number) {
+            const end = this.editableIndex[1]
+            if (end === null) return
+            this.setEditRange([beginIndex, end])
+        },
+
+        setEditRangeEnd(endIndex:number){
+            const begin=this.editableIndex[0]
+            if(begin===null)return
+            this.setEditRange([begin,endIndex])
         },
 
         pack() {

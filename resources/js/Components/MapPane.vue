@@ -11,7 +11,7 @@
             </CustomPopup>
             <CuePointMarker :api="api" :map="map" :ready="ready" :visible="mapObjectVisible" />
             <CustomControl position="BOTTOM_CENTER">
-                <el-button style="margin-bottom:10px;">編集範囲</el-button>
+                <el-button style="margin-bottom:15px;" :disabled="!isEditMode" @click="openDrawer('editableRange')">編集範囲</el-button>
             </CustomControl>
         </GoogleMap>
         <Teleport to="body">
@@ -206,6 +206,7 @@ const cuesheetStore = useCuesheetStore()
 const toolStore = useToolStore()
 
 const availablePoints = computed(() => routeStore.availablePoints)
+const isEditMode = computed(()=>gmapStore.editMode) // 画面下の「編集範囲」ボタンは編集モード時のみ作動させる
 
 const menuComp = ref<string>('')
 const popupParams = ref<{
@@ -350,6 +351,12 @@ const markerClick = async (pt: RoutePoint) => {
                 drawerComp.value = 'Editable'
                 drawerActive.value += 1
                 break
+            case 'editFormer':
+                routeStore.setEditRangeEnd(routeStore.getPointIndex(pt))
+                break
+            case 'editLatter':
+                routeStore.setEditRangeBegin(routeStore.getPointIndex(pt))
+                break
             case 'subpathBegin':
                 gmapStore.setMode('subpathSelect')
                 routeStore.resetSubpath(pt) // サブパスインデックスの設定
@@ -448,6 +455,15 @@ const popup: PopUp = async (position, activator?) => {
         }
     })
 
+}
+
+const openDrawer = (cmd: string) => {
+    switch (cmd) {
+        case 'editableRange':
+            drawerComp.value = 'Editable'
+            drawerActive.value += 1
+            break
+    }
 }
 
 /**
