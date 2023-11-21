@@ -59,6 +59,8 @@ export const useProfileStore = defineStore('profile', {
 
     getters: {
 
+        // 周囲のマージンを取り除いたグラフ部分のピクセルサイズ
+        // Returns { width: int, height: int}
         graphSize(state) {
             const width = state.width ? Math.floor(state.width - state.margin.left - state.margin.right) : undefined
             const height = state.height ? Math.floor(state.height - state.margin.top - state.margin.bottom) : undefined
