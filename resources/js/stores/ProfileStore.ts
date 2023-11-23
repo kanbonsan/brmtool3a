@@ -164,7 +164,7 @@ export const useProfileStore = defineStore('profile', {
                     min = Math.min(min, pt.alt!)
                     max = Math.max(max, pt.alt!)
 
-                    accumAltitude += (interSectB - interSectA) / resolution * (pt?.alt || 0)
+                    accumAltitude += (interSectB - interSectA) / resolution * pt.smoothAlt
                     if (ptDistB < pixDistB) {
                         ++ptIndex
                     } else {
@@ -191,27 +191,6 @@ export const useProfileStore = defineStore('profile', {
             }
         },
 
-        smooth(state) {
-            const t1=performance.now()
-            const brmStore = useBrmRouteStore()
-            const points = brmStore.points
-            const result= points.map((pt, index, pts) => {
-                if (!pt.alt) return undefined
-                const pre = pts[index - 1] ?? undefined
-                const post = pts[index + 1] ?? undefined
-
-                const preDiffDist = (pre && pre.routeDistance) ? pt.routeDistance - pre.routeDistance : undefined
-                const preDiffAlt = (pre && pre.alt) ? pt.alt - pre.alt : undefined
-                const postDiffDist = (post && post.routeDistance) ? post.routeDistance - pt.routeDistance : undefined
-                const postDiffAlt = (post && post.alt) ? post.alt - pt.alt : undefined
-                const preSlope = (preDiffDist && preDiffAlt) ? preDiffAlt / preDiffDist : undefined
-                const postSlope = (postDiffDist && postDiffAlt) ? postDiffAlt / postDiffDist : undefined
-                const slopeChange = (preSlope && postSlope) ? postSlope - preSlope : undefined
-
-                return { preSlope, postSlope, slopeChange }
-            }).filter(pt=>pt?.slopeChange>0.1)
-            console.log(performance.now()-t1, result.length)
-            return result
-        }
+        
     }
 })

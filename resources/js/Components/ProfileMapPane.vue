@@ -24,7 +24,6 @@ const profile = ref()
 const redrawKey = ref(Symbol())
 
 const { width, height } = useElementBounding(profile)
-const { x, y, isOutside } = useMouseInElement(profile)
 
 watch([width, height], ([width, height]) => {
     profileStore.width = width
@@ -37,6 +36,10 @@ watch([()=>brmStore.brmDistance, ()=>brmStore.brmHighestAltitude],([distance,alt
         state.distance.end = distance
         state.altitude.high = altitude
     })
+    redrawKey.value=Symbol()
+})
+
+watch(()=>profileStore.profile, ()=>{
     redrawKey.value=Symbol()
 })
 

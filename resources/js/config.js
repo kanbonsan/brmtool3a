@@ -13,6 +13,9 @@ export const SEEK_TIMEOUT = 1.5 * 1000
 // 実験の結果 300km コースで 300ポイントぐらいになった
 export const GEOCODE_TOLERANCE = 20 * 0.00005
 
+// 標高のハズレと判断する前後のスロープ差の閾値
+export const SLOPE_CHANGE_THRESHOLD = 0.1
+
 // LocalStorage へのキャッシュの上限( 約3M )
 export const GEOCODE_CACHE_LIMIT = 3_000_000
 

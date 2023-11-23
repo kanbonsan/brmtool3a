@@ -13,6 +13,7 @@ use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Libraries\GmapPolyline;
 
 class DemController extends Controller
 {
@@ -36,6 +37,7 @@ class DemController extends Controller
         if (abs($lat > 84) || abs($lng) >= 180) {
             throw new Exception('パラメータの範囲が不適切です.');
         }
+        
         return self::singleAlt($lat, $lng);
     }
 
@@ -84,8 +86,9 @@ class DemController extends Controller
     }
 
     public function getMultiAlt(Request $request){
-        //
-        //
+        $encoded = $request->encoded;
+        $decoded = GmapPolyline::decodeValue($encoded);
+        return ['dec'=>$decoded];
     }
 
     /**

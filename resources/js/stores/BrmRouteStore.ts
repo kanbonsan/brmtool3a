@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { polyline, type CoordTuple } from '@/lib/polyline'
 import { simplifyPath } from '@/lib/douglasPeucker'
 import { hubeny } from '@/lib/hubeny'
-import { HubenyCorrection, weighedThreshold } from '@/config.js'
+import { HubenyCorrection, weighedThreshold, SLOPE_CHANGE_THRESHOLD } from '@/config.js'
 
 import { useGmapStore } from '@/stores/GmapStore.js'
 import { useCuesheetStore } from './CueSheetStore'
@@ -10,6 +10,7 @@ import { RoutePoint } from '@/classes/routePoint'
 
 import axios from 'axios'
 import _ from 'lodash'
+import { en } from 'element-plus/es/locale'
 
 // weight = 20 を voluntary point（キューポイント） につける
 const simplifyParam = [
@@ -526,6 +527,16 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 list.push({ weight: wt, count })
             }
             return list
+        },
+
+        totalAcending(state) {
+            let ta = 0.0
+            for (let i = 1; i < this.count; i++) {
+                const thisAlt = state.points[i].smoothAlt
+                const preAlt = state.points[i - 1].smoothAlt
+                if (thisAlt > preAlt) ta += thisAlt - preAlt
+            }
+            return ta
         }
 
     },
@@ -548,11 +559,11 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /**
          * 諸々の操作をしたあとにパスの状態を適切にする
          */
-        update() {
+        async update() {
 
             const cuesheetStore = useCuesheetStore()
 
-            // 
+            // ポイント検索用の MAP を作成
             this.setIdMap()
 
             // ポイントウエイトを設定
@@ -561,11 +572,17 @@ export const useBrmRouteStore = defineStore('brmroute', {
             // 距離を計算
             this.setDistance()
 
+            // 各ポイントの斜度変化を記録（標高スムージング化用）
+            this.setSlope()
+            this.setSmooth()
+
             // キューポイントの update
             cuesheetStore.update()
 
             // 標高獲得用の DEM タイルを予めサーバーにキャッシュしておく
             this.cacheDemTiles()
+
+            this.getAlt()
 
         },
 
@@ -641,6 +658,71 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 }
             })
 
+        },
+
+        async getAlt() {
+            if (this.count < 100) return
+            const pts: Array<RoutePoint> = []
+            for (let i = 10; i < 20; i++) {
+                pts.push(this.points[i])
+            }
+            const coords: Array<CoordTuple> = pts.map(pt => ([pt.lat, pt.lng, pt.alt]))
+            const encoded = polyline.encode(coords)
+
+            const result= await axios({
+                method: 'post',
+                url: '/api/getMultiAlt',
+                data: {
+                    encoded
+                }
+            })
+
+            console.log(result.data, result.data.length)
+
+
+        },
+
+        setSlope() {
+            if (this.count < 2) return
+            this.$patch((state) => {
+                state.points[0].preSlope = 0.0
+                state.points[this.count - 1].postSlope = 0.0
+                for (let i = 1; i < this.count; i++) {
+                    const pre = state.points[i - 1]
+                    const pt = state.points[i]
+                    const slope = (pt.alt - pre.alt) / (pt.routeDistance - pre.routeDistance)
+                    pre.postSlope = -slope
+                    pt.preSlope = slope
+                }
+            })
+        },
+
+        async setSmooth() {
+            const isValid = (pt: RoutePoint) => Math.abs(pt.postSlope - pt.preSlope) < 0.08 //SLOPE_CHANGE_THRESHOLD
+            const seekPre = (index: number) => {
+                for (let i = index - 1; i > 0; i--) {
+                    const _pt = this.points[i]
+                    if (isValid(_pt)) return _pt
+                }
+                return this.points[0]
+            }
+            const seekPost = (index: number) => {
+                for (let i = index + 1; i < this.count - 1; i++) {
+                    const _pt = this.points[i]
+                    if (isValid(_pt)) return _pt
+                }
+                return this.points[this.count - 1]
+            }
+            const complement = (pt: RoutePoint, pre: RoutePoint, post: RoutePoint) => {
+                const alt = pre.alt + (post.alt - pre.alt) / (post.routeDistance - pre.routeDistance) * (pt.routeDistance - pre.routeDistance)
+                return alt
+            }
+            for (let i = 1; i < this.count - 1; i++) {
+                const pt = this.points[i]
+                if (!isValid(pt)) {
+                    pt.smoothAlt = complement(pt, seekPre(i), seekPost(i))
+                }
+            }
         },
 
         async cacheDemTiles() {
@@ -860,10 +942,10 @@ export const useBrmRouteStore = defineStore('brmroute', {
             this.setEditRange([beginIndex, end])
         },
 
-        setEditRangeEnd(endIndex:number){
-            const begin=this.editableIndex[0]
-            if(begin===null)return
-            this.setEditRange([begin,endIndex])
+        setEditRangeEnd(endIndex: number) {
+            const begin = this.editableIndex[0]
+            if (begin === null) return
+            this.setEditRange([begin, endIndex])
         },
 
         pack() {

@@ -7,6 +7,7 @@ export class RoutePoint {
     lng: number
     /** altitude 標高(m)*/
     alt: number
+    smoothAlt: number
 
     /** 除外ポイントかどうか */
     excluded: boolean = false;
@@ -25,6 +26,10 @@ export class RoutePoint {
     /** 除外部分を除くブルベ距離 メートル */
     brmDistance: number = 0.0;
 
+    /** 前後の点との斜度 */
+    preSlope: number = 0.0;
+    postSlope: number = 0.0;
+
     /** 透明度 */
     opacity: number = 0.0;
 
@@ -32,7 +37,7 @@ export class RoutePoint {
         this.id = Symbol()
         this.lat = lat
         this.lng = lng
-        this.alt = alt
+        this.alt = this.smoothAlt = alt
     }
 
     /** 複製したポイントを返す. ID は新たに振る */
