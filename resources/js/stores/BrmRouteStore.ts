@@ -186,7 +186,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 const excluded = state.points.map((pt: RoutePoint) => pt.excluded ? 1 : 0)
                 const weight = state.points.map((pt: RoutePoint) => pt.weight)
                 const demCached = state.points.map(pt => pt.demCached ? 1 : 0)
-                return { excluded, weight, demCached }
+                const altCorrected = state.points.map(pt => pt.altCorrected ? 1 : 0)
+                return { excluded, weight, demCached, altCorrected }
             }
         },
 
@@ -571,10 +572,13 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
             // 距離を計算
             this.setDistance()
-
-            // 各ポイントの斜度変化を記録（標高スムージング化用）
             this.setSlope()
             this.setSmooth()
+            // 各ポイントの斜度変化を記録（標高スムージング化用）
+            this.getAlt().then(() => {
+                this.setSlope()
+                this.setSmooth()
+            })
 
             // キューポイントの update
             cuesheetStore.update()
@@ -582,7 +586,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             // 標高獲得用の DEM タイルを予めサーバーにキャッシュしておく
             this.cacheDemTiles()
 
-            this.getAlt()
+
 
         },
 
@@ -661,25 +665,45 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
 
         async getAlt() {
-            if (this.count < 100) return
-            const pts: Array<RoutePoint> = []
-            for (let i = 10; i < 20; i++) {
-                pts.push(this.points[i])
-            }
-            const coords: Array<CoordTuple> = pts.map(pt => ([pt.lat, pt.lng, pt.alt]))
-            const encoded = polyline.encode(coords)
 
-            const result= await axios({
-                method: 'post',
-                url: '/api/getMultiAlt',
-                data: {
-                    encoded
+            const srcPoints: Array<RoutePoint> = []
+            for (const pt of this.points) {
+                if (!pt.altCorrected) {
+                    srcPoints.push(pt)
                 }
-            })
+            }
+            const coords: Array<CoordTuple> = srcPoints.map(pt => ([pt.lat, pt.lng, pt.alt]))
+            const encoded = polyline.encode(coords)
+            try {
+                const result = await axios({
+                    method: 'post',
+                    url: '/api/getMultiAlt',
+                    data: {
+                        encoded
+                    }
+                })
+                const demPoints = polyline.decode(result.data.result) // Array<{lat,lng,alt}>
+                const resError = result.data.errors // 取得できなかったインデックスの配列 Array<index:number>
+                if (srcPoints.length !== demPoints.length) {
+                    throw new Error('ポイント数が一致しません.')
+                }
+console.log(demPoints)
+                srcPoints.forEach((pt, index) => {
+                    if (!resError.includes(index)) {
+                        pt.alt = demPoints[index].alt!
+                        pt.altCorrected = true
+                    }
+                })
 
-            console.log(result.data, result.data.length)
 
-
+            } catch {
+                (error: any) => {
+                    if (error instanceof Error) {
+                        console.error(error.message)
+                    }
+                    console.error('標高データの取り込みに失敗しました.')
+                }
+            }
         },
 
         setSlope() {
@@ -973,6 +997,12 @@ export const useBrmRouteStore = defineStore('brmroute', {
             if (pointProperties.demCached) {
                 pointProperties.demCached.forEach((val, index) => {
                     this.points[index].demCached = val === 1 ? true : false
+                })
+            }
+
+            if (pointProperties.altCorrected) {
+                pointProperties.altCorrected.forEach((val, index) => {
+                    this.points[index].altCorrected = val === 1 ? true : false
                 })
             }
 

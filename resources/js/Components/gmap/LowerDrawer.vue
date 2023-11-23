@@ -19,7 +19,7 @@
 import { ref, watch, computed, onMounted } from 'vue'
 import { useToolStore } from '@/stores/ToolStore'
 import { debounce } from 'lodash'
-import { profile } from 'console'
+
 interface Props {
     title: string | undefined
     timeout: number

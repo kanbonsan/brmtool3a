@@ -19,6 +19,9 @@ export class RoutePoint {
     /** 標高キャッシュ済みか */
     demCached: boolean = false;
 
+    /** 標高を修正済みか（強制書き換えでない限り以降書き換えない） */
+    altCorrected: boolean = false;
+    
     /** 前の点からの距離（ポイントの増減時でも部分的な更新に留めるために保持） メートル */
     pointDistance: number = 0.0;
     /** 全行程の積算距離（除外部分を含む）メートル*/

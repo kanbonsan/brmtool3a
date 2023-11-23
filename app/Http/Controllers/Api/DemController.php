@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 国土地理院 標高タイルを用いて標高値を得る API
  * - $dem_source を上から順に検索
@@ -37,7 +38,7 @@ class DemController extends Controller
         if (abs($lat > 84) || abs($lng) >= 180) {
             throw new Exception('パラメータの範囲が不適切です.');
         }
-        
+
         return self::singleAlt($lat, $lng);
     }
 
@@ -50,7 +51,7 @@ class DemController extends Controller
     {
         return (180 * $rad) / pi();
     }
-    
+
     /**
      * 標高データ獲得用にあらかじめタイルを読み込んでおく
      * サーバー負荷対策： getTilePath() で サーバー呼び出しのたびに 250ms、各ポイント キャッシュされてなければ 500ms
@@ -77,18 +78,36 @@ class DemController extends Controller
             }
         }
 
-        $download_count = count(array_unique( $download_tiles, SORT_STRING));
+        $download_count = count(array_unique($download_tiles, SORT_STRING));
         $cached_count = count($cached_tiles);
         $na_count = count($na_points);
 
-        return ['download'=>$download_count, 'cached'=>$cached_count, 'na_points'=>$na_count];
-        
+        return ['download' => $download_count, 'cached' => $cached_count, 'na_points' => $na_count];
     }
 
-    public function getMultiAlt(Request $request){
+    public function getMultiAlt(Request $request)
+    {
         $encoded = $request->encoded;
         $decoded = GmapPolyline::decodeValue($encoded);
-        return ['dec'=>$decoded];
+
+        $errors = [];
+
+        $path = new GmapPolyline();
+        
+        foreach ($decoded as $index => $point) {
+            try {
+                $lat = $point['x'];
+                $lng = $point['y'];
+                $dem = self::singleAlt($lat, $lng);
+                $path->addPoint($lat, $lng, $dem['alt']);
+            } catch (Exception $e) {
+                // 取得失敗のときはそのまま返して error にインデックスを記録
+                $path->addPoint($point['x'], $point['y'], $point['a']);
+                array_push($errors, $index);
+            }
+        }
+        
+        return ['result' => $path->encodedString(), 'errors' => $errors];
     }
 
     /**
