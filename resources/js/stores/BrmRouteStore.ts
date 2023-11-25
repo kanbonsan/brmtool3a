@@ -576,8 +576,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
             this.setSmooth()
             // 各ポイントの斜度変化を記録（標高スムージング化用）
             this.getAlt().then(() => {
-                this.setSlope()
-                this.setSmooth()
+                // this.setSlope()
+                // this.setSmooth()
             })
 
             // キューポイントの update
@@ -682,12 +682,11 @@ export const useBrmRouteStore = defineStore('brmroute', {
                         encoded
                     }
                 })
-                const demPoints = polyline.decode(result.data.result) // Array<{lat,lng,alt}>
+                const demPoints = polyline.decode(result.data.path) // Array<{lat,lng,alt}>
                 const resError = result.data.errors // 取得できなかったインデックスの配列 Array<index:number>
                 if (srcPoints.length !== demPoints.length) {
                     throw new Error('ポイント数が一致しません.')
                 }
-console.log(demPoints)
                 srcPoints.forEach((pt, index) => {
                     if (!resError.includes(index)) {
                         pt.alt = demPoints[index].alt!

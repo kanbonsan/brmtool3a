@@ -84,7 +84,9 @@ class DemController extends Controller
 
         return ['download' => $download_count, 'cached' => $cached_count, 'na_points' => $na_count];
     }
-
+    // 複数箇所の標高を取得
+    // encodedPathAlt を取得して、encodedPathAlt を返す
+    // 取得できなかったところは別に index の配列として返す
     public function getMultiAlt(Request $request)
     {
         $encoded = $request->encoded;
@@ -93,7 +95,7 @@ class DemController extends Controller
         $errors = [];
 
         $path = new GmapPolyline();
-        
+
         foreach ($decoded as $index => $point) {
             try {
                 $lat = $point['x'];
@@ -106,8 +108,8 @@ class DemController extends Controller
                 array_push($errors, $index);
             }
         }
-        
-        return ['result' => $path->encodedString(), 'errors' => $errors];
+
+        return ['path' => $path->encodedString(), 'errors' => $errors];
     }
 
     /**
@@ -140,10 +142,19 @@ class DemController extends Controller
                 $r = ($rgb >> 16) & 0xFF;
                 $g = ($rgb >> 8) & 0xFF;
                 $b = $rgb & 0xFF;
-                if ($r === 128 && $g === 0 && $b === 0) {   // ファイルはあるが、標高値が無効
+                $x = $r * 0xFFFF + $g * 0xFF + $b;
+                $h = 0;
+                if ($r === 128 && $g === 0 && $b === 0) {
                     continue;
                 }
-                return ['alt' => ($r * 256 * 256 + $g * 256 + $b) * 0.01, 'dem' => $dem['name'], 'cached' => $png_file['cached'], 'lat' => $lat, 'lng' => $lng, 'path' => $png_file['path']];
+                if ($x < 0x80_00_00) {
+                    $h = $x * 0.01;
+                } else if ($x === 0x80_00_00) {
+                    continue;
+                } else {
+                    $h = ($x - 0x1_00_00_00) * 0.01;
+                }
+                return ['alt' => $h, 'dem' => $dem['name'], 'cached' => $png_file['cached'], 'lat' => $lat, 'lng' => $lng, 'path' => $png_file['path']];
             } catch (Exception $e) {
                 continue;
             }

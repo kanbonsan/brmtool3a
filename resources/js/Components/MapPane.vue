@@ -30,6 +30,7 @@ import type { Component } from 'vue'
 import { GoogleMap, Marker, CustomControl } from "vue3-google-map"
 import { googleMapsKey } from "@/Components/gmap/keys"
 import brm from "../../sample/sample200.brm.json"
+import axios from "axios"
 
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useCuesheetStore } from "@/stores/CueSheetStore"
@@ -276,6 +277,15 @@ watch(
 
         map.addListener("click", async (ev: google.maps.MapMouseEvent) => {
             console.log(ev.latLng?.lat(), ev.latLng?.lng())
+            const result = await axios({
+                method: "get",
+                url: "/api/getAlt",
+                params:{
+                    lat: ev.latLng?.lat(),
+                    lng: ev.latLng?.lng(),
+                }
+            })
+            console.log(result.data)
         })
 
         // 地図上右クリックで画面上の polyline などを一時消去
