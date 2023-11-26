@@ -21,7 +21,8 @@ export class RoutePoint {
 
     /** 標高を修正済みか（強制書き換えでない限り以降書き換えない） */
     altCorrected: boolean = false;
-    
+    altSmoothed: boolean = false;
+
     /** 前の点からの距離（ポイントの増減時でも部分的な更新に留めるために保持） メートル */
     pointDistance: number = 0.0;
     /** 全行程の積算距離（除外部分を含む）メートル*/
@@ -40,7 +41,8 @@ export class RoutePoint {
         this.id = Symbol()
         this.lat = lat
         this.lng = lng
-        this.alt = this.smoothAlt = alt
+        this.alt = alt
+        this.smoothAlt = alt
     }
 
     /** 複製したポイントを返す. ID は新たに振る */

@@ -575,10 +575,11 @@ export const useBrmRouteStore = defineStore('brmroute', {
             this.setSlope()
             this.setSmooth()
             // 各ポイントの斜度変化を記録（標高スムージング化用）
-            this.getAlt().then(() => {
-                // this.setSlope()
-                // this.setSmooth()
-            })
+            this.getAlt()
+                .then(() => {
+                    this.setSlope()
+                    this.setSmooth()
+                })
 
             // キューポイントの update
             cuesheetStore.update()
@@ -589,7 +590,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
 
         },
-
+        /** RoutePoint ID → インデックス の対応表を作成 */
         setIdMap() {
             this.$patch({
                 idMap: new Map(this.points.map((pt, index) => ([pt.id, index])))
@@ -720,7 +721,8 @@ export const useBrmRouteStore = defineStore('brmroute', {
             })
         },
 
-        async setSmooth() {
+        setSmooth() {
+
             const isValid = (pt: RoutePoint) => Math.abs(pt.postSlope - pt.preSlope) < 0.08 //SLOPE_CHANGE_THRESHOLD
             const seekPre = (index: number) => {
                 for (let i = index - 1; i > 0; i--) {
@@ -740,12 +742,16 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 const alt = pre.alt + (post.alt - pre.alt) / (post.routeDistance - pre.routeDistance) * (pt.routeDistance - pre.routeDistance)
                 return alt
             }
-            for (let i = 1; i < this.count - 1; i++) {
-                const pt = this.points[i]
-                if (!isValid(pt)) {
-                    pt.smoothAlt = complement(pt, seekPre(i), seekPost(i))
+            this.$patch((state) => {
+                for (let i = 1; i < this.count - 1; i++) {
+                    const pt = state.points[i]
+                    if (!isValid(pt)) {
+                        pt.smoothAlt = complement(pt, seekPre(i), seekPost(i))
+                        pt.altSmoothed = true
+                    }
                 }
-            }
+            })
+
         },
 
         async cacheDemTiles() {
@@ -866,25 +872,16 @@ export const useBrmRouteStore = defineStore('brmroute', {
         async subpathReplace() {
             //
             // excluded range を考慮していない
-            // 標高の取り込みを行っていない
-            //
 
             const orig = this.subpathRange.points
             const length = orig.length
             const arr: RoutePoint[] = []
 
             let index = 0
+            const newPath = this.subpathTempPath.map(pt => new RoutePoint(pt.lat, pt.lng))
 
-            this.subpathTempPath.forEach(pt => {
-                if (index < length && pt.lat === orig[index]?.lat && pt.lng === orig[index]?.lng) {
-                    arr.push(orig[index++])
-                } else {
-                    arr.push(new RoutePoint(pt.lat, pt.lng))
-                }
-            })
-
-            this.points.splice(this.subpath.begin!, this.subpath.end! - this.subpath.begin! + 1, ...arr)
-            await this.update()
+            this.points.splice(this.subpath.begin!, this.subpath.end! - this.subpath.begin! + 1, ...newPath)
+            this.update()
         },
 
         subpathDelete() {

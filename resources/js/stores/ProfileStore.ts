@@ -122,7 +122,7 @@ export const useProfileStore = defineStore('profile', {
 
             const brmStore = useBrmRouteStore()
             const points = brmStore.points.filter(pt => !pt.excluded)
-
+            
             if (points.length === 0) return []
 
             const pixels = this.graphSize.width
