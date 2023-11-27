@@ -21,7 +21,6 @@ export class RoutePoint {
 
     /** 標高を修正済みか（強制書き換えでない限り以降書き換えない） */
     altCorrected: boolean = false;
-    altSmoothed: boolean = false;
 
     /** 前の点からの距離（ポイントの増減時でも部分的な更新に留めるために保持） メートル */
     pointDistance: number = 0.0;

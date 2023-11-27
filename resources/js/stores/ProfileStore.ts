@@ -122,7 +122,7 @@ export const useProfileStore = defineStore('profile', {
 
             const brmStore = useBrmRouteStore()
             const points = brmStore.points.filter(pt => !pt.excluded)
-            
+
             if (points.length === 0) return []
 
             const pixels = this.graphSize.width
@@ -171,13 +171,12 @@ export const useProfileStore = defineStore('profile', {
                         break
                     }
                 }
-
                 pixelAltitude.push({ begin: pixDistA, end: pixDistB, mean: accumAltitude, min, max })
 
             }
-
             return pixelAltitude
         },
+
         // 距離→キャンバス座標（原点が +0.5 なのでそのまま +0.5）
         getX(state) {
             return (dist: number) => {
