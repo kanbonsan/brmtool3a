@@ -680,6 +680,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
                     srcPoints.forEach((pt, index) => {
                         if (!resError.includes(index)) {
                             pt.alt = demPoints[index].alt!
+                            pt.smoothAlt = demPoints[index].alt!
                             pt.altCorrected = true
                         }
                     })
