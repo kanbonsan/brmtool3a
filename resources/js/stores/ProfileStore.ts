@@ -60,11 +60,15 @@ export const useProfileStore = defineStore('profile', {
     getters: {
 
         // 周囲のマージンを取り除いたグラフ部分のピクセルサイズ
-        // Returns { width: int, height: int}
+        // Returns { width: int, height: int, range:{ nw, se }}
         graphSize(state) {
             const width = state.width ? Math.floor(state.width - state.margin.left - state.margin.right) : undefined
             const height = state.height ? Math.floor(state.height - state.margin.top - state.margin.bottom) : undefined
-            return { width, height }
+            const range = {
+                nw: { x: state.margin.left, y: state.margin.top },
+                se: { x: state.width ?? 0, y: state.height ? state.height - state.margin.bottom : 0 }
+            }
+            return { width, height, range }
         },
 
         graphScale(state): { xAxis: number | undefined, yAxis: number | undefined } {
@@ -190,12 +194,12 @@ export const useProfileStore = defineStore('profile', {
             }
         },
 
-        getDist(state){
-            return (x:number)=>{
-                
+        getDist(state) {
+            return (x: number) => {
+
             }
         }
 
-        
+
     }
 })
