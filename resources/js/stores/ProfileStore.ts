@@ -28,8 +28,8 @@ type State = {
     updateCount: number,
 }
 
-const distancePitchList = [5, 10, 50, 100, 200, 250, 500, 1000, 5000, 10_000, 20_000, 25_000, 50_000, 100_000]
-const altitudePitchList = [20, 50, 100, 250, 500, 1000, 2000]
+const distancePitchList = [5000, 10_000, 20_000, 25_000, 50_000, 100_000]//[5, 10, 50, 100, 200, 250, 500, 1000, 5000, 10_000, 20_000, 25_000, 50_000, 100_000]
+const altitudePitchList = [50, 100, 250, 500, 1000, 2000]
 // グラフの目盛り間隔 ピクセル
 const graphScalePitch = 50
 
@@ -189,6 +189,12 @@ export const useProfileStore = defineStore('profile', {
                 return this.graphOrigin.yOrig! - Math.floor((alt - state.altitude.low) * this.graphResolution.y!)
             }
         },
+
+        getDist(state){
+            return (x:number)=>{
+                
+            }
+        }
 
         
     }

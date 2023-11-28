@@ -2,6 +2,8 @@
     <div ref="profile" class="profile" style="position:relative;">
         <Graph style="position:absolute;left:0;top:0;" :key="redrawKey" :width="width" :height="height"></Graph>
         <Axis style="position:absolute;left:0;top:0;" :key="redrawKey" :width="width" :height="height"></Axis>
+        <Marker style="position:absolute;left:0;top:0;" :key="redrawKey" :width="width" :height="height"></Marker>
+        <Console />
         <Console />
     </div>
 </template>
@@ -15,6 +17,7 @@ import { useElementBounding, useMouseInElement } from '@vueuse/core'
 
 import Axis from '@/Components/profile/Axis.vue'
 import Graph from './profile/Graph.vue'
+import Marker from './profile/GraphMarker.vue'
 import Console from './profile/GraphConsole.vue'
 
 const profileStore = useProfileStore()
@@ -24,6 +27,7 @@ const profile = ref()
 const redrawKey = ref(Symbol())
 
 const { width, height } = useElementBounding(profile)
+
 
 watch([width, height], ([width, height]) => {
     profileStore.width = width
