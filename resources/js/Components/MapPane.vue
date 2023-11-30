@@ -1,5 +1,5 @@
 <template>
-    <div style="position:relative;width:100%;height:100%;">
+    <div ref="gmapPane" style="position:relative;width:100%;height:100%;">
         <GoogleMap ref="gmap" :api-key="apiKey" style="width: 100%; height: 100%" :center="center" :zoom="15"
             v-slot="{ api, map, ready }">
             <Marker :options="markerOption(pt)" v-for="(pt) in availablePoints" :key="pt.id" @click="markerClick(pt)"
@@ -11,7 +11,8 @@
             </CustomPopup>
             <CuePointMarker :api="api" :map="map" :ready="ready" :visible="mapObjectVisible" />
             <CustomControl position="BOTTOM_CENTER">
-                <el-button style="margin-bottom:15px;" :disabled="!isEditMode" @click="openDrawer('editableRange')">編集範囲</el-button>
+                <el-button style="margin-bottom:15px;" :disabled="!isEditMode"
+                    @click="openDrawer('editableRange')">編集範囲</el-button>
             </CustomControl>
         </GoogleMap>
         <Teleport to="body">
@@ -24,18 +25,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onUnmounted, onMounted, computed, provide, type Ref, createApp } from "vue"
+import { ref, watch, onUnmounted, computed, provide } from "vue"
 import type { Component } from 'vue'
 
 import { GoogleMap, Marker, CustomControl } from "vue3-google-map"
 import { googleMapsKey } from "@/Components/gmap/keys"
 import brm from "../../sample/sample200.brm.json"
 import axios from "axios"
+import { useMouseInElement } from '@vueuse/core'
 
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useCuesheetStore } from "@/stores/CueSheetStore"
 import { useGmapStore } from "@/stores/GmapStore"
 import { useToolStore } from "@/stores/ToolStore"
+import { useProfileStore } from "@/stores/ProfileStore"
 import circle from '../../images/pointCircle.png'
 
 import BrmPolyline from "@/Components/BrmPolyline.vue"
@@ -101,6 +104,8 @@ export type Drawers = {
 }
 
 const gmap = ref<InstanceType<typeof GoogleMap>>()
+const gmapPane = ref(null)
+const { isOutside} = useMouseInElement(gmapPane)
 
 const defaultOptions: menuComponentOptions = {
     offsetX: 0,
@@ -205,9 +210,10 @@ const routeStore = useBrmRouteStore()
 const gmapStore = useGmapStore()
 const cuesheetStore = useCuesheetStore()
 const toolStore = useToolStore()
+const profileStore=useProfileStore()
 
 const availablePoints = computed(() => routeStore.availablePoints)
-const isEditMode = computed(()=>gmapStore.editMode) // 画面下の「編集範囲」ボタンは編集モード時のみ作動させる
+const isEditMode = computed(() => gmapStore.editMode) // 画面下の「編集範囲」ボタンは編集モード時のみ作動させる
 
 const menuComp = ref<string>('')
 const popupParams = ref<{
@@ -280,7 +286,7 @@ watch(
             const result = await axios({
                 method: "get",
                 url: "/api/getAlt",
-                params:{
+                params: {
                     lat: ev.latLng?.lat(),
                     lng: ev.latLng?.lng(),
                 }
@@ -312,6 +318,14 @@ watch(() => gmapStore.zoomBounds, async (newBB) => {
 watch(() => gmapStore.zoom, async (newZoom, oldZoom) => {
     if (!newZoom || newZoom === oldZoom) return
     gmapStore.map?.setZoom(newZoom)
+})
+
+watch(()=>isOutside, (status)=>{
+    // マウスポインタがマップから出たらプロフィール上のガイドは消去
+    // 本来必要ないはずだがゴミが残らないように一応設定しておく
+    if(!status) {
+        profileStore.setRoutePoint(undefined)
+    }
 })
 
 // Lower Drawer Menu
@@ -394,6 +408,10 @@ const markerMouseover = (pt: RoutePoint) => {
 
     if (!pt.editable) return
 
+    // プロフィールマップにガイドを表示させるためにポイントを設定
+    // 前の点の mouseout 処理後に遅らせて設定（効果があるかは分からない）
+    setTimeout(()=>profileStore.setRoutePoint(pt),10)
+
     if (gmapStore.subpathSelectMode) {
         const _begin: number = Math.min(ptIndex, routeStore.subpathTemp.begin!)
         const _end: number = Math.max(ptIndex, routeStore.subpathTemp.end!)
@@ -405,6 +423,9 @@ const markerMouseover = (pt: RoutePoint) => {
 }
 
 const markerMouseout = (pt: RoutePoint) => {
+
+    profileStore.setRoutePoint(undefined)
+
     if (popupParams.value.activator === pt) {
         return
     }

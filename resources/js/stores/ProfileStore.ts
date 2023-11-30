@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useBrmRouteStore } from './BrmRouteStore'
+import { RoutePoint } from '@/classes/routePoint'
 
 
 type State = {
@@ -24,6 +25,9 @@ type State = {
         low: number,
         high: number,
     },
+
+    // MapPane の RoutePoint の mouseover に反応
+    routePoint: RoutePoint | undefined,
 
     updateCount: number,
 }
@@ -53,6 +57,7 @@ export const useProfileStore = defineStore('profile', {
                 low: 0.0,
                 high: 1000.0,
             },
+            routePoint: undefined,
             updateCount: 0
 
         }),
@@ -201,5 +206,11 @@ export const useProfileStore = defineStore('profile', {
         }
 
 
+    },
+
+    actions:{
+        setRoutePoint(routePoint: RoutePoint|undefined){
+            this.routePoint = routePoint
+        }
     }
 })
