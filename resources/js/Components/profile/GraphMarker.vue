@@ -46,7 +46,7 @@ const draw = (ctx: CanvasRenderingContext2D, x?: number) => {
     ctx.lineTo(coords.x, range.nw.y)
     ctx.stroke()
     ctx.beginPath()
-    ctx.arc(coords.x,coords.y,5,0,2*Math.PI)
+    ctx.arc(coords.x, coords.y, 4, 0, 2 * Math.PI)
     ctx.fill()
     ctx.restore()
 

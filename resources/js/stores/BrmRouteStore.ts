@@ -520,6 +520,28 @@ export const useBrmRouteStore = defineStore('brmroute', {
             }
         },
 
+        /**
+         * BrmDistance → 直近のRoutePoint を返す
+         * ProfileMap の点を地図上に表示するのに利用
+         * @returns function(distance)->RoutePoint|undefined
+         */
+        getCloseBrmPoint(state){
+            return (dist: number)=>{
+                if(this.brmDistance === undefined || dist<0 || dist>this.brmDistance){
+                    return undefined
+                }
+                const pts = state.points.filter(pt=>!pt.excluded)
+                let i=1
+                while(i<pts.length){
+                    if(pts[i].brmDistance>dist){
+                        return pts[i-1]
+                    }
+                    i++
+                }
+                return pts[i-1]
+            }
+        },
+
         // debug用
         weightList(state) {
             const weight = [1, 2, 3, 5, 7, 9, 10, 20]
