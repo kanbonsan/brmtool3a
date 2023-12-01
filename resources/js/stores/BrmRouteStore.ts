@@ -38,6 +38,7 @@ type State = {
     subpathTempPath: Array<{ lat: number, lng: number }>
     subpathDirectionControlPoints: Array<{ lat: number, lng: number }>,
     cacheDemTilesTs: number, // cacheDemTiles を重複呼び出ししないようにするタイムスタンプ
+    profileMapMarkerDistance: number | undefined, // ProfileMap 上をマウス移動したときにマップ上にマーカー表示するための brmDistance を記録
 }
 
 type BrmRange = { begin: number, end: number }
@@ -81,6 +82,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
         subpathTempPath: [], // 確定前のサブパスのポイントを入れておく
         subpathDirectionControlPoints: [],   // 確定前の direction service の経由点を入れておく
         cacheDemTilesTs: 0,  // 呼び出し時の timestamp を保持。 timeout 時間を考慮。"0"は使用中でない。
+        profileMapMarkerDistance: undefined,    // undefined で表示しない（表示を消す）
     }),
 
     getters: {
@@ -525,20 +527,21 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * ProfileMap の点を地図上に表示するのに利用
          * @returns function(distance)->RoutePoint|undefined
          */
-        getCloseBrmPoint(state){
-            return (dist: number)=>{
-                if(this.brmDistance === undefined || dist<0 || dist>this.brmDistance){
+        getCloseBrmPoint(state) {
+            const pts = state.points.filter(pt => !pt.excluded)
+            return (dist: number) => {
+                if (this.brmDistance === undefined || dist < 0 || dist > this.brmDistance) {
                     return undefined
                 }
-                const pts = state.points.filter(pt=>!pt.excluded)
-                let i=1
-                while(i<pts.length){
-                    if(pts[i].brmDistance>dist){
-                        return pts[i-1]
+
+                let i = 1
+                while (i < pts.length) {
+                    if (pts[i].brmDistance > dist) {
+                        return pts[i - 1]
                     }
                     i++
                 }
-                return pts[i-1]
+                return pts[i - 1]
             }
         },
 
@@ -585,7 +588,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
             // 距離を計算
             this.setDistance()
-            
+
             // 各ポイントの斜度変化を記録（標高スムージング化用）
             this.setSlope()
             this.setSmooth()
@@ -596,7 +599,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             // 標高獲得用の DEM タイルを予めサーバーにキャッシュしておく
             this.cacheDemTiles()
 
-            
+
             await this.getAlt()
 
         },
@@ -732,7 +735,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             })
         },
 
-       setSmooth() {
+        setSmooth() {
 
             const isValid = (pt: RoutePoint) => Math.abs(pt.postSlope - pt.preSlope) < 0.08 //SLOPE_CHANGE_THRESHOLD
             const seekPre = (index: number) => {
@@ -971,6 +974,10 @@ export const useBrmRouteStore = defineStore('brmroute', {
             const begin = this.editableIndex[0]
             if (begin === null) return
             this.setEditRange([begin, endIndex])
+        },
+
+        setProfileMapMarkerDistance(dist?: number) {
+            this.profileMapMarkerDistance = dist
         },
 
         pack() {

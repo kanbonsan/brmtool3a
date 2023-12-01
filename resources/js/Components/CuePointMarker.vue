@@ -35,7 +35,6 @@ const marker = ref()
 
 const getOption = (cpt: CuePoint) => {
 
-    const routePointIndex = routeStore.getPointIndexById(cpt.routePointId)
     const zoom = gmapStore.zoom
 
     let cueType: string

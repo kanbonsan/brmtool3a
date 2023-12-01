@@ -14,6 +14,7 @@
                 <el-button style="margin-bottom:15px;" :disabled="!isEditMode"
                     @click="openDrawer('editableRange')">編集範囲</el-button>
             </CustomControl>
+            <ProfileMarker/>
         </GoogleMap>
         <Teleport to="body">
             <lower-drawer v-model="drawerActive" :title="drawers[drawerComp]?.title" :timeout="drawers[drawerComp]?.timeout"
@@ -63,6 +64,7 @@ import CuePointReattachMenu from "./PopupMenu/CuePointReattachMenu.vue"
 import CuePointDeleteConfirmMenu from "./PopupMenu/CuePointDeleteConfirmMenu.vue"
 
 import CuePointMarker from "./CuePointMarker.vue"
+import ProfileMarker from "@/Components/gmap/ProfileMarker.vue"
 
 export type menuComponentOptions = {
     /**
@@ -105,7 +107,7 @@ export type Drawers = {
 
 const gmap = ref<InstanceType<typeof GoogleMap>>()
 const gmapPane = ref(null)
-const { isOutside} = useMouseInElement(gmapPane)
+const { isOutside } = useMouseInElement(gmapPane)
 
 const defaultOptions: menuComponentOptions = {
     offsetX: 0,
@@ -210,7 +212,7 @@ const routeStore = useBrmRouteStore()
 const gmapStore = useGmapStore()
 const cuesheetStore = useCuesheetStore()
 const toolStore = useToolStore()
-const profileStore=useProfileStore()
+const profileStore = useProfileStore()
 
 const availablePoints = computed(() => routeStore.availablePoints)
 const isEditMode = computed(() => gmapStore.editMode) // 画面下の「編集範囲」ボタンは編集モード時のみ作動させる
@@ -320,10 +322,10 @@ watch(() => gmapStore.zoom, async (newZoom, oldZoom) => {
     gmapStore.map?.setZoom(newZoom)
 })
 
-watch(()=>isOutside, (status)=>{
+watch(() => isOutside, (status) => {
     // マウスポインタがマップから出たらプロフィール上のガイドは消去
     // 本来必要ないはずだがゴミが残らないように一応設定しておく
-    if(!status) {
+    if (!status) {
         profileStore.setRoutePoint(undefined)
     }
 })
@@ -410,7 +412,7 @@ const markerMouseover = (pt: RoutePoint) => {
 
     // プロフィールマップにガイドを表示させるためにポイントを設定
     // 前の点の mouseout 処理後に遅らせて設定（効果があるかは分からない）
-    setTimeout(()=>profileStore.setRoutePoint(pt),10)
+    setTimeout(() => profileStore.setRoutePoint(pt), 10)
 
     if (gmapStore.subpathSelectMode) {
         const _begin: number = Math.min(ptIndex, routeStore.subpathTemp.begin!)
