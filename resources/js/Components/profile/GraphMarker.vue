@@ -5,9 +5,8 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 import { useProfileStore } from "@/stores/ProfileStore"
-import { useBrmRouteStore} from "@/stores/BrmRouteStore"
+import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useMouseInElement } from '@vueuse/core'
-import { RoutePoint } from '@/classes/routePoint'
 
 const props = defineProps<
     { width: number, height: number }>()
@@ -63,10 +62,10 @@ onMounted(() => {
     watch([elementX, elementY, () => profileStore.routePoint], ([x, y, pt]) => {
         const range = profileStore.graphSize.range
         routeStore.setProfileMapMarkerDistance(undefined)
-        if (pt !== undefined) {
+        if (pt !== undefined && isOutside) {    // && isOutside を入れないと、profileMap にマウスが入っても pt がリセットされないことがあった.
             draw(ctx, pt.brmDistance * profileStore.graphResolution.x!)
         } else if (range.nw.x <= x && x <= range.se.x && range.nw.y <= y && y <= range.se.y) {
-            routeStore.setProfileMapMarkerDistance((x-range.nw.x)/profileStore.graphResolution.x!)
+            routeStore.setProfileMapMarkerDistance((x - range.nw.x) / profileStore.graphResolution.x!)
             draw(ctx, x - range.nw.x)
         } else {
             // 引き出し線を消すために引数無しで呼ぶ
