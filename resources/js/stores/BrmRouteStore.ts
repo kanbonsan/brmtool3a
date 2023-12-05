@@ -894,6 +894,14 @@ export const useBrmRouteStore = defineStore('brmroute', {
 
             const newPath = this.subpathTempPath.map(pt => new RoutePoint(pt.lat, pt.lng))
 
+            let org_x = 0, org_y = origPath.length - 1, new_x = 0, new_y = newPath.length - 1
+            while (new_x < new_y) {
+
+                for (let cur_x = org_x, cur_y = org_y; cur_x <= org_y && cur_y >= org_x; cur_x++, cur_y--) {
+
+                }
+            }
+
             this.points.splice(this.subpath.begin!, this.subpath.end! - this.subpath.begin! + 1, ...newPath)
             this.update()
         },
