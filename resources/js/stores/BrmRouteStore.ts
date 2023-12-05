@@ -36,6 +36,7 @@ type State = {
         end: number | null
     }
     subpathTempPath: Array<{ lat: number, lng: number }>
+    subpathTempPathTouched: boolean   // サブパス編集時 変更があったか？ 無変更の場合に処理をスキップするため
     subpathDirectionControlPoints: Array<{ lat: number, lng: number }>,
     cacheDemTilesTs: number, // cacheDemTiles を重複呼び出ししないようにするタイムスタンプ
     profileMapMarkerDistance: number | undefined, // ProfileMap 上をマウス移動したときにマップ上にマーカー表示するための brmDistance を記録
@@ -80,6 +81,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             end: null
         },
         subpathTempPath: [], // 確定前のサブパスのポイントを入れておく
+        subpathTempPathTouched: false,
         subpathDirectionControlPoints: [],   // 確定前の direction service の経由点を入れておく
         cacheDemTilesTs: 0,  // 呼び出し時の timestamp を保持。 timeout 時間を考慮。"0"は使用中でない。
         profileMapMarkerDistance: undefined,    // undefined で表示しない（表示を消す）
@@ -337,11 +339,11 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
 
         /**
-                 * サブパス範囲のインデックスを返す
-                 * el-slider で使えるように [begin, end] の配列（タプル）を返す
-                 * @param state 
-                 * @returns 
-                 */
+         * サブパス範囲のインデックスを返す
+         * el-slider で使えるように [begin, end] の配列（タプル）を返す
+         * @param state 
+         * @returns 
+         */
         subpathIndex(state): SubpathIndex { return [state.subpath.begin, state.subpath.end] },
 
         /**
@@ -883,8 +885,12 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
 
         subpathReplace() {
-            //
             // excluded range を考慮していない
+
+            const origPath: Array<RoutePoint> = []
+            for (let i = this.subpath.begin!; i < this.subpath.end!; i++) {
+                origPath.push(this.points[i])
+            }
 
             const newPath = this.subpathTempPath.map(pt => new RoutePoint(pt.lat, pt.lng))
 

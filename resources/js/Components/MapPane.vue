@@ -178,6 +178,7 @@ const drawers: Drawers = {
         timeout: 0,
         timeoutFunc: () => {
             gmapStore.setMode('edit')
+            routeStore.subpathTempPathTouched=false
             routeStore.resetSubpath()
         }
     },
@@ -519,6 +520,7 @@ const onLowerDrawerSubmit = async (payload: string) => {
             break
         case 'subpath:pathEdit':
             gmapStore.setMode('subpathEdit')
+            routeStore.subpathTempPathTouched = false
             drawerComp.value = 'SubpathEditConfirm'
             drawerActive.value += 1
             break

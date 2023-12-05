@@ -2,7 +2,7 @@
 import { Polyline } from "vue3-google-map"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useGmapStore } from "@/stores/GmapStore"
-import { computed, ref, watch } from "vue"
+import { computed, ref, watch} from "vue"
 
 import { DirectionReference } from "@/config"
 
@@ -20,7 +20,7 @@ const subpath = computed(() => store.subpathRange)
 
 const subpathEditMode = computed(() => gmapStore.subpathEditMode)
 const subpathDirectionMode = computed(() => gmapStore.subpathDirectionMode)
-const subpathDirectionConfirmMode = computed(()=>gmapStore.subpathDirectionConfirmMode)
+const subpathDirectionConfirmMode = computed(() => gmapStore.subpathDirectionConfirmMode)
 
 const defaultOption = {
     strokeColor: "blue",
@@ -49,7 +49,11 @@ const editablePath = computed(() => {
     }
 })
 
-const onEditUpdate = (ev: google.maps.PolyMouseEvent) => {
+const onEditUpdate = (ev?:any) => {
+    // 一回でもパス編集が行われたら触ったとしてパスの置き換えを行う。
+    if(ev!==undefined){
+        store.subpathTempPathTouched=true
+    }
     const path = editPathRef.value?.polyline?.getPath()
     const length = path?.getLength()
     const _head = path?.getAt(0)
@@ -67,7 +71,6 @@ const onEditUpdate = (ev: google.maps.PolyMouseEvent) => {
     if (subpath.value.tail) {
         points.push(subpath.value.points.slice(-1)[0])
     }
-
     store.setSubpathTempPath(points)
 }
 
@@ -116,6 +119,8 @@ watch([subpathEditMode, subpathDirectionMode, subpathDirectionConfirmMode], ([ed
             )
         nextToHeadPoint.value = { ...subpath.value.points[1] }
         nextToTailPoint.value = { ...subpath.value.points[subpath.value.count - 2] }
+        // 一回 onEditUpdate() を呼んでおかないと subpathTempPath が設定されないために何も編集しない場合、その範囲が消去されてしまう。
+        onEditUpdate()
 
     }
     // ルート探索モード
@@ -153,9 +158,8 @@ watch([subpathEditMode, subpathDirectionMode, subpathDirectionConfirmMode], ([ed
         controlPoints.value.splice(0)
     }
     // ルート探索確定モード
-    if( directionConfirmMode === true){
+    if (directionConfirmMode === true) {
         directionPoints.value = [...store.subpathTempPath]
-        console.log(directionPoints)
     }
 })
 const getOption = (points: any, editable: boolean = true) => {
@@ -205,7 +209,7 @@ const onDirectionUpdate = (ev: google.maps.PolyMouseEvent) => {
         <Polyline ref="dirPathRef" :options="getDirOption(dirCtrlPath, true)" @mouseup="onDirectionUpdate" />
     </template>
     <template v-if="subpathDirectionConfirmMode">
-        <Polyline :options="getDirOption(directionPoints,false)" />
+        <Polyline :options="getDirOption(directionPoints, false)" />
     </template>
 </template>
 
