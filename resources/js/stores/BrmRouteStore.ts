@@ -884,7 +884,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             this.subpathTemp = { ...this.subpath }
         },
 
-        subpathReplace() {
+        subpathReplace(poiDelete: boolean = false) {
 
             // パスの置換
             //　できるだけ元のポイントを残すようにする
@@ -922,7 +922,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
                     }
                     // 適合なしなので次のカーソルに進む
                 }
-                if(!match){
+                if (!match) {
                     new_x++
                     new_y--
                 }

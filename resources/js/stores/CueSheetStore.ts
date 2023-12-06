@@ -33,7 +33,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
         getArray(state) {
             return Array.from(state.cuePoints, (cue) => cue[1])
         },
-        
+
         /**
          * キューポイントが編集範囲か
          * 　POI の場合は常に可. editableRange が null を返したときも考慮
@@ -294,6 +294,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
          * 1. キューポイントの POI 化
          *      参照していた RoutePoint が消滅したとき
          *      RoutePoint が excluded になったとき
+         *      ※ option: poiDelete: boolean = true で POI化したポイントを消去
          * 2. start/finish ポイントの処理
          *      start/finish ポイントの参照する RoutePoint が末端でなくなればただの cue にする
          *      末端のポイントが start/finish でなくなってしまった場合は強制的に start/finish に変更
@@ -312,20 +313,24 @@ export const useCuesheetStore = defineStore('cuesheet', {
          * 7. 時間の計算
          *      cuePoint.openMin, closeMin はこの時点でつけられる
          */
-        update() {
+        update(poiDelete: boolean = false) {
 
             const routeStore = useBrmRouteStore()
             const brmRange = routeStore.brmRange
 
             // キューポイントの POI 化
             this.cuePoints.forEach((cpt: CuePoint) => {
-                // 元々 'poi' のときは終了
+                // 元々 'poi' のときは終了（
                 if (!cpt.routePointId) return
                 // ルートポイントが消滅したとき
                 if (!routeStore.idList.includes(cpt.routePointId)) {
-                    cpt.type = "poi"
-                    cpt.routePointId = null
-                    cpt.terminal = undefined
+                    if (poiDelete) {
+                        this.cuePoints.delete(cpt.id)
+                    } else {
+                        cpt.type = "poi"
+                        cpt.routePointId = null
+                        cpt.terminal = undefined
+                    }
                 } else {
                     // ルートポイントが除外区域ではないか？
                     const rpt = routeStore.getPointById(cpt.routePointId)

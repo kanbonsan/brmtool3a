@@ -504,17 +504,7 @@ const openDrawer = (cmd: string) => {
  * 画面下のドロワー内 slot からの submit をキャッチ
  * @param payload 
  */
-const onLowerDrawerSubmit = async (payload: any) => {
-
-    // submit function がオプションを使えるように拡張
-    let command: string = ''
-    let option: Object | string
-    if (typeof payload === 'object') {
-        command = payload.command
-        option = payload.option ?? {}
-    } else if (typeof payload === 'string') {
-        command = payload
-    }
+const onLowerDrawerSubmit = async (command: string, options?: any) => {
 
     switch (command) {
         // サブパスをキャンセル
