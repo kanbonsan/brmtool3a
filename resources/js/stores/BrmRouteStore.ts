@@ -885,7 +885,11 @@ export const useBrmRouteStore = defineStore('brmroute', {
         },
 
         subpathReplace() {
-            // excluded range を考慮していない
+
+            // パスの置換
+            //　できるだけ元のポイントを残すようにする
+            //　新しいパス・元のパス それぞれ先頭と末尾から同一ポイントを探していく
+            //　同一点は緯度・経度それぞれ小数5桁までで比較するようにした
 
             const origPath: Array<RoutePoint> = []
             for (let i = this.subpath.begin!; i < this.subpath.end!; i++) {
@@ -893,15 +897,36 @@ export const useBrmRouteStore = defineStore('brmroute', {
             }
 
             const newPath = this.subpathTempPath.map(pt => new RoutePoint(pt.lat, pt.lng))
+            const equal = (a: RoutePoint, b: RoutePoint) => a.lat.toFixed(5) === b.lat.toFixed(5) && a.lng.toFixed(5) === b.lng.toFixed(5)
 
             let org_x = 0, org_y = origPath.length - 1, new_x = 0, new_y = newPath.length - 1
             while (new_x < new_y) {
-
+                let match = false
+                // cur_x, cur_y はそれぞれ origPath 上の cursor の意味
+                // 一点見つかれば検索範囲（org_x ⇔ org_y）をその内側に徐々に絞り込んでいく
                 for (let cur_x = org_x, cur_y = org_y; cur_x <= org_y && cur_y >= org_x; cur_x++, cur_y--) {
-
+                    if (equal(origPath[cur_x], newPath[new_x])) {
+                        newPath[new_x] = origPath[cur_x]
+                        org_x = cur_x + 1
+                        new_x += 1
+                        match = true
+                        break
+                    }
+                    // origPath 上の同じ RoutePoint を設定してしまわないようにするために、一点が決まればそこで break して次に進むようにした
+                    if (equal(origPath[cur_y], newPath[new_y])) {
+                        newPath[new_y] = origPath[cur_y]
+                        org_y = cur_y - 1
+                        new_y -= 1
+                        match = true
+                        break
+                    }
+                    // 適合なしなので次のカーソルに進む
+                }
+                if(!match){
+                    new_x++
+                    new_y--
                 }
             }
-
             this.points.splice(this.subpath.begin!, this.subpath.end! - this.subpath.begin! + 1, ...newPath)
             this.update()
         },

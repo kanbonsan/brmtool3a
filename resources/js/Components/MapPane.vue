@@ -14,7 +14,7 @@
                 <el-button style="margin-bottom:15px;" :disabled="!isEditMode"
                     @click="openDrawer('editableRange')">編集範囲</el-button>
             </CustomControl>
-            <ProfileMarker/>
+            <ProfileMarker />
         </GoogleMap>
         <Teleport to="body">
             <lower-drawer v-model="drawerActive" :title="drawers[drawerComp]?.title" :timeout="drawers[drawerComp]?.timeout"
@@ -178,7 +178,7 @@ const drawers: Drawers = {
         timeout: 0,
         timeoutFunc: () => {
             gmapStore.setMode('edit')
-            routeStore.subpathTempPathTouched=false
+            routeStore.subpathTempPathTouched = false
             routeStore.resetSubpath()
         }
     },
@@ -504,9 +504,19 @@ const openDrawer = (cmd: string) => {
  * 画面下のドロワー内 slot からの submit をキャッチ
  * @param payload 
  */
-const onLowerDrawerSubmit = async (payload: string) => {
+const onLowerDrawerSubmit = async (payload: any) => {
 
-    switch (payload) {
+    // submit function がオプションを使えるように拡張
+    let command: string = ''
+    let option: Object | string
+    if (typeof payload === 'object') {
+        command = payload.command
+        option = payload.option ?? {}
+    } else if (typeof payload === 'string') {
+        command = payload
+    }
+
+    switch (command) {
         // サブパスをキャンセル
         case 'ReturnToEdit':
             gmapStore.setMode('edit')

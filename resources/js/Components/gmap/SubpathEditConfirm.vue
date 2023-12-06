@@ -1,7 +1,8 @@
 <template>
     <el-row>
-        サブパスのポイントを手動で編集します。キューポイントが設定されているポイントを編集した場合、キューポイントは一旦POIとしてキューシートから分離されます。
+        サブパスのポイントを手動で編集します。キューポイントは分離されてPOIになることがあります。
     </el-row>
+    <el-checkbox v-model="deletePoi" label="POI化せずにキューポイントを削除する"></el-checkbox>
     <el-row justify="end">
         <el-button @click="onCancel">キャンセル</el-button>
         <el-button @click="onSubmit" :disabled="!touched">編集確定</el-button>
@@ -9,13 +10,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed,ref} from "vue"
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useBrmRouteStore } from '@/stores/BrmRouteStore'
 
 const props = defineProps(['resetTimeout', 'submitFunc'])
 const routeStore = useBrmRouteStore()
+
+// 編集されたか
 const touched = computed(() => routeStore.subpathTempPathTouched)
+
+// 遊離キューポイントをPOI化せずに削除するか
+const deletePoi = ref(true)
 
 const onSubmit = () => {
 
