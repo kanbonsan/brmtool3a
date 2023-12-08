@@ -1,24 +1,21 @@
 <template>
     <el-row>
-        サブパスのポイントを手動で編集します. ルートから外れたキューポイントを削除するかPOIで残すか選択できます.
+        サブパスの範囲のポイントを削除します. ルートから外れたキューポイントを削除するかPOIで残すか選択できます.
     </el-row>
     <el-checkbox v-model="deletePoi" label="キューポイントを削除する"></el-checkbox>
     <el-row justify="end">
         <el-button @click="onCancel">キャンセル</el-button>
-        <el-button @click="onSubmit" :disabled="!touched">編集確定</el-button>
+        <el-button @click="onSubmit">削除</el-button>
     </el-row>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { ref } from "vue"
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useBrmRouteStore } from '@/stores/BrmRouteStore'
 
 const props = defineProps(['resetTimeout', 'submitFunc'])
 const routeStore = useBrmRouteStore()
-
-// 編集されたか
-const touched = computed(() => routeStore.subpathTempPathTouched)
 
 // 遊離キューポイントをPOI化せずに削除するか
 const deletePoi = ref(false)
@@ -34,7 +31,7 @@ const onSubmit = () => {
             type: 'warning'
         }
     ).then(() => {
-        props.submitFunc('subpath:editPathConfirm', { deletePoi: deletePoi.value })
+        props.submitFunc('subpath:deleteConfirm', { deletePoi: deletePoi.value })
     }).catch(() => {
         ElMessage({ type: 'info', message: '取り消しました.' })
     })

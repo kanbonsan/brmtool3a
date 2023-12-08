@@ -52,7 +52,7 @@ const submitUpload = async () => {
             url: "/api/upload/file",
             data: formData,
         })
-        console.log('axios returns')
+
         // error 処理
         if (response.data.status === "error") {
             ElMessage({ type: 'warning', message: 'ファイルが上手く読み込めませんでした.' })

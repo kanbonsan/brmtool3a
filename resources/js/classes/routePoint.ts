@@ -46,6 +46,12 @@ export class RoutePoint {
 
     /** 複製したポイントを返す. ID は新たに振る */
     clone() {
-        return new RoutePoint(this.lat, this.lng, this.alt)
+        const pt = new RoutePoint(this.lat, this.lng, this.alt)
+
+        pt.smoothAlt = this.smoothAlt
+        pt.excluded = this.excluded
+        pt.demCached = this.demCached
+
+        return pt
     }
 }

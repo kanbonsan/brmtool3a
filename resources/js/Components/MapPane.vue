@@ -55,6 +55,7 @@ import SubpathCommand from "./gmap/SubpathCommand.vue"
 import SubpathEditConfirm from "./gmap/SubpathEditConfirm.vue"
 import SubpathDirection from "./gmap/SubpathDirection.vue"
 import SubpathDirectionConfirm from "./gmap/SubpathDirectionConfirm.vue"
+import SubpathDeleteConfirm from "./gmap/SubpathDeleteConfirm.vue"
 
 // ポップアップメニュー
 import ExcludePolyMenu from "@/Components/PopupMenu/ExcludedPolylineMenu.vue"
@@ -182,6 +183,15 @@ const drawers: Drawers = {
             routeStore.resetSubpath()
         }
     },
+    SubpathDeleteConfirm: {
+        component: SubpathDeleteConfirm,
+        title: "ポイント削除",
+        timeout: 0,
+        timeoutFunc: () => {
+            gmapStore.setMode('edit')
+            routeStore.resetSubpath()
+        }
+    },
     SubpathDirection: {
         component: SubpathDirection,
         title: "ルート探索",
@@ -259,9 +269,10 @@ watch(
         /** ルートの設定 */
 
         const result = await toolStore.restore()
-        if (!result) {
-            routeStore.setPoints(brm.encodedPathAlt)
-        }
+
+        // if (!result) {
+        //     routeStore.setPoints(brm.encodedPathAlt)
+        // }
 
         map.addListener(
             "bounds_changed",
@@ -505,7 +516,6 @@ const openDrawer = (cmd: string) => {
  * @param payload 
  */
 const onLowerDrawerSubmit = async (command: string, options?: any) => {
-
     switch (command) {
         // サブパスをキャンセル
         case 'ReturnToEdit':
@@ -525,18 +535,25 @@ const onLowerDrawerSubmit = async (command: string, options?: any) => {
             drawerActive.value += 1
             break
         case 'subpath:editPathConfirm':
-            routeStore.subpathReplace()
+            toolStore.registerUndo('サブパス編集')
+            routeStore.subpathReplace(options?.deletePoi)
             routeStore.resetSubpath()
             gmapStore.setMode('edit')
             drawerActive.value = 0
             break
         case 'subpath:delete':
-            routeStore.subpathDelete()
+            drawerComp.value = 'SubpathDeleteConfirm'
+            drawerActive.value += 1
+            break
+        case 'subpath:deleteConfirm':
+            toolStore.registerUndo('サブパス削除')
+            routeStore.subpathDelete(options?.deletePoi)
             routeStore.resetSubpath()
             gmapStore.setMode('edit')
             drawerActive.value = 0
             break
         case 'subpath:exclude':
+            toolStore.registerUndo('サブパス除外')
             routeStore.subpathSetExclude()
             routeStore.resetSubpath()
             gmapStore.setMode('edit')
@@ -548,12 +565,12 @@ const onLowerDrawerSubmit = async (command: string, options?: any) => {
             drawerActive.value += 1
             break
         case 'subpath:directionQuery':
-
             await routeStore.directionQuery()
             gmapStore.setMode('subpathDirectionConfirm')
             drawerComp.value = 'SubpathDirectionConfirm'
             drawerActive.value += 1
-
+            break
+        case 'subpath:flat':
             break
 
     }

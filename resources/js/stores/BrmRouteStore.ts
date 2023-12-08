@@ -578,7 +578,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /**
          * 諸々の操作をしたあとにパスの状態を適切にする
          */
-        async update() {
+        async update(poiDelete: boolean = false) {
 
             const cuesheetStore = useCuesheetStore()
 
@@ -596,7 +596,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
             this.setSmooth()
 
             // キューポイントの update
-            cuesheetStore.update()
+            cuesheetStore.update(poiDelete)
 
             // 標高獲得用の DEM タイルを予めサーバーにキャッシュしておく
             this.cacheDemTiles()
@@ -928,15 +928,15 @@ export const useBrmRouteStore = defineStore('brmroute', {
                 }
             }
             this.points.splice(this.subpath.begin!, this.subpath.end! - this.subpath.begin! + 1, ...newPath)
-            this.update()
+            this.update(poiDelete)
         },
 
-        subpathDelete() {
+        subpathDelete(poiDelete: boolean = false) {
             this.setSubpathTempPath([
-                { ...this.points[this.subpath.begin!] },
-                { ...this.points[this.subpath.end!] }
+                this.points[this.subpath.begin!].clone(),
+                this.points[this.subpath.end!].clone()
             ])
-            this.subpathReplace()
+            this.subpathReplace(poiDelete)
         },
 
         subpathSetExclude() {

@@ -34,6 +34,12 @@ type Properties = {
     startPcClose: number                        // スタートの閉鎖タイム（日本では 30分）
 }
 
+// Undo は一回のみ sessionStorage に保存
+type UndoInfo = {
+    ts?: number
+    desc?: string,
+}
+
 type Panes = {
     [pane: string]: number
 }
@@ -43,6 +49,7 @@ type State = {
     fileInfo: FileInfo,
     properties: Properties,
     panes: Panes
+    undoInfo: UndoInfo
 }
 
 /*
@@ -82,7 +89,8 @@ export const useToolStore = defineStore('tool', {
             vertical: 60,
             left: 65,
             right: 35
-        }
+        },
+        undoInfo: {}
     }),
 
     getters: {
@@ -109,8 +117,32 @@ export const useToolStore = defineStore('tool', {
 
     actions: {
 
-        setPaneSize( name:string, percentage: number){
+        setPaneSize(name: string, percentage: number) {
             this.panes[name] = percentage
+        },
+
+        registerUndo(desc: string = 'noDesc') {
+            this.$patch({
+                undoInfo: {
+                    ts: Date.now(),
+                    desc
+                }
+            })
+            this.save(true)
+        },
+
+        async undo() {
+            try {
+                const result = await this.restore(true)
+            } finally {
+                this.$patch({
+                    undoInfo: {
+                        ts: undefined,
+                        desc: undefined
+                    }
+                })
+                window.sessionStorage.removeItem('brmtool3')
+            }
         },
 
         pack() {
@@ -122,7 +154,7 @@ export const useToolStore = defineStore('tool', {
             this.fileInfo = { ...this.fileInfo, ...fileInfo }
             this.properties = { ...this.properties, ...properties }
             this.panes = { ...this.panes, ...panes }
-            return 
+            return
         },
 
         // brmfile 保存用データ 兼 localstorage 保存用データ
@@ -141,18 +173,20 @@ export const useToolStore = defineStore('tool', {
             }
         },
 
-        save() {
+        save(undo: boolean = false) {
+            const storage = undo ? 'sessionStorage' : 'localStorage'
             const data = this.snapshot()
-            window.localStorage.setItem('brmtool3', JSON.stringify(data))
+
+            window[storage].setItem('brmtool3', JSON.stringify(data))
         },
 
-        async restore() {
-
+        async restore(undo: boolean = false) {
+            const storage = undo ? 'sessionStorage' : 'localStorage'
             const routeStore = useBrmRouteStore()
             const cuesheetStore = useCuesheetStore()
             const gmapStore = useGmapStore()
 
-            const data = window.localStorage.getItem('brmtool3')
+            const data = window[storage].getItem('brmtool3')
             if (!data) {
                 console.log('no backup')
                 return false
@@ -190,7 +224,7 @@ export const useToolStore = defineStore('tool', {
             const routeStore = useBrmRouteStore()
             const cuesheetStore = useCuesheetStore()
             const gmapStore = useGmapStore()
-
+            this.registerUndo('ファイル読み込み')
             if (data.type === 'track') { // GPX ファイル読み込み時
                 const tracks: Array<{ lat: number, lng: number, alt: number }> = data.track.map((pt: { lat: string, lng: string, alt: string }) => ({ lat: parseFloat(pt.lat), lng: parseFloat(pt.lng), alt: parseFloat(pt.alt) }))
                 const route = routeStore.makePackData(tracks)
@@ -199,8 +233,6 @@ export const useToolStore = defineStore('tool', {
                 await routeStore.unpack(route)
                 gmapStore.moveStreetViewByPoint(routeStore.points[0], 50)
             } else if (data.type === 'brm') {
-                console.log(data)
-                
                 const { tool, route, cuesheet } = data.brmData
                 this.reset()
                 await this.unpack(tool)
@@ -208,6 +240,13 @@ export const useToolStore = defineStore('tool', {
                 await cuesheetStore.unpack(cuesheet)
                 gmapStore.moveStreetViewByPoint(routeStore.points[0], 50)
             }
+            // この場合はリセットがかかって undo 情報が失われるので追記（保存そのものは先にしてある）
+            this.$patch({
+                undoInfo:{
+                    ts: Date.now(),
+                    desc: 'ファイル読み込み'
+                }
+            })
             return data
         },
 

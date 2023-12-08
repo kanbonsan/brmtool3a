@@ -87,13 +87,13 @@ const resetTimeout = debounce(() => {
  * 親コンポーネントに submit 内容を送って drawer は消去
  * @param payload 
  */
-const submitFunc = (payload: any) => {
+const submitFunc = (payload: any, options?:any) => {
     // timeout 処理が残っていると次に timeout=0 がきたときにも残りの timeout を食らう
     if (timer !== null) {
         clearTimeout(timer)
     }
     emit('update:modelValue', 0)
-    emit('submit', payload)
+    emit('submit', payload, options)
 
 }
 

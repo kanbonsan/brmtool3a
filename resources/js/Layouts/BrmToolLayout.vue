@@ -9,27 +9,31 @@
             <el-menu-item index="1-4">エクスポート</el-menu-item>
             <el-menu-item index="1-5" @click="devTest">開発テスト</el-menu-item>
         </el-sub-menu>
+        <el-sub-menu index="2">
+            <template #title>編集</template>
+            <el-menu-item index="2-1" :disabled="!undo" @click="execUndo">{{ undoText }}</el-menu-item>
+        </el-sub-menu>
 
-        <el-menu-item index="2" @click="openDialog(BrmSetting, 'ブルベ設定')">ブルベ設定</el-menu-item>
+        <el-menu-item index="3" @click="openDialog(BrmSetting, 'ブルベ設定')">ブルベ設定</el-menu-item>
         <div style="flex-grow:1" />
         <template v-if="$page.props.auth.user">
-            <el-sub-menu index="3">
+            <el-sub-menu index="4">
                 <template #title>アカウント</template>
-                <el-menu-item index="3-1">
+                <el-menu-item index="4-1">
                     <Link :href="route('dashboard')">アカウント情報</Link>
                 </el-menu-item>
-                <el-menu-item index="3-2">
+                <el-menu-item index="4-2">
                     <Link :href="route('logout')">ログアウト</Link>
                 </el-menu-item>
             </el-sub-menu>
         </template>
         <template v-else>
-            <el-menu-item index="4" v-if="!$page.props.auth.user">
+            <el-menu-item index="5" v-if="!$page.props.auth.user">
                 <Link :href="route('login')">
                 ログイン
                 </Link>
             </el-menu-item>
-            <el-menu-item index="5" v-if="!$page.props.auth.user">
+            <el-menu-item index="6" v-if="!$page.props.auth.user">
                 <Link v-if="canRegister" :href="route('register')">
                 登録
                 </Link>
@@ -52,7 +56,7 @@
  * MapPane.vue の 中で行う。
  */
 
-import { ref, onMounted, onUnmounted, type Component } from "vue"
+import { ref, computed, onMounted, onUnmounted, type Component } from "vue"
 import { Link, router } from "@inertiajs/vue3"
 import axios from "axios"
 
@@ -85,7 +89,32 @@ const logout = () => {
 }
 
 const toolStore = useToolStore()
+
+// データの自動保存（イベントをリムーブするためにラップ関数に）
 const saveData = () => { toolStore.save() }
+
+// Undo 機能
+// 一回だけの undo
+// undo データは sessionStorage に保存して自動バックアップとは別に
+const undo = computed(() => {
+    const undoInfo = toolStore.undoInfo
+    if (undoInfo.ts === undefined) {
+        return undefined
+    } else {
+        return undoInfo
+    }
+})
+const undoTime = ref('0秒前')
+const undoText = computed(()=>{
+    if(!undo.value){
+        return "やり直し"   // placeholder 的な
+    } else {
+        return `「${undo.value.desc}」をやり直し　(${undoTime.value})`
+    }
+})
+const execUndo = async ()=>{
+    const result = await toolStore.undo()
+}
 
 const devTest = async () => {
     console.log('save')
@@ -96,7 +125,30 @@ const devTest = async () => {
 }
 
 onMounted(() => {
+    // 閉じる前のデータ保存
     window.addEventListener('beforeunload', saveData)
+    window.setInterval(() => {
+        if (undo.value !== undefined) {
+            let ago = ''
+            const elapsed = (Date.now() - undo.value.ts!) / 1000
+            if (elapsed > 365 * 24 * 3600) {
+                ago = `約${(elapsed / 365 / 24 / 3600).toFixed(0)}年前`
+            } else if (elapsed > 30 * 24 * 3600) {
+                ago = `約${(elapsed / 30 / 24 / 3600).toFixed(0)}ヶ月前`
+            } else if (elapsed > 24 * 3600) {
+                ago = `約${(elapsed / 24 / 3600).toFixed(0)}日前`
+            } else if (elapsed > 3600) {
+                ago = `約${(elapsed / 3600).toFixed(0)}時間前`
+            } else if (elapsed > 60) {
+                ago = `約${(elapsed / 60).toFixed(0)}分前`
+            } else {
+                ago = `${elapsed.toFixed(0)}秒前`
+            }
+            undoTime.value = ago
+        } else {
+            undoTime.value = '0秒前'
+        }
+    }, 10_000)
 })
 
 onUnmounted(() => {
