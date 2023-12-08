@@ -1,12 +1,14 @@
 <template>
-    <el-row>
-        編集範囲の中でサブパスの範囲を設定します
+    <el-row :gutter="20">
+        <el-col :span="20">
+            <el-slider v-model="subpathRange" range :min="editableIndex[0]" :max="editableIndex[1]"
+                @input="onSliderInput"></el-slider>
+        </el-col>
+        <el-col :span="4">
+
+            <el-button @click="submitFunc('subpathRange:submit')">決定</el-button>
+        </el-col>
     </el-row>
-    <el-slider v-model="subpathRange" range :min="editableIndex[0]" :max="editableIndex[1]"
-        @input="onSliderInput"></el-slider>
-    <el-row justify="end">
-        <el-button @click="submitFunc('subpathRange:submit')">決定</el-button>
-        <el-button @click="submitFunc('ReturnToEdit')">キャンセル</el-button></el-row>
 </template>
 
 <script setup lang="ts">
@@ -20,13 +22,12 @@ const editableIndex = computed(() => routeStore.editableIndex)
 
 const subpathRange = computed({
     get(): any { return routeStore.subpathIndex },
-
     set(val: [number, number]) {
         routeStore.setSubpath(val)
     }
 })
 
-const onSliderInput = ()=>{
+const onSliderInput = () => {
     routeStore
     props.resetTimeout()
 }

@@ -2,9 +2,10 @@
     <Transition>
         <div ref="el" v-if="modelValue > 0" class="drawer" :style="styles">
             <el-card style="height:100%;">
-                <template #header>{{ title }}
+                <template #header>
+                    <el-tooltip :disabled="!tooltip" :content="tooltip" placement="right"><span>{{ title }}</span></el-tooltip>
                     <div style="position:absolute;top:5px;right:5px">
-                        <el-icon :size="32" @click="() => emit('update:modelValue', 0)">
+                        <el-icon :size="32">
                             <circle-close @click="onCancelClose"></circle-close>
                         </el-icon>
                     </div>
@@ -24,6 +25,8 @@ interface Props {
     title: string | undefined
     timeout: number
     modelValue: number
+    height?: number
+    tooltip?: string
 }
 
 const props = defineProps<Props>()
@@ -34,7 +37,8 @@ const el = ref<HTMLElement | null>(null)
 const paneWidth = ref<number>()
 const paneHeight = ref<number>()
 const profilePaneHeight = ref<number>()
-const drawerHeight = ref(200)
+
+const drawerHeight = computed(()=>props.height ?? 200)
 
 const styles = computed(() => ({
     zIndex: 2000,

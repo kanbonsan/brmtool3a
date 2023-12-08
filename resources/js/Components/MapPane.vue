@@ -17,7 +17,7 @@
             <ProfileMarker />
         </GoogleMap>
         <Teleport to="body">
-            <lower-drawer v-model="drawerActive" :title="drawers[drawerComp]?.title" :timeout="drawers[drawerComp]?.timeout"
+            <lower-drawer v-model="drawerActive" :title="drawers[drawerComp]?.title" :tooltip="drawers[drawerComp].tooltip" :timeout="drawers[drawerComp]?.timeout" :height="drawers[drawerComp].drawerHeight"
                 @timeout="drawers[drawerComp]?.timeoutFunc" @submit="onLowerDrawerSubmit" v-slot="{ reset, submit }">
                 <component :is="drawers[drawerComp]?.component" :resetTimeout="reset" :submitFunc="submit"></component>
             </lower-drawer>
@@ -31,7 +31,6 @@ import type { Component } from 'vue'
 
 import { GoogleMap, Marker, CustomControl } from "vue3-google-map"
 import { googleMapsKey } from "@/Components/gmap/keys"
-import brm from "../../sample/sample200.brm.json"
 import axios from "axios"
 import { useMouseInElement } from '@vueuse/core'
 
@@ -56,6 +55,7 @@ import SubpathEditConfirm from "./gmap/SubpathEditConfirm.vue"
 import SubpathDirection from "./gmap/SubpathDirection.vue"
 import SubpathDirectionConfirm from "./gmap/SubpathDirectionConfirm.vue"
 import SubpathDeleteConfirm from "./gmap/SubpathDeleteConfirm.vue"
+import SubpathFlatConfirm from "./gmap/SubpathFlatConfirm.vue"
 
 // ポップアップメニュー
 import ExcludePolyMenu from "@/Components/PopupMenu/ExcludedPolylineMenu.vue"
@@ -100,7 +100,9 @@ export type drawerComponent = {
     component: Component
     title?: string
     timeout: number,
-    timeoutFunc?: () => void   // タイムアウト時の後処理
+    timeoutFunc?: () => void,   // タイムアウト時の後処理
+    drawerHeight?: number,
+    tooltip?: string
 }
 export type Drawers = {
     [key: string]: drawerComponent
@@ -150,28 +152,35 @@ const drawers: Drawers = {
     Editable: {
         component: EditableRangeSlider,
         title: "編集範囲",
+        tooltip: "編集範囲を限定することで重なった部分の編集をしやすくします",
         timeout: 15_000,
         timeoutFunc: () => {
             gmapStore.setMode('edit')
-        }
+        },
+        drawerHeight: 120
     },
     Subpath: {
         component: SubpathRangeSlider,
-        title: "サブパス範囲設定",
+        title: "サブパス設定",
+        tooltip: "操作するサブパス範囲を設定します",
         timeout: 15_000,
         timeoutFunc: () => {
             gmapStore.setMode('edit')
             routeStore.resetSubpath()
-        }
+        },
+        drawerHeight: 120
     },
     SubpathCommand: {
         component: SubpathCommand,
-        title: "サブパスコマンド",
+        title: "サブパス操作",
+        tooltip: "サブパスに対するコマンドを選択します",
         timeout: 0,
-        timeoutFunc: () => {   // タイムアウトにならない設定だがクローズボタンを押したときに呼んでもらって設定をリセットする
+        timeoutFunc: () => {
             gmapStore.setMode('edit')
             routeStore.resetSubpath()
-        }
+        },
+        drawerHeight: 120
+
     },
     SubpathEditConfirm: {
         component: SubpathEditConfirm,
@@ -209,7 +218,17 @@ const drawers: Drawers = {
             gmapStore.setMode('edit')
             routeStore.resetSubpath()
         }
-    }
+    },
+    SubpathFlatConfirm: {
+        component: SubpathFlatConfirm,
+        title: "標高のフラット化",
+        timeout: 0,
+        timeoutFunc: () => {
+            gmapStore.setMode('edit')
+            routeStore.resetSubpath()
+        },
+        drawerHeight: 150
+    },
 }
 
 //マップ上の表示を一時消去するタイマー（重複処理用）
@@ -571,6 +590,15 @@ const onLowerDrawerSubmit = async (command: string, options?: any) => {
             drawerActive.value += 1
             break
         case 'subpath:flat':
+            drawerComp.value='SubpathFlatConfirm'
+            drawerActive.value +=1
+            break
+        case 'subpath:flatConfirm':
+            toolStore.registerUndo('トンネル化')
+            routeStore.subpathAltFlat()
+            routeStore.resetSubpath()
+            gmapStore.setMode('edit')
+            drawerActive.value = 0
             break
 
     }

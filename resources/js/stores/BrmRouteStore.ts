@@ -944,6 +944,25 @@ export const useBrmRouteStore = defineStore('brmroute', {
             this.setExclude(this.subpath.begin!, this.subpath.end!)
         },
 
+        subpathAltFlat() {
+            console.log('alt flatten')
+            const alt_b = this.points[this.subpath.begin!].alt
+            const alt_e = this.points[this.subpath.end!].alt
+            const dist_b = this.points[this.subpath.begin!].routeDistance
+            const dist_e = this.points[this.subpath.end!].routeDistance
+            const slope = (alt_e - alt_b) / (dist_e - dist_b)
+            this.$patch(() => {
+                for (let i = this.subpath.begin!; i <= this.subpath.end!; i++) {
+                    const pt = this.points[i]
+                    pt.alt = alt_b + (pt.routeDistance - dist_b) * slope
+                    pt.altCorrected = true
+                    console.log(pt.alt)
+
+                }
+            })
+            this.update()
+        },
+
 
         // Polyline 上を動かしてサブパスを決めるときの一時的なサブパス範囲
         // mouseout でリセットされる
@@ -965,7 +984,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
          */
         async directionQuery() {
             const apiKey = import.meta.env.VITE_OPENROUTESERVICE_KEY
-            const profile = 'cycling-road'  // 'driving-car', 'driving-hgv', 'cycling-regular', 'cycling-mountain', 'cycling-electric'
+            const profile = 'driving-car'  // 'driving-car', 'driving-hgv', 'cycling-regular', 'cycling-mountain', 'cycling-electric'
             const url = `https://api.openrouteservice.org/v2/directions/${profile}/json`
             const coordinates = [...this.subpathDirectionControlPoints.map(pt => ([pt.lng, pt.lat]))]
 
