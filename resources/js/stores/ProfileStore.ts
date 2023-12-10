@@ -196,15 +196,7 @@ export const useProfileStore = defineStore('profile', {
             return (alt: number) => {
                 return this.graphOrigin.yOrig! - Math.floor((alt - state.altitude.low) * this.graphResolution.y!)
             }
-        },
-
-        getDist(state) {
-            return (x: number) => {
-
-            }
         }
-
-
     },
 
     actions: {
@@ -213,8 +205,10 @@ export const useProfileStore = defineStore('profile', {
         },
 
         setProfileDistance({begin,end}:{begin?:number, end?:number}){
+            const routeStore=useBrmRouteStore()
             this.$patch(()=>{
-                
+                this.distance.begin = routeStore.points[begin!].brmDistance
+                this.distance.end = routeStore.points[end!].brmDistance
             })
         }
 

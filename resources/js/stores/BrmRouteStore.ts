@@ -308,6 +308,12 @@ export const useBrmRouteStore = defineStore('brmroute', {
             return [begin, end]
         },
 
+        /**
+         * すべてが選択範囲か ＝ 選択範囲を設定されていないか 
+         */
+        fullyEditable(): boolean {
+            return this.editableIndex[0] === 0 && this.editableIndex[1] === this.brmRange.end
+        },
 
         /**
          * 基本的なパスの Polyline を描画するためのポイントリストを返す
@@ -316,7 +322,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
          * @param state 
          * @returns 
          */
-        editableRanges(state): EditableRanges {
+        editableRanges(): EditableRanges {
 
             const [begin, end] = this.editableIndex
 
