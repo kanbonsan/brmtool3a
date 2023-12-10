@@ -8,7 +8,7 @@ type State = {
     width: number | undefined,
     height: number | undefined,
 
-    // グラフエリア
+    // グラフエリア(ピクセル)
     margin: {
         top: number,
         bottom: number,
@@ -28,11 +28,9 @@ type State = {
 
     // MapPane の RoutePoint の mouseover に反応
     routePoint: RoutePoint | undefined,
-
-    updateCount: number,
 }
 
-const distancePitchList = [5000, 10_000, 20_000, 25_000, 50_000, 100_000]//[5, 10, 50, 100, 200, 250, 500, 1000, 5000, 10_000, 20_000, 25_000, 50_000, 100_000]
+const distancePitchList = [5000, 10_000, 20_000, 25_000, 50_000, 100_000]
 const altitudePitchList = [50, 100, 250, 500, 1000, 2000]
 // グラフの目盛り間隔 ピクセル
 const graphScalePitch = 50
@@ -57,8 +55,7 @@ export const useProfileStore = defineStore('profile', {
                 low: 0.0,
                 high: 1000.0,
             },
-            routePoint: undefined,
-            updateCount: 0
+            routePoint: undefined
 
         }),
 
@@ -76,6 +73,7 @@ export const useProfileStore = defineStore('profile', {
             return { width, height, range }
         },
 
+        // グラフの目盛りを求める
         graphScale(state): { xAxis: number | undefined, yAxis: number | undefined } {
             if (!state.width || !state.height || !state.distance.end || !state.altitude.high) {
                 return { xAxis: undefined, yAxis: undefined }
@@ -83,7 +81,8 @@ export const useProfileStore = defineStore('profile', {
 
             // graphScalePitch(ピクセル)分の距離・標高
             const xPitch = (state.distance.end - state.distance.begin) / this.graphSize.width! * graphScalePitch
-            const yPitch = (state.altitude.high - state.altitude.low) / this.graphSize.height! * graphScalePitch
+            // グラフの上部に余白を付けるために標高に少し足す
+            const yPitch = (state.altitude.high - state.altitude.low + 200) / this.graphSize.height! * graphScalePitch
             // それぞれに近い目盛りを求める
             const xAxis = distancePitchList.reduce((pitch, current) => xPitch < current ? pitch : current)
             const yAxis = altitudePitchList.reduce((pitch, current) => yPitch < current ? pitch : current)
@@ -208,9 +207,16 @@ export const useProfileStore = defineStore('profile', {
 
     },
 
-    actions:{
-        setRoutePoint(routePoint: RoutePoint|undefined){
+    actions: {
+        setRoutePoint(routePoint: RoutePoint | undefined) {
             this.routePoint = routePoint
+        },
+
+        setProfileDistance({begin,end}:{begin?:number, end?:number}){
+            this.$patch(()=>{
+                
+            })
         }
+
     }
 })

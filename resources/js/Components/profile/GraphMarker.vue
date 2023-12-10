@@ -52,8 +52,6 @@ const draw = (ctx: CanvasRenderingContext2D, x?: number) => {
 
 }
 
-
-
 onMounted(() => {
     const ctx = marker.value?.getContext('2d')
     if (!ctx) return
@@ -65,7 +63,7 @@ onMounted(() => {
         if (pt !== undefined && isOutside) {    // && isOutside を入れないと、profileMap にマウスが入っても pt がリセットされないことがあった.
             draw(ctx, pt.brmDistance * profileStore.graphResolution.x!)
         } else if (range.nw.x <= x && x <= range.se.x && range.nw.y <= y && y <= range.se.y) {
-            routeStore.setProfileMapMarkerDistance((x - range.nw.x) / profileStore.graphResolution.x!)
+            routeStore.setProfileMapMarkerDistance((x - range.nw.x) / profileStore.graphResolution.x! + profileStore.distance.begin)
             draw(ctx, x - range.nw.x)
         } else {
             // 引き出し線を消すために引数無しで呼ぶ
