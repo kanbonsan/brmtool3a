@@ -9,7 +9,7 @@ const props = defineProps(["api", "map", "ready", "visible"])
 </script>
 
 <template>
-    <EditablePolyline :visible="visible"/>
+    <EditablePolyline :visible="visible" :ready="ready"/>
     <ExcludedPolyline :visible="visible"/>
     <SubpathPolyline :visible="visible" :map="map"/>
 </template>

@@ -12,9 +12,9 @@
         </template>
 
         <el-row v-if="gmapStore.editMode || gmapStore.subpathMode">
-            <el-tooltip placement="right" content="キューポイントを設定します" :auto-close="2000">
+            <el-tooltip placement="right" content="キューポイントを設置します" :auto-close="2000">
                 <el-button class="menu-button" size="small" type="success"
-                    @click="onClick('addCuePoint')">キューポイント設定</el-button>
+                    @click="onClick('addCuePoint')">キューポイント設置</el-button>
             </el-tooltip>
         </el-row>
         <el-row v-if="gmapStore.editMode">

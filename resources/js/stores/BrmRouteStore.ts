@@ -245,6 +245,19 @@ export const useBrmRouteStore = defineStore('brmroute', {
             }
         },
 
+        /** BRM distance → RoutePoint プロフィールマップ上のクリックでマップをセンタリングする */
+        getPointByBrmDistance() {
+            return (distance: number) => {
+                const { begin, end } = this.brmRange
+                for (let i = begin + 1; i <= end; i++) {
+                    if (this.points[i].brmDistance > distance) {
+                        return this.points[i - 1]
+                    }
+                }
+                return this.points[end]
+            }
+        },
+
         /**
          * (getter) 除外範囲の開始と終了の各インデックスを求める
          * リアクティブに polyline を書き換えてもらうために unique ID を Symbol() で振る

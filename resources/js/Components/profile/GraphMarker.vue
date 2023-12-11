@@ -6,6 +6,7 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import { useProfileStore } from "@/stores/ProfileStore"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
+import { useGmapStore } from '@/stores/GmapStore'
 import { useMouseInElement } from '@vueuse/core'
 
 const props = defineProps<
@@ -13,6 +14,7 @@ const props = defineProps<
 
 const profileStore = useProfileStore()
 const routeStore = useBrmRouteStore()
+const gmapStore = useGmapStore()
 
 const marker = ref<HTMLCanvasElement>()
 const { elementX, elementY, isOutside } = useMouseInElement(marker)
@@ -59,7 +61,10 @@ const onClick = (ev: MouseEvent) => {
     if (x < r.nw.x || x > r.se.x || y < r.nw.y || y > r.se.y) {
         //
     } else {
-        console.log('inside')
+        const distance = profileStore.getDistance(x)
+        const rtp = routeStore.getPointByBrmDistance(distance)
+        gmapStore.setCenter(rtp)
+        gmapStore.setZoom(14)
     }
 }
 

@@ -5,7 +5,7 @@ import { useGmapStore } from "@/stores/GmapStore"
 import { computed, watch } from "vue"
 import _ from "lodash"
 
-const props = defineProps(["visible"])
+const props = defineProps(["visible", "ready"])
 
 const store = useBrmRouteStore()
 const gmapStore = useGmapStore()
@@ -25,13 +25,26 @@ watch(() => store.editableIndex, _.debounce(() => {
 }, 500))
 
 const getOption = (range) => {
+
+    const icons = {
+        icon: {
+            //path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+            fillColor: 'red',
+            strokeColor: 'red',
+            strokeWeight: 1,
+        },
+        repeat: '10%',
+        offset: '10%',
+    }
+
     return {
         strokeColor: "red",
         strokeOpacity: range.editable && editMode.value ? 1.0 : 0.3,
         strokeWidth: 2,
         path: range.points,
         visible: props.visible,
-        zIndex: 1
+        zIndex: 1,
+        icons
     }
 }
 
