@@ -442,8 +442,7 @@ const markerMouseover = (pt: RoutePoint) => {
     if (!pt.editable) return
 
     // プロフィールマップにガイドを表示させるためにポイントを設定
-    // 前の点の mouseout 処理後に遅らせて設定（効果があるかは分からない）
-    setTimeout(() => profileStore.setRoutePoint(pt), 10)
+    profileStore.setRoutePoint(pt)
 
     if (gmapStore.subpathSelectMode) {
         const _begin: number = Math.min(ptIndex, routeStore.subpathTemp.begin!)

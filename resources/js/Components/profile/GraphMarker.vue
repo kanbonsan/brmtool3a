@@ -1,5 +1,5 @@
 <template>
-    <canvas ref="marker" :width="width" :height="height">
+    <canvas ref="marker" :width="width" :height="height" @click="onClick">
     </canvas>
 </template>
 <script setup lang="ts">
@@ -52,6 +52,17 @@ const draw = (ctx: CanvasRenderingContext2D, x?: number) => {
 
 }
 
+const onClick = (ev: MouseEvent) => {
+    const x = ev.offsetX
+    const y = ev.offsetY
+    const r = profileStore.graphSize.range
+    if (x < r.nw.x || x > r.se.x || y < r.nw.y || y > r.se.y) {
+        //
+    } else {
+        console.log('inside')
+    }
+}
+
 onMounted(() => {
     const ctx = marker.value?.getContext('2d')
     if (!ctx) return
@@ -60,8 +71,8 @@ onMounted(() => {
     watch([elementX, elementY, () => profileStore.routePoint], ([x, y, pt]) => {
         const range = profileStore.graphSize.range
         routeStore.setProfileMapMarkerDistance(undefined)
-        if (pt !== undefined && isOutside) {    // && isOutside を入れないと、profileMap にマウスが入っても pt がリセットされないことがあった.
-            draw(ctx, pt.brmDistance * profileStore.graphResolution.x!)
+        if (isOutside && (pt !== undefined) && pt.brmDistance > profileStore.distance.begin && pt.brmDistance < profileStore.distance.end!) {    // && isOutside を入れないと、profileMap にマウスが入っても pt がリセットされないことがあった.
+            draw(ctx, (pt.brmDistance - profileStore.distance.begin) * profileStore.graphResolution.x!)
         } else if (range.nw.x <= x && x <= range.se.x && range.nw.y <= y && y <= range.se.y) {
             routeStore.setProfileMapMarkerDistance((x - range.nw.x) / profileStore.graphResolution.x! + profileStore.distance.begin)
             draw(ctx, x - range.nw.x)

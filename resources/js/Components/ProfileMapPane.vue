@@ -14,13 +14,11 @@
 import { ref, watch, computed } from 'vue'
 import { useProfileStore } from '@/stores/ProfileStore'
 import { useBrmRouteStore } from '@/stores/BrmRouteStore'
-import { useElementBounding, useMouseInElement } from '@vueuse/core'
-
+import { useElementBounding } from '@vueuse/core'
 
 import Axis from '@/Components/profile/Axis.vue'
 import Graph from './profile/Graph.vue'
 import Marker from './profile/GraphMarker.vue'
-import Console from './profile/GraphConsole.vue'
 
 const profileStore = useProfileStore()
 const brmStore = useBrmRouteStore()
