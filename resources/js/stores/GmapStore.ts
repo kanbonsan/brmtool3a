@@ -47,6 +47,13 @@ type State = {
 
 }
 
+// EditablePolyline でルートの向きを表す矢印の間隔を決めるための値
+// Map<zoom,間隔km>
+const zoomRepeat = new Map([
+    [0, 5000], [1, 2000], [2, 2000], [3, 1000], [4, 500], [5, 200], [6, 100], [7, 50],
+    [8, 40], [9, 30], [10, 20], [11, 15], [12, 10], [13, 8], [14, 5], [15, 4], [16, 2],
+    [17, 1], [18, 0.5], [19, 0.25], [20, 0.2]])
+
 export const useGmapStore = defineStore('gmap', {
 
     state: (): State => ({
@@ -87,7 +94,13 @@ export const useGmapStore = defineStore('gmap', {
         subpathSelectMode: (state) => state.mapMode === 'subpathSelect',
         subpathEditMode: (state) => state.mapMode === 'subpathEdit',
         subpathDirectionMode: (state) => state.mapMode === 'subpathDirection',
-        subpathDirectionConfirmMode: (state) => state.mapMode === 'subpathDirectionConfirm'
+        subpathDirectionConfirmMode: (state) => state.mapMode === 'subpathDirectionConfirm',
+
+        // 矢印の間隔を返す kilometer
+        polylineArrowRepeat:(state)=>{
+            const zoom = Math.max(0,Math.min(20,state.zoom!))
+            return zoomRepeat.get(zoom)
+        }
 
     },
 

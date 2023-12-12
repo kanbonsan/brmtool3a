@@ -121,6 +121,13 @@ export const useBrmRouteStore = defineStore('brmroute', {
             return state.points[range.end].brmDistance
         },
 
+        /** 編集範囲のブルベ距離　polylineに矢印を打つのに使用（polylineの長さに対する割合を指定しないといけない） */
+        editableBrmDistance(state): number | undefined {
+            const [begin, end] = this.editableIndex
+            if (!begin || !end) return undefined
+            return state.points[end].brmDistance - state.points[begin].brmDistance
+        },
+
         /** 最大標高
          * Profile Map の目盛りに使うのでデフォルト値を 1000m とした。
         */

@@ -6,7 +6,7 @@
         <Graph style="position:absolute;left:0;top:0;" :key="redrawKey" :width="width" :height="height"></Graph>
         <Axis style="position:absolute;left:0;top:0;" :key="redrawKey" :width="width" :height="height"></Axis>
         <Marker style="position:absolute;left:0;top:0;" :key="redrawKey" :width="width" :height="height"></Marker>
-
+        <div style="position:absolute;right:0">{{repeat}}</div>
     </div>
 </template>
 
@@ -14,6 +14,7 @@
 import { ref, watch, computed } from 'vue'
 import { useProfileStore } from '@/stores/ProfileStore'
 import { useBrmRouteStore } from '@/stores/BrmRouteStore'
+import { useGmapStore } from '@/stores/GmapStore'
 import { useElementBounding } from '@vueuse/core'
 
 import Axis from '@/Components/profile/Axis.vue'
@@ -22,6 +23,9 @@ import Marker from './profile/GraphMarker.vue'
 
 const profileStore = useProfileStore()
 const brmStore = useBrmRouteStore()
+const gmapStore=useGmapStore()
+
+const repeat = computed(()=>gmapStore.polylineArrowRepeat)
 
 const profile = ref()
 const redrawKey = ref(Symbol())

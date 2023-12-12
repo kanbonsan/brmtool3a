@@ -2,10 +2,10 @@
 import { Polyline } from "vue3-google-map"
 import { useBrmRouteStore } from "@/stores/BrmRouteStore"
 import { useGmapStore } from "@/stores/GmapStore"
-import { computed, watch } from "vue"
+import { computed, watch, onMounted, ref } from "vue"
 import _ from "lodash"
 
-const props = defineProps(["visible", "ready"])
+const props = defineProps(["visible"])
 
 const store = useBrmRouteStore()
 const gmapStore = useGmapStore()
@@ -24,18 +24,26 @@ watch(() => store.editableIndex, _.debounce(() => {
     gmapStore.setZoomBoundingBox(bb)
 }, 500))
 
+onMounted(() => setTimeout(() => console.log(props.api), 1000))
+
 const getOption = (range) => {
 
-    const icons = {
+    const brmDistance = store.editableBrmDistance
+    const repeatLap = gmapStore.polylineArrowRepeat
+    
+    const icons = [{
         icon: {
-            //path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+            path: 1,    // google.maps.SymbolPath.FORWARD_CLOSED_ARROW
             fillColor: 'red',
-            strokeColor: 'red',
+            fillOpacity: 1,
+            strokeColor: 'darkred',
             strokeWeight: 1,
+            scale: 3
         },
-        repeat: '10%',
-        offset: '10%',
+        repeat: `${repeatLap / brmDistance * 100000}%`,
+        offset: '3%',
     }
+    ]
 
     return {
         strokeColor: "red",
@@ -44,7 +52,7 @@ const getOption = (range) => {
         path: range.points,
         visible: props.visible,
         zIndex: 1,
-        icons
+        icons: range.editable ? icons : {}
     }
 }
 
