@@ -10,6 +10,20 @@
                 <component :is="menus[menuComp]?.component" :submit="submit" :menuParams="menuParams"></component>
             </CustomPopup>
             <CuePointMarker :api="api" :map="map" :ready="ready" :visible="mapObjectVisible" />
+            <CustomControl position="TOP_LEFT">
+                <el-dropdown style="margin-left:10px;margin-top:10px;" @command="changeMap">
+                    <el-button>
+                        地図変更<el-icon class="el-icon--right"><arrow-down /></el-icon>
+                    </el-button>
+                    <template #dropdown>
+                        <el-dropdown-menu>
+                            <el-dropdown-item command="roadmap">通常マップ</el-dropdown-item>
+                            <el-dropdown-item command="satellite">航空写真</el-dropdown-item>
+                            <el-dropdown-item command="terrain">地形図</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </template>
+                </el-dropdown>
+            </CustomControl>
             <CustomControl position="BOTTOM_CENTER">
                 <el-button style="margin-bottom:15px;" :disabled="!isEditMode"
                     @click="openDrawer('editableRange')">編集範囲</el-button>
@@ -17,7 +31,8 @@
             <ProfileMarker />
         </GoogleMap>
         <Teleport to="body">
-            <lower-drawer v-model="drawerActive" :title="drawers[drawerComp]?.title" :tooltip="drawers[drawerComp].tooltip" :timeout="drawers[drawerComp]?.timeout" :height="drawers[drawerComp].drawerHeight"
+            <lower-drawer v-model="drawerActive" :title="drawers[drawerComp]?.title" :tooltip="drawers[drawerComp].tooltip"
+                :timeout="drawers[drawerComp]?.timeout" :height="drawers[drawerComp].drawerHeight"
                 @timeout="drawers[drawerComp]?.timeoutFunc" @submit="onLowerDrawerSubmit" v-slot="{ reset, submit }">
                 <component :is="drawers[drawerComp]?.component" :resetTimeout="reset" :submitFunc="submit"></component>
             </lower-drawer>
@@ -117,6 +132,8 @@ const defaultOptions: menuComponentOptions = {
     offsetY: 0,
     timeout: undefined
 }
+
+
 /**
  * CustomPopup 内に表示する slot の内容
  */
@@ -589,8 +606,8 @@ const onLowerDrawerSubmit = async (command: string, options?: any) => {
             drawerActive.value += 1
             break
         case 'subpath:flat':
-            drawerComp.value='SubpathFlatConfirm'
-            drawerActive.value +=1
+            drawerComp.value = 'SubpathFlatConfirm'
+            drawerActive.value += 1
             break
         case 'subpath:flatConfirm':
             toolStore.registerUndo('トンネル化')
@@ -601,6 +618,12 @@ const onLowerDrawerSubmit = async (command: string, options?: any) => {
             break
 
     }
+}
+
+// 地図左上メニュー（地図変更）
+const changeMap = (mapType: string) => {
+    console.log('changeMap')
+    console.log(mapType)
 }
 
 provide(googleMapsKey, { popup, menuComp, popupParams, menuParams })

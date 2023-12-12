@@ -124,7 +124,7 @@ export const useBrmRouteStore = defineStore('brmroute', {
         /** 編集範囲のブルベ距離　polylineに矢印を打つのに使用（polylineの長さに対する割合を指定しないといけない） */
         editableBrmDistance(state): number | undefined {
             const [begin, end] = this.editableIndex
-            if (!begin || !end) return undefined
+            if (!begin || !end) return this.brmDistance
             return state.points[end].brmDistance - state.points[begin].brmDistance
         },
 

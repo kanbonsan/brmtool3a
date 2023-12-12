@@ -51,8 +51,8 @@ type State = {
 // Map<zoom,間隔km>
 const zoomRepeat = new Map([
     [0, 5000], [1, 2000], [2, 2000], [3, 1000], [4, 500], [5, 200], [6, 100], [7, 50],
-    [8, 40], [9, 30], [10, 20], [11, 15], [12, 10], [13, 8], [14, 5], [15, 4], [16, 2],
-    [17, 1], [18, 0.5], [19, 0.25], [20, 0.2]])
+    [8, 40], [9, 30], [10, 20], [11, 12], [12, 10], [13, 6], [14, 3.5], [15, 2], [16, 1.2],
+    [17, 0.75], [18, 0.3], [19, 0.16], [20, 0.1]])
 
 export const useGmapStore = defineStore('gmap', {
 
@@ -96,7 +96,7 @@ export const useGmapStore = defineStore('gmap', {
         subpathDirectionMode: (state) => state.mapMode === 'subpathDirection',
         subpathDirectionConfirmMode: (state) => state.mapMode === 'subpathDirectionConfirm',
 
-        // 矢印の間隔を返す kilometer
+        // 矢印の間隔を返す kilometer zoom値に応じて画面に矢印が収まるように間隔を変える
         polylineArrowRepeat:(state)=>{
             const zoom = Math.max(0,Math.min(20,state.zoom!))
             return zoomRepeat.get(zoom)

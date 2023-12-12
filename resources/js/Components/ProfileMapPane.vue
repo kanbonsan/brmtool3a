@@ -6,7 +6,7 @@
         <Graph style="position:absolute;left:0;top:0;" :key="redrawKey" :width="width" :height="height"></Graph>
         <Axis style="position:absolute;left:0;top:0;" :key="redrawKey" :width="width" :height="height"></Axis>
         <Marker style="position:absolute;left:0;top:0;" :key="redrawKey" :width="width" :height="height"></Marker>
-        <div style="position:absolute;right:0">{{repeat}}</div>
+        <div style="position:absolute;top:0px;right:100px">{{zoom}} - {{repeat}}</div>
     </div>
 </template>
 
@@ -24,7 +24,7 @@ import Marker from './profile/GraphMarker.vue'
 const profileStore = useProfileStore()
 const brmStore = useBrmRouteStore()
 const gmapStore=useGmapStore()
-
+const zoom = computed(()=>gmapStore.zoom)
 const repeat = computed(()=>gmapStore.polylineArrowRepeat)
 
 const profile = ref()

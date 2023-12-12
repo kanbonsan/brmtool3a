@@ -30,18 +30,19 @@ const getOption = (range) => {
 
     const brmDistance = store.editableBrmDistance
     const repeatLap = gmapStore.polylineArrowRepeat
-    
+
     const icons = [{
         icon: {
             path: 1,    // google.maps.SymbolPath.FORWARD_CLOSED_ARROW
             fillColor: 'red',
             fillOpacity: 1,
-            strokeColor: 'darkred',
-            strokeWeight: 1,
+            strokeColor: 'white',
+            strokeOpacity: 0.5,
+            strokeWeight: 2,
             scale: 3
         },
         repeat: `${repeatLap / brmDistance * 100000}%`,
-        offset: '3%',
+        offset: '2%',
     }
     ]
 
