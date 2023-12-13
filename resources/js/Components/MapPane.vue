@@ -17,9 +17,10 @@
                     </el-button>
                     <template #dropdown>
                         <el-dropdown-menu>
-                            <el-dropdown-item command="roadmap">通常マップ</el-dropdown-item>
-                            <el-dropdown-item command="satellite">航空写真</el-dropdown-item>
-                            <el-dropdown-item command="terrain">地形図</el-dropdown-item>
+                            <el-dropdown-item command="ROADMAP">通常マップ</el-dropdown-item>
+                            <el-dropdown-item command="SATELLITE">航空写真</el-dropdown-item>
+                            <el-dropdown-item command="HYBRID">航空+道路</el-dropdown-item>
+                            <el-dropdown-item command="TERRAIN">地形図</el-dropdown-item>
                         </el-dropdown-menu>
                     </template>
                 </el-dropdown>
@@ -109,7 +110,7 @@ export type Menus = {
 export type PopUp = (position: google.maps.LatLng, activator?: Activator) => Promise<unknown>
 
 
-// 地図下のメニュー    
+// 地図下のドロアーメニュー    
 
 export type drawerComponent = {
     component: Component
@@ -295,20 +296,16 @@ watch(
         map.setOptions({
             fullscreenControl: false,
             mapTypeControl: false,
-            mapTypeControlOptions: { style: google.maps.MapTypeControlStyle.DROPDOWN_MENU },
             scaleControl: true,
             zoomControl: true,
             streetViewControl: true,
+            mapTypeId: api.MapTypeId[gmapStore.mapType]
 
         })
 
         /** ルートの設定 */
 
         const result = await toolStore.restore()
-
-        // if (!result) {
-        //     routeStore.setPoints(brm.encodedPathAlt)
-        // }
 
         map.addListener(
             "bounds_changed",
@@ -368,6 +365,11 @@ watch(() => gmapStore.zoomBounds, async (newBB) => {
 watch(() => gmapStore.zoom, async (newZoom, oldZoom) => {
     if (!newZoom || newZoom === oldZoom) return
     gmapStore.map?.setZoom(newZoom)
+})
+
+watch(()=>gmapStore.mapType, (mapType)=>{
+    const id=gmap.value?.api?.MapTypeId[mapType]!
+    gmapStore.map?.setMapTypeId(id)
 })
 
 watch(() => isOutside, (status) => {
@@ -621,9 +623,8 @@ const onLowerDrawerSubmit = async (command: string, options?: any) => {
 }
 
 // 地図左上メニュー（地図変更）
-const changeMap = (mapType: string) => {
-    console.log('changeMap')
-    console.log(mapType)
+const changeMap = (mapType: any) => {
+    gmapStore.setMapType(mapType)
 }
 
 provide(googleMapsKey, { popup, menuComp, popupParams, menuParams })

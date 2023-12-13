@@ -5,6 +5,7 @@ import { useBrmRouteStore } from './BrmRouteStore'
 
 type MapMode = 'edit' | 'subpath' | 'subpathSelect' | 'subpathEdit' | 'subpathDirection' | 'subpathDirectionConfirm'
 type MapLock = null | 'cuePoint' | 'subpath'
+type MapType = 'HYBRID' | 'ROADMAP' | 'SATELLITE' | 'TERRAIN'
 
 export type GuideMarker = {
     key: symbol
@@ -20,6 +21,7 @@ type State = {
         lng: number
     },
     zoom: number | undefined,
+    mapType: MapType,
     bounds: {
         north: number | undefined,
         south: number | undefined,
@@ -61,6 +63,7 @@ export const useGmapStore = defineStore('gmap', {
         ready: false,
         center: { lat: 35.24385944989924, lng: 137.09019885128768 },
         zoom: 10,
+        mapType: 'ROADMAP',
         bounds: { north: undefined, south: undefined, east: undefined, west: undefined },
         latLngBounds: undefined,
         zoomBounds: undefined,
@@ -97,8 +100,8 @@ export const useGmapStore = defineStore('gmap', {
         subpathDirectionConfirmMode: (state) => state.mapMode === 'subpathDirectionConfirm',
 
         // 矢印の間隔を返す kilometer zoom値に応じて画面に矢印が収まるように間隔を変える
-        polylineArrowRepeat:(state)=>{
-            const zoom = Math.max(0,Math.min(20,state.zoom!))
+        polylineArrowRepeat: (state) => {
+            const zoom = Math.max(0, Math.min(20, state.zoom!))
             return zoomRepeat.get(zoom)
         }
 
@@ -123,6 +126,10 @@ export const useGmapStore = defineStore('gmap', {
 
         setZoomBoundingBox(bb: google.maps.LatLngBounds) {
             this.$patch({ zoomBounds: bb })
+        },
+
+        setMapType(mapType: MapType){
+            this.$patch({mapType: mapType})
         },
 
         moveStreetView(position: google.maps.LatLng | google.maps.LatLngLiteral, pov?: google.maps.StreetViewPov) {
@@ -173,6 +180,7 @@ export const useGmapStore = defineStore('gmap', {
             return {
                 mapCenter: this.center,
                 mapZoom: this.zoom,
+                mapType: this.mapType,
                 streetView: {
                     position: this.streetView.position,
                     zoom: this.streetView.zoom,
@@ -184,6 +192,7 @@ export const useGmapStore = defineStore('gmap', {
         unpack(obj: any) {
             this.center = obj.mapCenter ?? this.center
             this.zoom = obj.mapZoom ?? this.zoom
+            this.mapType = obj.mapType ?? this.mapType
             this.zoomBounds = undefined
             this.streetView = { ...this.streetView, ...obj.streetView }
         }
