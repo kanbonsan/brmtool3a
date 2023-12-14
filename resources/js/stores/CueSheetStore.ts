@@ -18,7 +18,7 @@ type GroupCandidate = {
 export const useCuesheetStore = defineStore('cuesheet', {
 
     state: (): State => ({
-        cuePoints: new Map(),
+        cuePoints: new Map()
     }),
 
     getters: {
