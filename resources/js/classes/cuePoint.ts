@@ -57,6 +57,10 @@ export class CuePoint {
     // 対応するルートポイントのid. null のときは'poi'
     routePointId: symbol | null
     routePointIndex: number | undefined // serialize / unserialize 用に対応するルートポイントIndexを記憶しておく（cuesheetStore.update()で更新）
+
+    // POIのマーカーの住所（YOLP placeInfo より取得・リストに表示する時に利用）
+    poiAddress?: string
+
     // 作成時間. poi の表示順のソートに利用
     timestamp: number
 
@@ -77,6 +81,7 @@ export class CuePoint {
         this.lat = lat
         this.lng = lng
         this.routePointId = routePointId
+        this.poiAddress = ''
         this.timestamp = Date.now()
         this.openMin = undefined
         this.closeMin = undefined

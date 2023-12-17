@@ -3,6 +3,7 @@ import { CuePoint, cueProperties, cueType } from '@/classes/cuePoint'
 import { RoutePoint } from '@/classes/routePoint'
 import { useBrmRouteStore } from './BrmRouteStore'
 import { useToolStore } from './ToolStore'
+import { useGeocodeStore } from './GeocodeStore'
 import { PC_SUBGROUP_ENUM } from '@/config'
 import { calcOpenClose, limitHours } from '@/lib/brevet'
 
@@ -599,6 +600,15 @@ export const useCuesheetStore = defineStore('cuesheet', {
             this.update()
 
         },
+
+        async setPoiAddress(id: symbol){
+            const geocoderStore = useGeocodeStore()
+            const poi = this.cuePoints.get(id)
+            if(!poi || poi.type !== 'poi') return
+            const res = await geocoderStore.getData('reverseGeocoder',poi.lat,poi.lng)
+            console.log(res)
+        },
+
         /**
          * Serialize 用のオブジェクトを作成
          * @returns Array
@@ -619,6 +629,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
             terminal: 'start' | 'finish' | undefined,
             properties: cueProperties,
             groupNo: number,
+            poiAddress?: string,
             timestamp?: number
         }>) {
             const brmStore = useBrmRouteStore()
@@ -627,6 +638,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
 
             // データをクリア
             this.cuePoints.clear()
+
             for (const _cpt of arr) {
                 const rptId = _cpt.type === 'poi' ? null : brmStore.points[_cpt.routePointIndex].id
                 const cpt = new CuePoint(_cpt.lat, _cpt.lng, _cpt.type, rptId)
@@ -634,6 +646,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 cpt.properties = { ..._cpt.properties }
                 if (!group.has(_cpt.groupNo)) { group.set(_cpt.groupNo, Symbol()) }
                 cpt.groupId = group.get(_cpt.groupNo)
+                cpt.poiAddress = _cpt.poiAddress ?? ''
                 cpt.timestamp = _cpt.timestamp ?? Date.now()
 
                 this.cuePoints.set(cpt.id, cpt)

@@ -203,7 +203,7 @@ const note = computed(() => {
     return n.html()
 })
 
-onMounted(() => {
+onMounted(async () => {
 
     // 進路の初期設定
     if (cuePoint.type !== 'poi' && form.direction === '') {

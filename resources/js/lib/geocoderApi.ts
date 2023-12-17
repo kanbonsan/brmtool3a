@@ -89,7 +89,7 @@ export function convRoadName(name: string) {
 
 // Yahoo Reverse Geocoder
 // adress, country, road
-export async function yolp_reverseGeocoder(lat: number, lng:number) {
+export async function yolp_reverseGeocoder(lat: number, lng: number) {
 
     const api = 'yahooReverseGeocoder'
 
@@ -111,10 +111,10 @@ export async function yolp_reverseGeocoder(lat: number, lng:number) {
                 }
             }
         )
-
         const result = response.data.Feature[0].Property
-        const Country = result.Country
-        const Address = result.Address
+
+        // Poiリストに参考としてつけるために一行住所を取得
+        const address = result.Address !== "" ? result.Address : result.Country.Name
 
         // 道路情報がない場合は仮の情報を追加
         result.Road = result.Road ?? [{ Name: "市道", Kigou: "市道" }]
@@ -122,7 +122,7 @@ export async function yolp_reverseGeocoder(lat: number, lng:number) {
             return ({ ...rd, Kigou: convRoadName(rd.Name) })
         })
 
-               return ({ api, road, rawData: result })
+        return ({ api, road, address, rawData: result })
 
     } catch (error) {
         console.error('yolp_reverseGeocoder', error)
@@ -132,7 +132,7 @@ export async function yolp_reverseGeocoder(lat: number, lng:number) {
 
 }
 
-export async function yolp_placeInfo(lat:number,lng:number) {
+export async function yolp_placeInfo(lat: number, lng: number) {
 
     const api = 'yahooPlaceInfo'
     const URL = "https://map.yahooapis.jp/placeinfo/V1/get"
@@ -153,13 +153,9 @@ export async function yolp_placeInfo(lat:number,lng:number) {
             }
         )
         const result = response.data.ResultSet
-
-        const Address = result.Address
-        const Country = result.Country
         const category_control = ["道の駅", "ローソン", "セブン-イレブン", "ファミリーマート", "ミニストップ", "ヤマザキデイリーストアー"]
         const crossing: string[] = []
         const control: string[] = []
-
         result.Result.forEach((pt: any) => {
             if (pt.Category === '地点名' && pt.Name.indexOf('交差点') !== -1) {
                 crossing.push(pt.Name.replace(/交差点$/, ''))

@@ -62,7 +62,7 @@ export const useGeocodeStore = defineStore('geocode', {
                     const data = await (api.fn)(val.lat, val.lng)
                     this.cache.push({ ts: Date.now(), code, data })
                     this.gc()
-                    return { status: 'oti', data }
+                    return { status: 'ok', data }
                 } catch (e) {
                     return { status: 'error' }
                 }

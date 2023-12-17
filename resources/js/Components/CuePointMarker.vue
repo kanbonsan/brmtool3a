@@ -78,7 +78,7 @@ const getOption = (cpt: CuePoint) => {
         draggable: true,
         visible: props.visible,
         icon: { url: markerIcon(iconOption) },
-        zIndex: inactive ? 1 : 2,
+        zIndex: inactive ? 1 : 5,
     }
 }
 
