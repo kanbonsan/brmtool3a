@@ -248,6 +248,9 @@ export const useCuesheetStore = defineStore('cuesheet', {
                 const cpt = new CuePoint(point.lat, point.lng, 'poi', null)
                 this.cuePoints.set(cpt.id, cpt)
 
+                // POI が新設されたときは address を設定
+                this.setPoiAddress(cpt.id)
+
                 this.update()
 
                 return cpt
@@ -601,12 +604,16 @@ export const useCuesheetStore = defineStore('cuesheet', {
 
         },
 
+        // POI のキューポイント位置の address を設定する
+        // address はあくまでもキューシートテーブルで参考に表示するためだけのもの
         async setPoiAddress(id: symbol){
             const geocoderStore = useGeocodeStore()
             const poi = this.cuePoints.get(id)
             if(!poi || poi.type !== 'poi') return
             const res = await geocoderStore.getData('reverseGeocoder',poi.lat,poi.lng)
-            console.log(res)
+            poi.poiAddress = res.data.address ?? ''
+
+            return poi.poiAddress
         },
 
         /**

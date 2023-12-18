@@ -225,6 +225,9 @@ watch(() => form.type, (newType) => { // watcher の参照を getter(関数) に
         form.garminDeviceText = newType === 'pc' ? 'PC' : (newType === 'pass' ? 'CHK' : '')
     } else if (newType === 'cue') {
         updateIcon()
+    } else if(newType==='poi'){
+        // ポイントが POI になったときは address を検索
+        cuesheetStore.setPoiAddress(cuePoint.id)
     }
     synchronize()
 

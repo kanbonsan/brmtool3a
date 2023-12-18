@@ -148,6 +148,11 @@ const onDragEnd = async (cpt: CuePoint, index: number, $event: google.maps.MapMo
     refRoutePoint.value = routeStore.getClosePoint($event.latLng!)
     const routePoint = refRoutePoint.value
 
+    if(cpt.type==='poi'){
+        // POI はそのポイントが address となるので追随して変更
+        cuesheetStore.setPoiAddress(cpt.id)
+    }
+
     if (routePoint !== null && routeStore.hasCuePoint(routePoint) === null) {
 
         if (cpt.terminal !== undefined) {
