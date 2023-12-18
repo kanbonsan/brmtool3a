@@ -80,6 +80,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
 
         /**
          * POIリスト
+         * 作成順にソート（ソート方法は色々と検討の余地あり）
          */
         poiList(): CuePoint[] {
             return this.getArray.filter(cpt => {
@@ -216,7 +217,14 @@ export const useCuesheetStore = defineStore('cuesheet', {
                     }
                 })
             }
+        },
+
+        poiData(){
+            const points=this.poiList
+
+            return points
         }
+
     },
 
     actions: {
@@ -606,11 +614,11 @@ export const useCuesheetStore = defineStore('cuesheet', {
 
         // POI のキューポイント位置の address を設定する
         // address はあくまでもキューシートテーブルで参考に表示するためだけのもの
-        async setPoiAddress(id: symbol){
+        async setPoiAddress(id: symbol) {
             const geocoderStore = useGeocodeStore()
             const poi = this.cuePoints.get(id)
-            if(!poi || poi.type !== 'poi') return
-            const res = await geocoderStore.getData('reverseGeocoder',poi.lat,poi.lng)
+            if (!poi || poi.type !== 'poi') return
+            const res = await geocoderStore.getData('reverseGeocoder', poi.lat, poi.lng)
             poi.poiAddress = res.data.address ?? ''
 
             return poi.poiAddress
