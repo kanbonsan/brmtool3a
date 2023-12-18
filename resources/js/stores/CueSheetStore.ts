@@ -219,10 +219,23 @@ export const useCuesheetStore = defineStore('cuesheet', {
             }
         },
 
-        poiData(){
+        poiData():Array<{
+            poiNo: number,
+            address: string
+        }>{
             const points=this.poiList
-
-            return points
+            return points.map((poi)=>{
+                return {
+                    poiNo: poi.poiNo!,
+                    address: poi.poiAddress!,
+                    lat: poi.lat,
+                    lng: poi.lng,
+                    name: poi.properties.name,
+                    garminDeviceIcon: poi.properties.garminDeviceIcon,
+                    garminDeviceText: poi.properties.garminDeviceText,
+                    note: poi.properties.note
+                }
+            })
         }
 
     },
@@ -342,6 +355,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
                         cpt.type = "poi"
                         cpt.routePointId = null
                         cpt.terminal = undefined
+                        this.setPoiAddress(cpt.id)
                     }
                 } else {
                     // ルートポイントが除外区域ではないか？
@@ -350,6 +364,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
                         cpt.type = "poi"
                         cpt.routePointId = null
                         cpt.terminal = undefined
+                        this.setPoiAddress(cpt.id)
                     }
                 }
             })
