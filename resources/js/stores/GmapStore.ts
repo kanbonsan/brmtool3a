@@ -20,6 +20,10 @@ type State = {
         lat: number,
         lng: number
     },
+    currentCenter: {
+        lat: number,
+        lng: number
+    },
     zoom: number | undefined,
     mapType: MapType,
     bounds: {
@@ -61,7 +65,8 @@ export const useGmapStore = defineStore('gmap', {
     state: (): State => ({
         map: null,
         ready: false,
-        center: { lat: 35.24385944989924, lng: 137.09019885128768 },
+        center: { lat: 35.24385944989924, lng: 137.09019885128768 },    // セットすることでマップ中心を移動
+        currentCenter: { lat: 0.0, lng: 0.0},   // マップの bounds_changed イベントで設定
         zoom: 10,
         mapType: 'ROADMAP',
         bounds: { north: undefined, south: undefined, east: undefined, west: undefined },
@@ -103,7 +108,7 @@ export const useGmapStore = defineStore('gmap', {
         polylineArrowRepeat: (state) => {
             const zoom = Math.max(0, Math.min(20, state.zoom!))
             return zoomRepeat.get(zoom)
-        }
+        },
 
     },
 

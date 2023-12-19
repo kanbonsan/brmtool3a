@@ -231,7 +231,8 @@ export const useCuesheetStore = defineStore('cuesheet', {
                     name: poi.properties.name,
                     garminDeviceIcon: poi.properties.garminDeviceIcon,
                     garminDeviceText: poi.properties.garminDeviceText,
-                    note: poi.properties.note
+                    note: poi.properties.note,
+                    timestamp: poi.timestamp,
                 }
             })
         }

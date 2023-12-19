@@ -341,6 +341,12 @@ watch(
             console.log(result.data)
         })
 
+        // マップ中心を記録（POIリストの距離ソート用）
+        map.addListener("center_changed", ()=>{
+            const center = map.getCenter()
+            gmapStore.currentCenter = { lat: center?.lat()!, lng: center?.lng()!}
+        })
+
         // 地図上右クリックで画面上の polyline などを一時消去
         map.addListener("contextmenu", (ev: google.maps.MapMouseEvent) => {
             if (mapObjectVisibleTimer != null) {
