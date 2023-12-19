@@ -219,13 +219,11 @@ export const useCuesheetStore = defineStore('cuesheet', {
             }
         },
 
-        poiData():Array<{
-            poiNo: number,
-            address: string
-        }>{
+        poiData():Array<{}>{
             const points=this.poiList
             return points.map((poi)=>{
                 return {
+                    id: poi.id,
                     poiNo: poi.poiNo!,
                     address: poi.poiAddress!,
                     lat: poi.lat,

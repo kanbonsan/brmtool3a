@@ -2,12 +2,14 @@
     <div ref="poi" class="cuesheet">
         <div class="header">
             POIリスト
+            <el-button :disabled="selectedPois.length===0" size="small">POI削除</el-button>
         </div>
         <el-table :data="poiList" border style="height:100%" size="small" @row-click="onRowClick"
-            :height="`calc( ${height}px - var(--header-height))`" :header-cell-style="headerCellStyle">
-            <el-table-column prop="poiNo" label="No" fixed width="50" align="center" />
+            :height="`calc( ${height}px - var(--header-height))`" :header-cell-style="headerCellStyle"
+            @selection-change="handleSelectionChange">
+            <el-table-column type="selection" width="50"/>
             <el-table-column prop="name" label="名称" />
-            <el-table-column prop="direction" label="進路" />
+            <el-table-column prop="address" label="地名" show-overflow-tooltip/>
             <el-table-column prop="route" label="経路" />
             <el-table-column prop="lapDistance" label="区間" width="50" align="right" />
             <el-table-column prop="distance" label="距離" width="50" align="right" />
@@ -27,9 +29,12 @@ const poiList = computed(() => cuesheetStore.poiData)
 const poi = ref()
 const { width, height } = useElementBounding(poi)
 
-onMounted(() => {
-    console.log(poiList.value)
-})
+// 選択されたPOI
+const selectedPois = ref([])
+
+const handleSelectionChange=(val)=>{
+    selectedPois.value = val
+    console.log(val)}
 
 </script>
 
