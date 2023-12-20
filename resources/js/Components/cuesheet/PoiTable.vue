@@ -12,9 +12,8 @@
             <el-table-column label="地名" show-overflow-tooltip>
                 <template #default="scope">{{ scope.row.address === '' ? '' : `${scope.row.address} 付近` }}</template>
             </el-table-column>
-            <el-table-column prop="route" label="経路" />
+            <el-table-column prop="distance" label="距離" />
             <el-table-column prop="lapDistance" label="区間" width="50" align="right" />
-            <el-table-column prop="distance" label="距離" width="50" align="right" />
             <el-table-column prop="note" label="備考" width="150" />
         </el-table>
     </div>
@@ -29,14 +28,21 @@ import { hubeny } from "@/lib/hubeny"
 import { garminIcons } from '@/lib/garminIcons'
 
 const cuesheetStore = useCuesheetStore()
-const gmapStore=useGmapStore()
+const gmapStore = useGmapStore()
 const poiList = computed(() => cuesheetStore.poiData)
-const mapCenter = computed(()=>gmapStore.currentCenter)
+const mapCenter = computed(() => gmapStore.currentCenter)
 
-const data = computed(()=> poiList.value)
+const data = computed(() => {
+
+    const list = poiList.value.map((poi)=>{
+        const distance = hubeny(mapCenter.value.lat, mapCenter.value.lng, poi.lat, poi.lng)
+        return {distance, ...poi}
+    })
+    return list
+})
 
 const poi = ref()
-const { width, height } = useElementBounding(poi)
+const { height } = useElementBounding(poi)
 
 // 選択されたPOI
 const selectedPois = ref([])
