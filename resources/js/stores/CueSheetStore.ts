@@ -9,6 +9,7 @@ import { calcOpenClose, limitHours } from '@/lib/brevet'
 
 type State = {
     cuePoints: Map<symbol, CuePoint>
+    highlight?: symbol
 }
 
 type GroupCandidate = {
@@ -19,7 +20,8 @@ type GroupCandidate = {
 export const useCuesheetStore = defineStore('cuesheet', {
 
     state: (): State => ({
-        cuePoints: new Map()
+        cuePoints: new Map(),
+        highlight: undefined    // キューシートの POI リスト上の hover に連動させる
     }),
 
     getters: {
