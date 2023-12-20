@@ -12,7 +12,12 @@
             <el-table-column label="地名" show-overflow-tooltip>
                 <template #default="scope">{{ scope.row.address === '' ? '' : `${scope.row.address} 付近` }}</template>
             </el-table-column>
-            <el-table-column prop="distance" label="距離" />
+            <el-table-column prop="distDisplay" align="right" header-align="center">
+                <template #header>
+                    <el-tooltip content="今の地図の中心からの距離">距離(km)</el-tooltip>
+                    
+                </template>
+            </el-table-column> 
             <el-table-column prop="lapDistance" label="区間" width="50" align="right" />
             <el-table-column prop="note" label="備考" width="150" />
         </el-table>
@@ -36,9 +41,10 @@ const data = computed(() => {
 
     const list = poiList.value.map((poi)=>{
         const distance = hubeny(mapCenter.value.lat, mapCenter.value.lng, poi.lat, poi.lng)
-        return {distance, ...poi}
+        const distDisplay = `${(distance/1000).toFixed(1)}`
+        return {distance, distDisplay, ...poi}
     })
-    return list
+    return list.sort((a,b)=>a.distance-b.distance)
 })
 
 const poi = ref()
@@ -59,6 +65,7 @@ const handleSelectionChange = (val) => {
     --header-height: 40px;
     width: 100%;
     height: 100%;
+    text-transform: none;
 }
 
 .header {

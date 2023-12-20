@@ -61,6 +61,9 @@ export class CuePoint {
     // POIのマーカーの住所（YOLP placeInfo より取得・リストに表示する時に利用）
     poiAddress?: string
 
+    // キューシートに連動してハイライト表示するか
+    highlight?: boolean
+
     // 作成時間. poi の表示順のソートに利用
     timestamp: number
 
@@ -82,6 +85,7 @@ export class CuePoint {
         this.lng = lng
         this.routePointId = routePointId
         this.poiAddress = ''
+        this.highlight = false
         this.timestamp = Date.now()
         this.openMin = undefined
         this.closeMin = undefined
