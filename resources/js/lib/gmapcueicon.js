@@ -206,6 +206,7 @@ export function markerIcon(_options = {}) {
         size: _options.size || 'normal', // 'small', 'mini'
         label: _options.label ?? null,
         index: _options.index ?? null,
+        highlight: _options.highlight ?? false
     }
 
     let sizedDef, sizedOp, sized

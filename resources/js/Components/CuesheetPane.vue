@@ -35,4 +35,10 @@ const tableComponent = computed(() => {
     width: 100%;
     height: 100%;
 }
+
+::v-deep(.header-cell){
+    color: brown;
+    background:#f3d19e !important;
+}
+
 </style>

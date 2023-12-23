@@ -10,6 +10,7 @@ import { calcOpenClose, limitHours } from '@/lib/brevet'
 type State = {
     cuePoints: Map<symbol, CuePoint>
     highlight?: symbol
+    highlightTimer?: number
 }
 
 type GroupCandidate = {
@@ -201,6 +202,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
                     }
 
                     return {
+                        type: cpt.type,
                         isFixedDate,
                         routePoint: brmStore.getPointById(cpt.routePointId),
                         pointNo: cpt.pointNo,
@@ -225,7 +227,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
             const points=this.poiList
             return points.map((poi)=>{
                 return {
-                    id: poi.id,
+                    id: poi.id, 
                     poiNo: poi.poiNo!,
                     address: poi.poiAddress!,
                     lat: poi.lat,
@@ -638,6 +640,19 @@ export const useCuesheetStore = defineStore('cuesheet', {
             poi.poiAddress = res.data.address ?? ''
 
             return poi.poiAddress
+        },
+
+        // PoiTable で table上を hover したときにidを設定
+        // 一定時間後に消灯させる
+        setHighlight(id: symbol){
+            if(this.highlightTimer){
+                window.clearTimeout(this.highlightTimer)
+                this.highlightTimer = undefined
+            }
+            this.highlight = id
+            this.highlightTimer = window.setTimeout(()=>{
+                this.highlight = undefined
+            }, 2000)
         },
 
         /**

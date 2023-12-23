@@ -24,7 +24,7 @@ import { ElMessage } from "element-plus"
 const routeStore = useBrmRouteStore()
 const cuesheetStore = useCuesheetStore()
 const gmapStore = useGmapStore()
-const toolStore=useToolStore()
+const toolStore = useToolStore()
 
 const props = defineProps(["visible"])
 const cuePoints = computed(() => cuesheetStore.getArray)
@@ -34,6 +34,8 @@ let timer: number | null = null
 
 const popups = inject(googleMapsKey)
 const marker = ref()
+
+const highlightPoiId = computed(() => cuesheetStore.highlight)
 
 const getOption = (cpt: CuePoint) => {
 
@@ -47,19 +49,19 @@ const getOption = (cpt: CuePoint) => {
 
     const inactive = !cuesheetStore.isActive(cpt)
 
-    let label:string = ''
-    switch(cueType){
+    let label: string = ''
+    switch (cueType) {
         case 'cue':
-            label=`${cpt.pointNo}`
+            label = `${cpt.pointNo}`
             break
         case 'pc':
-            label=`${cpt.pcLabel}`
+            label = `${cpt.pcLabel}`
             break
         case 'pass':
-            label=`${cpt.checkNo}`
+            label = `${cpt.checkNo}`
             break
         case 'poi':
-            label=`${cpt.poiNo}`
+            label = `${cpt.poiNo}`
             break
     }
 
@@ -68,7 +70,8 @@ const getOption = (cpt: CuePoint) => {
         inactive,   // gmapcueicon.js の方で inactive === true の場合 type を 'inactive' に設定する
         size: inactive ? (zoom! > 12 ? 'small' : 'mini') : (zoom! > 12 ? 'normal' : (zoom! > 10 ? 'small' : 'mini')),
         label,
-        index: cpt.pointNo
+        index: cpt.pointNo,
+        highlight: cpt.id === highlightPoiId.value
     }
 
     return {
@@ -93,7 +96,7 @@ watch(refRoutePoint, (currentPt, prevPt) => {
 
 const onClick = async (cpt: CuePoint, $event: google.maps.MapMouseEvent) => {
 
-    if( !cuesheetStore.isActive(cpt)) return    // Markerオプションで clickableをfalseにしても反応するためこちらで反応しないようにした
+    if (!cuesheetStore.isActive(cpt)) return    // Markerオプションで clickableをfalseにしても反応するためこちらで反応しないようにした
 
     if (timer !== null) { return }
 
@@ -148,7 +151,7 @@ const onDragEnd = async (cpt: CuePoint, index: number, $event: google.maps.MapMo
     refRoutePoint.value = routeStore.getClosePoint($event.latLng!)
     const routePoint = refRoutePoint.value
 
-    if(cpt.type==='poi'){
+    if (cpt.type === 'poi') {
         // POI はそのポイントが address となるので追随して変更
         cuesheetStore.setPoiAddress(cpt.id)
     }

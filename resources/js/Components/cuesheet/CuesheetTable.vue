@@ -1,21 +1,22 @@
 <template>
     <div ref="cue" class="cuesheet">
         <div class="header">
-            <el-radio-group v-if="startList.length" v-model="currentBrmStart" size="small" @change="console.log('changed')">
+            <el-radio-group v-if="startList.length" v-model="currentBrmStart" size="small">
                 <el-radio-button v-for="start of startList" :label="start.ts">{{ start.label }}</el-radio-button>
             </el-radio-group>
         </div>
         <el-table :data="data" border style="height:100%" size="small" @row-click="onRowClick"
-            :height="`calc( ${height}px - var(--header-height))`" :header-cell-style="headerCellStyle">
+            :height="`calc( ${height}px - var(--header-height))`" table-layout="auto" header-cell-class-name="header-cell"
+            :cell-style="cellStyle">
             <el-table-column prop="pointNo" label="No" fixed width="50" align="center" />
-            <el-table-column prop="name" label="名称" />
-            <el-table-column prop="direction" label="進路" />
-            <el-table-column prop="route" label="経路" />
-            <el-table-column prop="lapDistance" label="区間" width="50" align="right" />
-            <el-table-column prop="distance" label="距離" width="50" align="right" />
-            <el-table-column prop="openLabel" label="オープン" />
-            <el-table-column prop="closeLabel" label="クローズ" />
-            <el-table-column prop="note" label="備考" width="150" />
+            <el-table-column prop="name" label="名称" header-align="center" align="left" />
+            <el-table-column prop="direction" label="進路" header-align="center" />
+            <el-table-column prop="route" label="経路" header-align="center" />
+            <el-table-column prop="lapDistance" label="区間" width="50" header-align="center" align="right" />
+            <el-table-column prop="distance" label="距離" width="50" header-align="center" align="right" />
+            <el-table-column prop="openLabel" label="オープン" header-align="center" align="center" />
+            <el-table-column prop="closeLabel" label="クローズ" header-align="center" align="center" />
+            <el-table-column prop="note" label="備考" header-align="center" />
         </el-table>
     </div>
 </template>
@@ -57,9 +58,22 @@ const onRowClick = (row: any) => {
     gmapStore.moveStreetViewByPoint(row.routePoint)
 }
 
-const headerCellStyle = ({ columnIndex }: { columnIndex: number }) => {
-    if (columnIndex === 5 || columnIndex === 6) {
-        return { textAlign: 'center' }
+const cellStyle = ({ row, columnIndex }: any) => {
+
+    let background = null
+    let color = "black"
+    switch (row.type) {
+        case "pc":
+            background = "#ecf086"
+            break
+        case "pass":
+            background = "#a0cfff"
+            break
+    }
+
+
+    return {
+        color, background
     }
 }
 
