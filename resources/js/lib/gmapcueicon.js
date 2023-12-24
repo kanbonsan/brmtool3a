@@ -16,7 +16,7 @@ const IconParams = {
         font: '9px sans-serif bold',
         width: 32,
         height: 32,
-        lineWidth: 2,
+        lineWidth: 1,
         strokeStyle: '#000000',
         fillStyle: '#FFFFFF',
         small: {
@@ -145,6 +145,13 @@ function body(ctx, opt) {
     const h = opt.height
     ctx.save()
 
+    ctx.fillStyle="yellow"
+    ctx.filter="blur(2px)"
+    ctx.beginPath()
+    ctx.arc(w/2,h/2,12,0,2*Math.PI)
+    ctx.fill()
+    ctx.restore()
+    ctx.save()
     ctx.strokeStyle = opt.strokeStyle
     ctx.fillStyle = opt.fillStyle
     ctx.lineWidth = opt.lineWidth
