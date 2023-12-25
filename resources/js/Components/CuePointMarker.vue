@@ -80,7 +80,7 @@ const getOption = (cpt: CuePoint) => {
         clickable: !inactive,   // このフラグがうまく機能しない ちなみに draggable フラグは機能する
         draggable: true,
         visible: props.visible,
-        icon: { url: markerIcon(iconOption) },
+        icon: { url: markerIcon(iconOption).dataURL },
         zIndex: inactive ? 1 : 5,
     }
 }

@@ -144,11 +144,13 @@ function body(ctx, opt) {
     const w = opt.width
     const h = opt.height
     ctx.save()
-
+    ctx.globalAlpha=1.0
     ctx.fillStyle="yellow"
-    ctx.filter="blur(2px)"
+    ctx.filter="blur(4px)"
     ctx.beginPath()
-    ctx.arc(w/2,h/2,12,0,2*Math.PI)
+    ctx.moveTo(0.5 * w, h)
+    ctx.arc(0.5 * w, 0.3333333 * h + opt.lineWidth / 2, 0.33333333 * w, (Math.PI / 180) * 150, (Math.PI / 180) * 30)
+    ctx.closePath()
     ctx.fill()
     ctx.restore()
     ctx.save()
@@ -249,5 +251,5 @@ export function markerIcon(_options = {}) {
     }
 
     label(context, opt)
-    return canvas.toDataURL()
+    return {dataURL: canvas.toDataURL()}
 }
