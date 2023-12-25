@@ -74,13 +74,15 @@ const getOption = (cpt: CuePoint) => {
         highlight: cpt.id === highlightPoiId.value
     }
 
+    const _icon = markerIcon(iconOption)
+
     return {
         position: { lat: cpt.lat, lng: cpt.lng },
         opacity: inactive ? 0.75 : 1.0,
         clickable: !inactive,   // このフラグがうまく機能しない ちなみに draggable フラグは機能する
         draggable: true,
         visible: props.visible,
-        icon: { url: markerIcon(iconOption).dataURL },
+        icon: { url: _icon.dataURL, anchor: new google.maps.Point( _icon.anchor.x, _icon.anchor.y) },
         zIndex: inactive ? 1 : 5,
     }
 }
