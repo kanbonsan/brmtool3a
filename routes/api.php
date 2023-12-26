@@ -30,3 +30,9 @@ Route::post('upload/file', 'App\Http\Controllers\Api\FileController@upload');
 Route::post('download/brmfile', 'App\Http\Controllers\Api\FileController@download_brmfile');
 
 //Route::post('upload/gpx', 'Api\FileController@gpxupload');
+
+Route::post('cuesheet/upload', 'Api\CuesheetController@upload');
+Route::post('cuesheet/download', 'Api\CuesheetController@download');
+
+// GPX ファイルエクスポート
+Route::post('export/gpx', 'Api\GpsFileExportController@gpxfile');
