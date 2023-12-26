@@ -146,20 +146,22 @@ function body(ctx, opt) {
     const w = opt.width
     const h = opt.height
     ctx.save()
-    ctx.translate(margin,margin)
+    ctx.translate(margin, margin)
 
-    ctx.save()
-    ctx.globalAlpha = 1.0
-    ctx.fillStyle = "yellow"
-    ctx.strokeStyle="yellow"
-    ctx.lineWidth = 5
-    //ctx.filter = "blur(4px)"
-    ctx.beginPath()
-    ctx.moveTo(0.5 * w, h)
-    ctx.arc(0.5 * w, 0.3333333 * h + opt.lineWidth / 2, 0.33333333 * w, (Math.PI / 180) * 150, (Math.PI / 180) * 30)
-    ctx.closePath()
-    ctx.stroke()
-    ctx.restore()
+    // highlight 処理
+    if (opt.highlight) {
+        ctx.save()
+        ctx.globalAlpha = 1.0
+        ctx.strokeStyle = "red"
+        ctx.lineWidth = 5
+        ctx.filter = "blur(4px)"
+        ctx.beginPath()
+        ctx.moveTo(0.5 * w, h)
+        ctx.arc(0.5 * w, 0.3333333 * h + opt.lineWidth / 2, 0.33333333 * w, (Math.PI / 180) * 150, (Math.PI / 180) * 30)
+        ctx.closePath()
+        ctx.stroke()
+        ctx.restore()
+    }
 
     ctx.save()
     ctx.strokeStyle = opt.strokeStyle
@@ -179,7 +181,7 @@ function body(ctx, opt) {
 
 function badge(ctx, opt) {
     ctx.save()
-    ctx.translate(margin,margin)
+    ctx.translate(margin, margin)
     ctx.fillStyle = opt.strokeStyle // 文字色に設定
     ctx.textAlign = 'center'
     ctx.textBaseline = 'top'
@@ -193,7 +195,7 @@ function index(ctx, opt) {
     }
     const wd = Math.max(10, Math.ceil(ctx.measureText(opt.index).width))
     ctx.save()
-    ctx.translate(margin,margin)
+    ctx.translate(margin, margin)
     ctx.fillStyle = 'rgba(255,255,255,0.75)'
     ctx.fillRect(0, 0, -wd, -12)
     ctx.fillStyle = 'black'
@@ -212,7 +214,7 @@ function label(ctx, opt) {
         return
     }
     ctx.save()
-    ctx.translate(margin,margin)
+    ctx.translate(margin, margin)
     ctx.fillStyle = opt.labelTextFillStyle || opt.textFillStyle || opt.strokeStyle
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
@@ -242,7 +244,7 @@ export function markerIcon(_options = {}) {
         sizedOp = IconParams[options.type].mini || IconParams[options.type].small || {}
         sized = { ...sizedDef, ...sizedOp }
     }
-    const opt = { ...IconParams.default, ...IconParams[options.type], ...sized, label: options.label, index: options.index }
+    const opt = { ...IconParams.default, ...IconParams[options.type], ...sized, label: options.label, index: options.index, highlight: options.highlight }
 
     const canvas = document.createElement('canvas')
     canvas.width = opt.width + 2 * margin

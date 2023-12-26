@@ -202,6 +202,7 @@ export const useCuesheetStore = defineStore('cuesheet', {
                     }
 
                     return {
+                        id: cpt.id,
                         type: cpt.type,
                         isFixedDate,
                         routePoint: brmStore.getPointById(cpt.routePointId),

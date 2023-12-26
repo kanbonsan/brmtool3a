@@ -7,7 +7,7 @@
         </div>
         <el-table :data="data" border style="height:100%" size="small" @row-click="onRowClick"
             :height="`calc( ${height}px - var(--header-height))`" table-layout="auto" header-cell-class-name="header-cell"
-            :cell-style="cellStyle">
+            :cell-style="cellStyle" @cell-mouse-enter="handleMouseEnter">
             <el-table-column prop="pointNo" label="No" fixed width="50" align="center" />
             <el-table-column prop="name" label="名称" header-align="center" align="left" />
             <el-table-column prop="direction" label="進路" header-align="center" />
@@ -94,6 +94,12 @@ watch(() => toolStore.brmInfo.startTime, () => {
     }
     setCurrentStartTime()
 })
+
+const handleMouseEnter = (row: any) => {
+    cuesheetStore.setHighlight(row.id)
+}
+
+
 
 </script>
 

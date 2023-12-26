@@ -94,6 +94,10 @@ const handleMouseEnter = (row) => {
     cuesheetStore.setHighlight(row.id)
 }
 
+const handleMouseLeave = ()=>{
+    // timeout 処理があるので特に何もしない
+}
+
 const onRowClick = (row) => {
     gmapStore.setCenter({lat:row.lat, lng:row.lng})
     gmapStore.setZoom(14)
