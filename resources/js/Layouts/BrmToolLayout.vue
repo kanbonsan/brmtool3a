@@ -13,6 +13,12 @@
             <template #title>編集</template>
             <el-menu-item index="2-1" :disabled="!undo" @click="execUndo">{{ undoText }}</el-menu-item>
         </el-sub-menu>
+        <el-sub-menu index="7">
+            <template #title>キューシート</template>
+            <el-tooltip placement="right" content="キューシートをエクセルファイルに出力します"><el-menu-item index="7-1">出力</el-menu-item></el-tooltip>
+            <el-tooltip placement="right" content="キューシートファイルを現在のルートに適用します"><el-menu-item index="7-2">読み込み</el-menu-item></el-tooltip>
+            
+        </el-sub-menu>
 
         <el-menu-item index="3" @click="openDialog(BrmSetting, 'ブルベ設定')">ブルベ設定</el-menu-item>
         <div style="flex-grow:1" />
