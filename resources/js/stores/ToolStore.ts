@@ -112,6 +112,9 @@ export const useToolStore = defineStore('tool', {
 
                 return { ts, label: `${dd}${hh}:` + `${mm}00`.slice(-2) }
             })
+        },
+        fileNameCandidate(state){
+            return "brmData"
         }
     },
 

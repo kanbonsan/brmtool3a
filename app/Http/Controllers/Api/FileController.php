@@ -230,13 +230,13 @@ class FileController extends Controller
 
 
 
-    // BRM ファイルのダウンロード処理（V1/V2 形式・圧縮/非圧縮 に対応）
+    // BRM ファイルのダウンロード処理（V1/V3 形式・圧縮/非圧縮 に対応）
     // 基本 フロント側で作成した snapshot (json) をそのまま返すだけ（内部構造には関係しない）
     public function download_brmfile(Request $request)
     {
         $version = $request->version;
         $compress = $request->compress;
-        $data = $version === 1 ? self::conv_v2_to_v1_data($request->data) : $request->data;
+        $data = $version === 1 ? self::conv_v3_to_v1_data($request->data) : $request->data;
 
         return $compress === true ? gzencode(json_encode($data, JSON_UNESCAPED_UNICODE)) : $data;
     }
@@ -394,6 +394,116 @@ class FileController extends Controller
 
     // Poi データの変換
     public static function conv_v2_to_v1_poi($poi)
+    {
+        $types = [
+            'cue' => 'point', 'pc' => 'pc', 'pass' => 'pass',
+            'start' => 'start', 'finish' => 'goal'
+        ];
+        $_props = $poi['properties'];
+
+        $_marker = ['lat' => $poi['position']['lat'], 'lng' => $poi['position']['lng']];
+        $_gps_icon = [
+            'name' => str_replace("_", "", $_props['garminDeviceText']),
+            'sym' => '',
+            'symName' => $_props['garminDeviceIcon']
+        ];
+
+        $signal = $_props['signal'] ? $_props['signal'] . ' ' : '';
+        $crossing = $_props['crossing'] ? $_props['crossing'] . ' ' : '';
+
+        return [
+            'idx' => $_props['cueIndex'],
+            'type' => $types[$poi['type']],   // v2 から v1 へテーブルを介して変換
+            'name' => $signal . $crossing . ($_props['name'] ? $_props['name'] : ''),
+            'direction' => $_props['direction'] ? $_props['direction'] : '',
+            'route' => $_props['route'] ? $_props['route'] : '',
+            'cuePointIdx' => $_props['cueIndex'],
+            'pcNo' => false,
+            'gpsIcon' => $_gps_icon,
+            'memo' => $_props['note'] ? $_props['note'] : '',
+            'visible' => $poi['showOnDevice'],
+            'openMin' => false,
+            'closeMin' => false,
+            'marker' => $_marker,
+        ];
+    }
+
+    // BRMTOOL v3 データ → v1 変換
+    // V1 形式でのセーブ用
+
+    /**
+     * Returns
+     * 
+     * 'id' => v2.brmInfo.id
+     * 'brmName' => v2.brmInfo.title
+     * 'brmDisntace' => v2.brmInfo.brmDistance の 'km'抜きのint 200|300|400|600|1000
+     * 'brmDate' =>
+     * 'brmStartTime' => 
+     * 'brmCurrentStartTime' =>
+     * 'encodedPathAlt' =>
+     * 'cueLength' =>
+     * 'points' => 
+     * 'exclude' =>
+     * 
+     */
+    public static function conv_v3_to_v1_data($data)
+    {
+        $v3 = $data;
+
+        $v3_brmInfo = $v3['tool']['brmInfo'];
+        $v3_excluded = $v3['pointProperties']['excluded'];   // 除外区間のポイントインデックスの配列
+        $v3_encodedPath = $v3['route']['encodedPathAlt'];
+        $v3_brmDate_ts = $v3_brmInfo['brmDate'];
+        $v3_points_count = count($v3_exclueded);   // ポイント数
+        $v3_pois = $v3['cuesheet'];
+
+        $v3_pois_list = [];
+        foreach ($v3_pois as $poi) {
+            $v3_pois_list[$poi['attachedPointIndex']] = $poi;
+        }
+        $v2_pois_index_list = array_keys($v2_pois_list);
+
+        $v1_id = $v2_brmInfo['id'];
+        $v1_brmName = $v2_brmInfo['title'];
+        $v1_brmDistance = (int)preg_replace('/km/', '', $v2_brmInfo['brmDistance']);
+        $v1_encodedPathAlt = $v2_encodedPath;
+        $v1_brmDate = date('Y/m/d', $v2_brmDate_ts / 1000);
+        $v1_brmStartTime = $v2_brmInfo['brmStart'];
+        $v1_brmCurrentStartTime = count($v1_brmStartTime) ? $v1_brmStartTime[0] : "";
+        $v1_exclude = self::v2_exclude_to_v1_exclude($v2_excluded);
+
+        $v1_cue_length = count($v2_pois);
+
+        // 各ポイント処理
+        $v1_points = [];
+        for ($i = 0; $i < $v2_points_count; $i++) {
+            $_show = in_array($i, $v2_show_points);
+            $_cue = in_array($i, $v2_pois_index_list) ?
+                self::conv_v3_to_v1_poi($v3_pois_list[$i]) : false;
+            array_push($v1_points, [
+                'show' => $_show,
+                'cue' => $_cue,
+                'info' => false,
+                'distance' => false
+            ]);
+        }
+
+        return [
+            'id' => $v1_id,
+            'brmName' => $v1_brmName,
+            'brmDistance' => $v1_brmDistance,
+            'brmDate' => $v1_brmDate,
+            'brmStartTime' => $v1_brmStartTime,
+            'brmCurrentStartTime' => $v1_brmCurrentStartTime,
+            'encodedPathAlt' => $v1_encodedPathAlt,
+            'cueLength' => $v1_cue_length,
+            'points' => $v1_points,
+            'exclude' => $v1_exclude,
+        ];
+    }
+
+    // Poi データの変換
+    public static function conv_v3_to_v1_poi($poi)
     {
         $types = [
             'cue' => 'point', 'pc' => 'pc', 'pass' => 'pass',

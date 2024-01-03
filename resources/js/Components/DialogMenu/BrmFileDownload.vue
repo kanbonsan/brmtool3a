@@ -17,6 +17,7 @@
 import { ref } from "vue"
 import { useToolStore } from "@/stores/ToolStore"
 import axios from 'axios'
+import fileDownload from 'js-file-download'
 import { ElMessage } from "element-plus"
 
 const props = defineProps(['onClose'])
@@ -24,6 +25,7 @@ const toolStore = useToolStore()
 
 const oldVersion = ref<boolean>(false)
 
+// window.showSaveFilePicker で自在にファイルの保存をしたいところだが、safari など対応がないので保留
 async function getNewFileHandle() {
 
     const fileName = toolStore.fileInfo.brmFileName || ''
@@ -52,13 +54,15 @@ async function getNewFileHandle() {
 }
 
 const onSubmit = async () => {
+
+    console.log("filedownload")
     try {
         const brmData = toolStore.makeBrmData()
-        const handle = await getNewFileHandle()
-        const writable = await handle.createWritable()
+        //const handle = await getNewFileHandle()
+        //const writable = await handle.createWritable()
 
         // ファイルネームを保存
-        toolStore.fileInfo.brmFileName = handle.name
+        //toolStore.fileInfo.brmFileName = handle.name
 
         const response = await axios({
             method: 'post',
@@ -71,8 +75,11 @@ const onSubmit = async () => {
             }
         })
 
-        await writable.write(response.data)
-        await writable.close()
+        // await writable.write(response.data)
+        // await writable.close()
+
+        fileDownload(response.data, "downloadBrm.brz")
+
         ElMessage({ type: 'success', message: 'ファイルを保存しました.' })
     } catch (e: any) {
         ElMessage({ type: 'error', message: 'ファイルの保存に失敗しました.' })
