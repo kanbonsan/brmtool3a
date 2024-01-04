@@ -448,35 +448,45 @@ class FileController extends Controller
      */
     public static function conv_v3_to_v1_data($data)
     {
+        // タイムゾーンを日本時間に決め打ち
+        date_default_timezone_set('Asia/Tokyo');
+
         $v3 = $data;
 
         $v3_brmInfo = $v3['tool']['brmInfo'];
-        $v3_excluded = $v3['pointProperties']['excluded'];   // 除外区間のポイントインデックスの配列
+        $v3_excluded = $v3['route']['pointProperties']['excluded'];   // 除外区間のポイントインデックスの配列
         $v3_encodedPath = $v3['route']['encodedPathAlt'];
         $v3_brmDate_ts = $v3_brmInfo['brmDate'];
-        $v3_points_count = count($v3_exclueded);   // ポイント数
+        $v3_points_count = count($v3_excluded);   // ポイント数
+
         $v3_pois = $v3['cuesheet'];
 
-        $v3_pois_list = [];
-        foreach ($v3_pois as $poi) {
-            $v3_pois_list[$poi['attachedPointIndex']] = $poi;
-        }
-        $v2_pois_index_list = array_keys($v2_pois_list);
+        $v3_pois_index_list = [];
+        array_walk($v3_pois, function($poi,$key)use($v3_pois_index_list){
+            if(array_key_exists('routePointIndex', $poi)){
+                array_push($v3_pois_index_list, $poi['routePointIndex']);
+            }
+        });
 
-        $v1_id = $v2_brmInfo['id'];
-        $v1_brmName = $v2_brmInfo['title'];
-        $v1_brmDistance = (int)preg_replace('/km/', '', $v2_brmInfo['brmDistance']);
-        $v1_encodedPathAlt = $v2_encodedPath;
-        $v1_brmDate = date('Y/m/d', $v2_brmDate_ts / 1000);
-        $v1_brmStartTime = $v2_brmInfo['brmStart'];
+        dd($v3_pois_index_list);
+
+        $v1_id = $v3_brmInfo['id'];
+        $v1_brmName = $v3_brmInfo['description']??"";
+        $v1_brmDistance = (int)preg_replace('/km/', '', $v3_brmInfo['brmDistance']);
+        $v1_encodedPathAlt = $v3_encodedPath;
+        $v1_brmDate = date('Y/m/d', $v3_brmDate_ts / 1000);
+        $v1_brmStartTime = array_map(function($ts){
+            return date('H:i', $ts/1000);
+        },$v3_brmInfo['startTime']);
         $v1_brmCurrentStartTime = count($v1_brmStartTime) ? $v1_brmStartTime[0] : "";
-        $v1_exclude = self::v2_exclude_to_v1_exclude($v2_excluded);
+        $v1_exclude = self::v3_exclude_to_v1_exclude($v3_excluded);
+        $v1_cue_length = count($v3_pois);
 
-        $v1_cue_length = count($v2_pois);
+        dd($v3_pois);
 
         // 各ポイント処理
         $v1_points = [];
-        for ($i = 0; $i < $v2_points_count; $i++) {
+        for ($i = 0; $i < $v3_points_count; $i++) {
             $_show = in_array($i, $v2_show_points);
             $_cue = in_array($i, $v2_pois_index_list) ?
                 self::conv_v3_to_v1_poi($v3_pois_list[$i]) : false;
@@ -582,6 +592,26 @@ class FileController extends Controller
 
         return $v1_exclude;
     }
+    // v3 の除外リストを v1 の除外リストに変換
+    // v3 は 0,1 の羅列 length = ポイント数
+    // v2 形式の配列にして v2→v1 に変換する
+    public static function v3_exclude_to_v1_exclude($arr)
+    {
+        $v2_array = [];
+        $len = count($arr);
+        for ($i = 0; $i < $len; $i++) {
+            if ($arr[$i] === 1) {
+                array_push($v2_array, $i);
+            }
+        }
+        $_v1_array = self::v2_exclude_to_v1_exclude($v2_array);   // 両端を含む場合は begin/end に両端を越えた値が入っていることがありえる
+        $v1_array = array_map(function (array $ex) use ($len) {
+            return ['begin' => max(0, $ex['begin']), 'end' => min($ex['end'], $len - 1)];
+        }, $_v1_array);
+
+        return $v1_array;
+    }
+
 
     public function v1out(Request $request)
     {
