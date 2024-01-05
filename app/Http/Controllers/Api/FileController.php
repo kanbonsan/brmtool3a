@@ -461,35 +461,35 @@ class FileController extends Controller
 
         $v3_pois = $v3['cuesheet'];
 
-        $v3_pois_index_list = [];
-        array_walk($v3_pois, function($poi,$key)use($v3_pois_index_list){
-            if(array_key_exists('routePointIndex', $poi)){
-                array_push($v3_pois_index_list, $poi['routePointIndex']);
+        // routePointIndex と poi を結びつけておく
+        $v3_pois_table = [];
+        array_walk($v3_pois, function ($poi, $key) use (&$v3_pois_table) {
+            if (array_key_exists('routePointIndex', $poi)) {
+                $v3_pois_table[$poi['routePointIndex']] = $poi;
             }
         });
 
-        dd($v3_pois_index_list);
-
         $v1_id = $v3_brmInfo['id'];
-        $v1_brmName = $v3_brmInfo['description']??"";
+        $v1_brmName = $v3_brmInfo['description'] ?? "";
         $v1_brmDistance = (int)preg_replace('/km/', '', $v3_brmInfo['brmDistance']);
         $v1_encodedPathAlt = $v3_encodedPath;
         $v1_brmDate = date('Y/m/d', $v3_brmDate_ts / 1000);
-        $v1_brmStartTime = array_map(function($ts){
-            return date('H:i', $ts/1000);
-        },$v3_brmInfo['startTime']);
+        $v1_brmStartTime = array_map(function ($ts) {
+            return date('H:i', $ts / 1000);
+        }, $v3_brmInfo['startTime']);
         $v1_brmCurrentStartTime = count($v1_brmStartTime) ? $v1_brmStartTime[0] : "";
         $v1_exclude = self::v3_exclude_to_v1_exclude($v3_excluded);
         $v1_cue_length = count($v3_pois);
 
-        dd($v3_pois);
-
         // 各ポイント処理
         $v1_points = [];
         for ($i = 0; $i < $v3_points_count; $i++) {
-            $_show = in_array($i, $v2_show_points);
-            $_cue = in_array($i, $v2_pois_index_list) ?
-                self::conv_v3_to_v1_poi($v3_pois_list[$i]) : false;
+            $_show = false;
+            $_cue = false;
+            if (array_key_exists($i, $v3_pois_table)) {
+                $_show = true;
+                $_cue = self::conv_v3_to_v1_poi($v3_pois_table[$i]);
+            }
             array_push($v1_points, [
                 'show' => $_show,
                 'cue' => $_cue,
